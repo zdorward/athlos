@@ -1,6 +1,7 @@
 {
   "name": "athloryx",
   "version": "0.0.1",
+  "description": "Adaptive training system for hybrid athletes",
   "private": true,
   "scripts": {
     "build": "turbo build",

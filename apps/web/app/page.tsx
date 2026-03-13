@@ -1,19 +1,37 @@
-import { Button } from "@workspace/ui/components/button"
+"use client"
+
+import {
+  DemoProvider,
+  HeroSection,
+  WorkoutCard,
+  WeeklyPlan,
+  ProgressMetrics,
+  HowItWorks,
+  CTASection,
+} from "@/components/landing"
 
 export default function Page() {
   return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
+    <DemoProvider>
+      <main className="flex min-h-svh flex-col items-center gap-16 px-4 py-16 sm:px-6 lg:px-8">
+        <HeroSection />
+
+        <div className="flex w-full max-w-4xl flex-col items-center gap-12">
+          <WorkoutCard />
+          <WeeklyPlan />
+          <ProgressMetrics />
         </div>
-        <div className="text-muted-foreground font-mono text-xs">
+
+        <div className="w-full max-w-3xl">
+          <HowItWorks />
+        </div>
+
+        <CTASection />
+
+        <footer className="text-xs text-muted-foreground">
           (Press <kbd>d</kbd> to toggle dark mode)
-        </div>
-      </div>
-    </div>
+        </footer>
+      </main>
+    </DemoProvider>
   )
 }

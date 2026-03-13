@@ -1,6 +1,7 @@
 {
   "name": "web",
   "version": "0.0.1",
+  "description": "Athloryx web application - adaptive training for hybrid athletes",
   "type": "module",
   "private": true,
   "scripts": {
@@ -13,6 +14,7 @@
   },
   "dependencies": {
     "@workspace/ui": "workspace:*",
+    "framer-motion": "^12.36.0",
     "lucide-react": "^0.577.0",
     "next": "16.1.6",
     "next-themes": "^0.4.6",

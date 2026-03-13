@@ -1,21 +1,24 @@
-# shadcn/ui monorepo template
+# Athloryx
 
-This is a Next.js monorepo template with shadcn/ui.
+An adaptive training system for hybrid athletes. The platform intelligently adjusts training programs based on athlete performance, recovery, and goals across multiple disciplines.
 
-## Adding components
+## Adding Components
 
-To add components to your app, run the following command at the root of your `web` app:
-
+**shadcn/ui components:**
 ```bash
-pnpm dlx shadcn@latest add button -c apps/web
+pnpm dlx shadcn@latest add <component> -c apps/web
 ```
 
-This will place the ui components in the `packages/ui/src/components` directory.
+**Magic UI components** (animated/interactive):
+```bash
+pnpm dlx shadcn@latest add "https://magicui.design/r/<component>" -c apps/web
+```
 
-## Using components
+Components are placed in `packages/ui/src/components`.
 
-To use the components in your app, import them from the `ui` package.
+## Using Components
 
 ```tsx
 import { Button } from "@workspace/ui/components/button";
+import { ShimmerButton } from "@workspace/ui/components/shimmer-button";
 ```

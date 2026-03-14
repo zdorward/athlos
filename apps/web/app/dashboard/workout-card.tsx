@@ -49,9 +49,7 @@ export function WorkoutCard({ state, dateISO, units, variant }: WorkoutCardProps
         <p className="text-xs font-semibold uppercase tracking-wider text-subtle-foreground">
           Rest Day
         </p>
-        {isHero && (
-          <p className="mt-1 text-sm text-muted-foreground">Recovery is part of training.</p>
-        )}
+        <p className="mt-1 text-sm text-muted-foreground">Recovery is part of training.</p>
       </div>
     )
   }
@@ -63,6 +61,7 @@ export function WorkoutCard({ state, dateISO, units, variant }: WorkoutCardProps
 
   return (
     <div className={`rounded-xl border border-border bg-card p-4 ${isHero ? "" : "opacity-60"}`}>
+      <p className="text-xs text-muted-foreground mb-2">{dateLabel}</p>
       <div className="flex items-center justify-between gap-2">
         <span
           className={`text-xs font-semibold uppercase tracking-wider ${textClass}`}
@@ -79,11 +78,9 @@ export function WorkoutCard({ state, dateISO, units, variant }: WorkoutCardProps
           </span>
         )}
       </div>
-      {isHero && (
-        <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-          {entry.description}
-        </p>
-      )}
+      <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+        {entry.description}
+      </p>
     </div>
   )
 }

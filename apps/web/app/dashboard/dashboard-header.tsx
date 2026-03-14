@@ -1,6 +1,5 @@
 "use client"
 
-import { useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
 import {
   DropdownMenu,
@@ -25,14 +24,9 @@ function getInitials(name: string | null | undefined, email: string): string {
 }
 
 export function DashboardHeader({ name, email, image }: DashboardHeaderProps) {
-  const router = useRouter()
-
   async function handleSignOut() {
-    try {
-      await authClient.signOut()
-    } finally {
-      router.replace("/")
-    }
+    await authClient.signOut()
+    window.location.href = "/"
   }
 
   const initials = getInitials(name, email)

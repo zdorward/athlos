@@ -1,14 +1,14 @@
-import { ClaudeProvider } from "./providers/claude.js"
-import type { AIProvider } from "./provider.js"
+import { ClaudeProvider } from "./providers/claude"
+import type { AIProvider } from "./provider"
 
-export { type AIProvider } from "./provider.js"
+export { type AIProvider } from "./provider"
 export {
   type WorkoutDay,
   type WorkoutType,
   type TrainingPlan,
   type TrainingPlanMeta,
   type PlanGenerationInput,
-} from "./types.js"
+} from "./types"
 
 const _provider: AIProvider = new ClaudeProvider()
 

@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk"
-import type { AIProvider } from "../provider.js"
-import type { PlanGenerationInput } from "../types.js"
-import { buildPrompt } from "../prompt.js"
+import type { AIProvider } from "../provider"
+import type { PlanGenerationInput } from "../types"
+import { buildPrompt } from "../prompt"
 
 export class ClaudeProvider implements AIProvider {
   private client = new Anthropic()

@@ -1,4 +1,4 @@
-import type { PlanGenerationInput } from "./types.js"
+import type { PlanGenerationInput } from "./types"
 
 const SYSTEM_PROMPT = `You are an expert running coach who creates personalized training plans. You generate plans for athletes ranging from complete beginners to competitive runners targeting specific time goals.
 

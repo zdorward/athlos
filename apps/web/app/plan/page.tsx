@@ -27,25 +27,22 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
   const units = raw["units"] as "km" | "miles" | undefined
 
   if (!goal || !selectedDays?.length || !longRunDay || !units) return null
-  if (goal !== "race" && goal !== "aerobic_base") return null
+  if (goal !== "race" || !raw["race"]) return null
 
+  const race = raw["race"] as Record<string, unknown>
   const input: PlanGenerationInput = {
-    goal,
+    goal: "race",
+    race: {
+      name: String(race["name"] ?? ""),
+      date: String(race["date"] ?? ""),
+      distance: race["distance"] as "5k" | "10k" | "half" | "full" | "ultra",
+      city: String(race["city"] ?? ""),
+    },
     selectedDays,
     longRunDay,
     units,
     strengthTraining: Boolean(raw["strengthTraining"]),
     strengthDays: raw["strengthDays"] as string[] | undefined,
-  }
-
-  if (goal === "race" && raw["race"]) {
-    const race = raw["race"] as Record<string, unknown>
-    input.race = {
-      name: String(race["name"] ?? ""),
-      date: String(race["date"] ?? ""),
-      distance: race["distance"] as "5k" | "10k" | "half" | "full" | "ultra",
-      city: String(race["city"] ?? ""),
-    }
   }
 
   if (raw["timeGoal"] === true && raw["goalTime"]) {

@@ -32,8 +32,8 @@ export interface TrainingPlan {
 }
 
 export interface PlanGenerationInput {
-  goal: "race" | "aerobic_base"
-  race?: {
+  goal: "race"
+  race: {
     name: string
     date: string  // ISO string
     distance: "5k" | "10k" | "half" | "full" | "ultra"

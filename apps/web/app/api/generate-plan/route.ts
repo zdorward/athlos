@@ -27,8 +27,7 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  const validGoals = ["race", "aerobic_base"] as const
-  if (!validGoals.includes(input.goal as typeof validGoals[number])) {
+  if (input.goal !== "race") {
     return new Response(JSON.stringify({ error: "Invalid goal value" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },

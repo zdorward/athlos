@@ -3,6 +3,15 @@
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 import { formatDistance, distanceUnit } from "./workout-utils"
+import { SavePlanButton } from "./save-plan-button"
+
+interface SaveProps {
+  status: "generating" | "complete" | "error"
+  isSaving: boolean
+  isSaved: boolean
+  saveError: boolean
+  onSave: () => void
+}
 
 interface PlanHeaderProps {
   planName: string
@@ -11,7 +20,8 @@ interface PlanHeaderProps {
   units: "km" | "miles"
   status: "generating" | "complete" | "error"
   generatingWeek?: number
-  goalTimeLabel?: string  // e.g. "3:30" — optional, only for race+timeGoal
+  goalTimeLabel?: string
+  saveProps?: SaveProps
 }
 
 export function PlanHeader({
@@ -22,6 +32,7 @@ export function PlanHeader({
   status,
   generatingWeek,
   goalTimeLabel,
+  saveProps,
 }: PlanHeaderProps) {
   const totalDisplay = formatDistance(totalKm, units)
   const unit = distanceUnit(units)
@@ -38,11 +49,22 @@ export function PlanHeader({
           Back
         </Link>
 
-        {goalTimeLabel && (
-          <span className="rounded-sm border border-primary/20 bg-primary/12 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
-            Goal {goalTimeLabel}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {goalTimeLabel && (
+            <span className="rounded-sm border border-primary/20 bg-primary/12 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
+              Goal {goalTimeLabel}
+            </span>
+          )}
+          {saveProps && (
+            <SavePlanButton
+              status={saveProps.status}
+              isSaving={saveProps.isSaving}
+              isSaved={saveProps.isSaved}
+              saveError={saveProps.saveError}
+              onSave={saveProps.onSave}
+            />
+          )}
+        </div>
       </div>
 
       {/* Plan info row */}

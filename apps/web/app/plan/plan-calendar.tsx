@@ -5,6 +5,7 @@ import { format, parseISO } from "date-fns"
 import { Star } from "lucide-react"
 import type { WorkoutDay } from "@workspace/ai"
 import { PlanDayDetail } from "./plan-day-detail"
+import { SavePlanButton } from "./save-plan-button"
 import {
   groupDaysByWeek,
   getPhaseLabel,
@@ -18,14 +19,23 @@ import {
 
 const DAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
+interface SaveProps {
+  status: "generating" | "complete" | "error"
+  isSaving: boolean
+  isSaved: boolean
+  saveError: boolean
+  onSave: () => void
+}
+
 interface PlanCalendarProps {
   days: WorkoutDay[]
   units: "km" | "miles"
   totalWeeks: number
   raceDistance?: "5k" | "10k" | "half" | "full" | "ultra"
+  saveProps?: SaveProps
 }
 
-export function PlanCalendar({ days, units, totalWeeks, raceDistance }: PlanCalendarProps) {
+export function PlanCalendar({ days, units, totalWeeks, raceDistance, saveProps }: PlanCalendarProps) {
   const [selectedDay, setSelectedDay] = useState<WorkoutDay | null>(null)
   const weeks = groupDaysByWeek(days)
   const taperWeeks = getTaperWeeks(raceDistance)
@@ -153,6 +163,17 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance }: PlanCale
             </div>
           )
         })}
+        {saveProps && (
+          <div className="pt-4 pb-4">
+            <SavePlanButton
+              status={saveProps.status}
+              isSaving={saveProps.isSaving}
+              isSaved={saveProps.isSaved}
+              saveError={saveProps.saveError}
+              onSave={saveProps.onSave}
+            />
+          </div>
+        )}
       </div>
 
       {/* Detail side panel */}

@@ -1,5 +1,7 @@
 "use client"
 
+import { useState } from "react"
+import { User } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
 import {
   DropdownMenu,
@@ -16,20 +18,15 @@ interface DashboardHeaderProps {
   image: string | null | undefined
 }
 
-function getInitials(name: string | null | undefined, email: string): string {
-  if (!name?.trim()) return (email[0] ?? "?").toUpperCase()
-  const parts = name.trim().split(/\s+/)
-  if (parts.length === 1) return (parts[0]![0] ?? "").toUpperCase()
-  return ((parts[0]![0] ?? "") + (parts[parts.length - 1]![0] ?? "")).toUpperCase()
-}
-
 export function DashboardHeader({ name, email, image }: DashboardHeaderProps) {
+  const [imgError, setImgError] = useState(false)
+
   async function handleSignOut() {
     await authClient.signOut()
     window.location.href = "/"
   }
 
-  const initials = getInitials(name, email)
+  const showImage = image && !imgError
 
   return (
     <header className="border-b border-border">
@@ -38,11 +35,17 @@ export function DashboardHeader({ name, email, image }: DashboardHeaderProps) {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex h-8 w-8 items-center justify-center rounded-full overflow-hidden bg-muted text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer">
-              {image ? (
-                <img src={image} alt={name ?? email} className="h-full w-full object-cover" />
+            <button className="flex h-8 w-8 items-center justify-center rounded-full overflow-hidden bg-muted text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer">
+              {showImage ? (
+                <img
+                  src={image}
+                  alt={name ?? email}
+                  className="h-full w-full object-cover"
+                  onError={() => setImgError(true)}
+                  referrerPolicy="no-referrer"
+                />
               ) : (
-                <span>{initials}</span>
+                <User className="h-4 w-4" />
               )}
             </button>
           </DropdownMenuTrigger>

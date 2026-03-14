@@ -1,6 +1,6 @@
 "use client"
 
-import { format } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { Star } from "lucide-react"
 import type { WorkoutDay } from "@workspace/ai"
 import {
@@ -43,7 +43,7 @@ export function PlanDayDetail({ day, units, onClose }: PlanDayDetailProps) {
 
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-subtle-foreground mb-1">
-          {format(new Date(day.date), "EEEE, MMM d, yyyy")}
+          {format(parseISO(day.date), "EEEE, MMM d, yyyy")}
         </p>
         <h2 className="flex items-center gap-2 text-xl font-semibold">
           {day.type === "race" && <Star className="h-5 w-5 fill-primary text-primary" />}

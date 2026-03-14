@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { format } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { Star } from "lucide-react"
 import type { WorkoutDay } from "@workspace/ai"
 import { PlanDayDetail } from "./plan-day-detail"
@@ -65,7 +65,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance }: PlanCale
           // Build a map of day-of-week → WorkoutDay for this week
           const dayMap: Record<string, WorkoutDay> = {}
           for (const day of weekDays) {
-            const dow = format(new Date(day.date), "EEE") // "Mon", "Tue", etc.
+            const dow = format(parseISO(day.date), "EEE") // "Mon", "Tue", etc.
             dayMap[dow] = day
           }
 
@@ -122,7 +122,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance }: PlanCale
                     ].join(" ")}
                   >
                     <p className="text-[10px] text-subtle-foreground mb-1">
-                      {format(new Date(day.date), "d")}
+                      {format(parseISO(day.date), "d")}
                     </p>
 
                     {isRace && (

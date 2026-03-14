@@ -53,11 +53,34 @@ export async function PATCH(
     return Response.json({ error: "Not found" }, { status: 404 })
   }
 
-  const body = (await req.json()) as { date?: string; type?: WorkoutType; completed?: boolean }
-  if (body.date === undefined || body.type === undefined || body.completed === undefined) {
+  type FieldUpdate = {
+    type?: WorkoutType
+    distanceKm?: number | null
+    description?: string
+    targetHR?: string
+    targetPace?: string
+  }
+  const body = (await req.json()) as {
+    date?: string
+    type?: WorkoutType
+    completed?: boolean
+    update?: FieldUpdate
+  }
+
+  const isFieldUpdate = body.update !== undefined
+  const isCompletionToggle = !isFieldUpdate && body.completed !== undefined
+
+  if (!isFieldUpdate && !isCompletionToggle) {
     return Response.json({ error: "Bad request" }, { status: 400 })
   }
-  const { date, type, completed } = body
+
+  if (isCompletionToggle && (body.date === undefined || body.type === undefined)) {
+    return Response.json({ error: "Bad request" }, { status: 400 })
+  }
+
+  if (isFieldUpdate && (body.date === undefined || body.type === undefined)) {
+    return Response.json({ error: "Bad request" }, { status: 400 })
+  }
 
   try {
     const [plan] = await db
@@ -71,12 +94,28 @@ export async function PATCH(
     }
 
     const days = plan.days as WorkoutDay[]
-    const entry = days.find((d) => d.date === date && d.type === type)
+    const entry = days.find((d) => d.date === body.date && d.type === body.type)
     if (!entry) {
       return Response.json({ error: "Not found" }, { status: 404 })
     }
 
-    entry.completed = completed
+    if (isFieldUpdate) {
+      const update = body.update!
+      if (update.type !== undefined) entry.type = update.type
+      if (update.description !== undefined) entry.description = update.description
+      if (update.targetHR !== undefined) entry.targetHR = update.targetHR
+      if (update.targetPace !== undefined) entry.targetPace = update.targetPace
+      if ("distanceKm" in update) {
+        if (update.distanceKm === null) {
+          delete entry.distanceKm
+        } else if (update.distanceKm !== undefined) {
+          entry.distanceKm = update.distanceKm
+        }
+      }
+    } else {
+      entry.completed = body.completed
+    }
+
     await db
       .update(plans)
       .set({ days })

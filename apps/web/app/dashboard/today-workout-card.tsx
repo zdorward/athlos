@@ -53,7 +53,7 @@ export function TodayWorkoutCard({ entry, units, onComplete, onLogEffort, varian
             </p>
             {entry.effort && (
               <p className="text-xs text-green-600/60 dark:text-green-500/60 mt-0.5">
-                {EFFORT_OPTIONS.find((o) => o.value === entry.effort)?.emoji}{" "}
+                <span aria-hidden="true">{EFFORT_OPTIONS.find((o) => o.value === entry.effort)?.emoji}</span>{" "}
                 {EFFORT_OPTIONS.find((o) => o.value === entry.effort)?.label}
               </p>
             )}
@@ -73,7 +73,7 @@ export function TodayWorkoutCard({ entry, units, onComplete, onLogEffort, varian
                   onClick={() => onLogEffort(opt.value)}
                   className="flex flex-col items-center gap-1 rounded-lg border border-green-500/20 bg-white/50 dark:bg-white/5 px-2 py-2 text-center hover:bg-green-500/10 transition-colors cursor-pointer"
                 >
-                  <span className="text-xl leading-none">{opt.emoji}</span>
+                  <span className="text-xl leading-none" aria-hidden="true">{opt.emoji}</span>
                   <span className="text-[11px] font-semibold text-green-700 dark:text-green-400">
                     {opt.label}
                   </span>

@@ -169,6 +169,8 @@ export default function DashboardPage() {
   // Today's entries
   const todayEntries = getEntriesForDate(resolvedPlan.days, todayISO)
   const todayWorkouts = todayEntries.filter((e) => e.type !== "rest")
+  // Gap days (no entries at all) are treated the same as rest days —
+  // the plan generator assigns every day an entry, so this is a defensive fallback.
   const isRestDay = todayWorkouts.length === 0
   const allTodayComplete = todayWorkouts.length > 0 && todayWorkouts.every((e) => e.completed === true)
   const isBeforePlanStart = firstDayISO !== null && todayISO < firstDayISO

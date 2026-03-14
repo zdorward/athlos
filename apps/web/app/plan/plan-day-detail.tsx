@@ -12,6 +12,16 @@ import {
   distanceUnit,
 } from "./workout-utils"
 
+const KM_TO_MILES = 0.621371
+
+type EditForm = {
+  type: WorkoutType
+  distanceDisplay: string  // numeric string in display units, "" if empty
+  description: string
+  targetHR: string
+  targetPace: string
+}
+
 interface PlanDayDetailProps {
   day: WorkoutDay | null
   units: "km" | "miles"
@@ -31,16 +41,6 @@ interface PlanDayDetailProps {
 }
 
 export function PlanDayDetail({ day, units, onClose, onToggleComplete, onSaveEdit }: PlanDayDetailProps) {
-  const KM_TO_MILES = 0.621371
-
-  type EditForm = {
-    type: WorkoutType
-    distanceDisplay: string  // numeric string in display units, "" if empty
-    description: string
-    targetHR: string
-    targetPace: string
-  }
-
   const [isEditing, setIsEditing] = useState(false)
   const [formState, setFormState] = useState<EditForm>({
     type: "easy",
@@ -65,6 +65,10 @@ export function PlanDayDetail({ day, units, onClose, onToggleComplete, onSaveEdi
       })
     }
   }, [isEditing]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!day) setIsEditing(false)
+  }, [day])
 
   if (!day) {
     return (

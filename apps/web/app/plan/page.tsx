@@ -161,7 +161,14 @@ export default function PlanPage() {
                     (7 * 24 * 60 * 60 * 1000)
                 ) + 1
               setGeneratingWeek(weekNum)
-              setPlan((p) => ({ ...p, days: [...(p.days ?? []), day] }))
+              setPlan((p) => {
+                const existing = p.days ?? []
+                const idx = existing.findIndex((d) => d.date === day.date)
+                const days = idx >= 0
+                  ? existing.map((d, i) => (i === idx ? day : d))
+                  : [...existing, day]
+                return { ...p, days }
+              })
             }
           } catch {
             // skip malformed lines

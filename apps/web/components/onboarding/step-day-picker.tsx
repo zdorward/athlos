@@ -14,10 +14,16 @@ interface StepDayPickerProps {
 export function StepDayPicker({ title, initialDays, onNext }: StepDayPickerProps) {
   const [selected, setSelected] = useState<Day[]>(initialDays)
 
+  const allSelected = selected.length === ORDERED_DAYS.length
+
   function toggle(day: Day) {
     setSelected((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
     )
+  }
+
+  function toggleAll() {
+    setSelected(allSelected ? [] : [...ORDERED_DAYS])
   }
 
   return (
@@ -36,11 +42,19 @@ export function StepDayPicker({ title, initialDays, onNext }: StepDayPickerProps
         ))}
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        {selected.length === 0
-          ? "Select at least one day"
-          : `${selected.length} day${selected.length === 1 ? "" : "s"} selected`}
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {selected.length === 0
+            ? "Select at least one day"
+            : `${selected.length} day${selected.length === 1 ? "" : "s"} selected`}
+        </p>
+        <button
+          onClick={toggleAll}
+          className="text-sm text-primary hover:text-primary/80 transition-colors cursor-pointer"
+        >
+          {allSelected ? "Deselect all" : "Select all"}
+        </button>
+      </div>
 
       <Button
         onClick={() => onNext(selected)}

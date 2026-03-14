@@ -12,8 +12,24 @@ export async function POST(req: NextRequest) {
     })
   }
 
+  // Ensure parsed body is a plain object
+  if (typeof input !== "object" || input === null || Array.isArray(input)) {
+    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    })
+  }
+
   if (!input.goal || !input.selectedDays?.length || !input.longRunDay || !input.units) {
     return new Response(JSON.stringify({ error: "Missing required fields" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    })
+  }
+
+  const validGoals = ["race", "aerobic_base"] as const
+  if (!validGoals.includes(input.goal as typeof validGoals[number])) {
+    return new Response(JSON.stringify({ error: "Invalid goal value" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     })

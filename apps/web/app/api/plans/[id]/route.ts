@@ -3,6 +3,8 @@ import { eq, and } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { db, plans } from "@workspace/db"
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -14,15 +16,23 @@ export async function GET(
 
   const { id } = await params
 
-  const [plan] = await db
-    .select()
-    .from(plans)
-    .where(and(eq(plans.id, id), eq(plans.userId, session.user.id)))
-    .limit(1)
-
-  if (!plan) {
+  if (!UUID_RE.test(id)) {
     return Response.json({ error: "Not found" }, { status: 404 })
   }
 
-  return Response.json({ plan })
+  try {
+    const [plan] = await db
+      .select()
+      .from(plans)
+      .where(and(eq(plans.id, id), eq(plans.userId, session.user.id)))
+      .limit(1)
+
+    if (!plan) {
+      return Response.json({ error: "Not found" }, { status: 404 })
+    }
+
+    return Response.json({ plan })
+  } catch {
+    return Response.json({ error: "Internal server error" }, { status: 500 })
+  }
 }

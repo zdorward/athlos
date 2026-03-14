@@ -9,11 +9,12 @@ import { authClient } from "@/lib/auth-client"
 interface SignInSheetProps {
   onBeforeSignIn: () => void
   onClose: () => void
+  callbackURL?: string
 }
 
 type SheetState = "options" | "email" | "sent" | "error"
 
-export function SignInSheet({ onBeforeSignIn, onClose }: SignInSheetProps) {
+export function SignInSheet({ onBeforeSignIn, onClose, callbackURL = "/plan" }: SignInSheetProps) {
   const [sheetState, setSheetState] = useState<SheetState>("options")
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
@@ -21,7 +22,7 @@ export function SignInSheet({ onBeforeSignIn, onClose }: SignInSheetProps) {
 
   async function handleGoogle() {
     onBeforeSignIn()
-    await authClient.signIn.social({ provider: "google", callbackURL: "/plan" })
+    await authClient.signIn.social({ provider: "google", callbackURL })
   }
 
   async function handleMagicLink() {
@@ -30,7 +31,7 @@ export function SignInSheet({ onBeforeSignIn, onClose }: SignInSheetProps) {
     setLoading(true)
     const { error } = await authClient.signIn.magicLink({
       email,
-      callbackURL: "/plan",
+      callbackURL,
     })
     setLoading(false)
     if (error) {

@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow"
+import { SignInSheet } from "@/app/plan/sign-in-sheet"
 import { Button } from "@workspace/ui/components/button"
 
 export default function Page() {
   const router = useRouter()
   const { data: sessionData, isPending } = authClient.useSession()
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [showSignIn, setShowSignIn] = useState(false)
 
   useEffect(() => {
     if (!isPending && sessionData?.session) {
@@ -40,10 +42,22 @@ export default function Page() {
       <div className="text-center space-y-6">
         <h1 className="text-4xl font-bold tracking-tight">Athloryx</h1>
         <p className="text-muted-foreground">Your adaptive training plan, built around you.</p>
-        <Button size="lg" onClick={() => setShowOnboarding(true)}>
-          Create a Plan
-        </Button>
+        <div className="flex items-center justify-center gap-3">
+          <Button size="lg" onClick={() => setShowOnboarding(true)}>
+            Create a Plan
+          </Button>
+          <Button size="lg" variant="outline" onClick={() => setShowSignIn(true)}>
+            Log in
+          </Button>
+        </div>
       </div>
+      {showSignIn && (
+        <SignInSheet
+          onBeforeSignIn={() => {}}
+          onClose={() => setShowSignIn(false)}
+          callbackURL="/dashboard"
+        />
+      )}
     </main>
   )
 }

@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
       "X-Accel-Buffering": "no",
+      "Cache-Control": "no-cache",
     },
   })
 }

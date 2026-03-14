@@ -120,7 +120,9 @@ export default function PlanPage() {
         }
 
         if (done) {
-          if (totalWeeksRef.current === 0 || dayCountRef.current < totalWeeksRef.current * 7) {
+          // Check meta was received and at least some days arrived.
+          // We avoid a strict totalWeeks*7 check because race plans can end mid-week.
+          if (totalWeeksRef.current === 0 || dayCountRef.current === 0) {
             setStatus("error")
           } else {
             setStatus("complete")
@@ -137,7 +139,10 @@ export default function PlanPage() {
           try {
             const parsed = JSON.parse(line) as Record<string, unknown>
 
-            if (parsed["_meta"] === true) {
+            if ("error" in parsed) {
+              setStatus("error")
+              break
+            } else if (parsed["_meta"] === true) {
               const tw = Number(parsed["totalWeeks"] ?? 0)
               totalWeeksRef.current = tw
               setPlan((p) => ({

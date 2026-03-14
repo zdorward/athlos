@@ -1,4 +1,4 @@
-export type Goal = "race" | "aerobic_base"
+export type Goal = "race"
 export type Day = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun"
 export type Distance = "5k" | "10k" | "half" | "full" | "ultra"
 export type Units = "km" | "miles"
@@ -40,6 +40,7 @@ export interface OnboardingData {
   units?: Units
   strengthTraining?: boolean
   strengthDays?: Day[]
+  manualRaceEntry?: boolean
 }
 
 export interface StepProps {
@@ -48,10 +49,16 @@ export interface StepProps {
   onBack: () => void
 }
 
-export function getSteps(goal?: Goal, timeGoal?: boolean, strengthTraining?: boolean): readonly string[] {
-  const raceSteps = ["goal", "findRace", "timeGoal", ...(timeGoal === true ? ["goalTime"] : []), "whichDays", "longRunDay", "units", "strength"]
-  const aerobicSteps = ["goal", "whichDays", "longRunDay", "units", "strength"]
-  const base = goal === "race" ? raceSteps : aerobicSteps
+export function getSteps(timeGoal?: boolean, strengthTraining?: boolean, hasRace?: boolean): readonly string[] {
+  const base = [
+    ...(hasRace ? [] : ["findRace"]),
+    "timeGoal",
+    ...(timeGoal === true ? ["goalTime"] : []),
+    "whichDays",
+    "longRunDay",
+    "units",
+    "strength",
+  ]
   if (strengthTraining === true) return [...base, "strengthDays"]
   return base
 }

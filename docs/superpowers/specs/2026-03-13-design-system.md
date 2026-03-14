@@ -95,8 +95,8 @@ Set `--radius: 0.5rem` (8px) in both `:root` and `.dark`. The existing calculate
 | Tailwind class | Computed value | Used for |
 |---|---|---|
 | `rounded-[2px]` | 2px (arbitrary) | Progress bars, thin dividers |
-| `rounded-sm` | 4.8px | Tags, badges, chips |
-| `rounded-md` | 6.4px | Buttons, inputs, selects |
+| `rounded-sm` | 3px | Tags, badges, chips |
+| `rounded-md` | 4px | Buttons, inputs, selects |
 | `rounded-lg` | 8px | Cards, containers |
 
 > Current value is `0.625rem` (10px). Changing to `0.5rem` reduces all `rounded-*` classes proportionally. No component class names change — only the pixel output changes.
@@ -147,7 +147,7 @@ bg-transparent border border-border text-muted-foreground rounded-md
 hover:bg-muted hover:text-foreground
 ```
 
-> This is a change from the current ghost CVA variant which has no border. The developer should update the `ghost` variant in `packages/ui/src/components/button.tsx` — or use the existing `outline` variant which already has a border if it otherwise matches.
+> This is a change from the current ghost CVA variant which has no border. Update the `ghost` variant in `packages/ui/src/components/button.tsx` to add `border border-border`. Do not use the existing `outline` variant as a substitute — it includes `bg-background` rather than `bg-transparent`, which produces a different visual result.
 
 ### Tags / Badges
 
@@ -159,7 +159,7 @@ text-[10px] font-semibold tracking-[0.1em] uppercase rounded-sm px-2.5 py-1
 
 Neutral (metadata):
 ```
-bg-white/4 border border-border text-muted-foreground
+bg-foreground/4 border border-border text-muted-foreground
 text-[10px] font-semibold tracking-[0.1em] uppercase rounded-sm px-2.5 py-1
 ```
 

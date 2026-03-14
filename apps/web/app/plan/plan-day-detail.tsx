@@ -77,24 +77,33 @@ export function PlanDayDetail({ day, units, onClose, onToggleComplete }: PlanDay
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-subtle-foreground mb-2">
           Target HR Zone
         </p>
-        <p className="text-sm text-subtle-foreground">—</p>
+        <p className="text-sm text-subtle-foreground">{day.targetHR ?? "—"}</p>
       </div>
 
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-subtle-foreground mb-2">
           Target Pace
         </p>
-        <p className="text-sm text-subtle-foreground">—</p>
+        <p className="text-sm text-subtle-foreground">{day.targetPace ?? "—"}</p>
       </div>
 
       {day.type !== "rest" && onToggleComplete && (
-        <button
-          onClick={() => onToggleComplete(day.date, day.type, !day.completed)}
-          className="flex items-center gap-1.5 text-sm font-semibold text-green-600 hover:text-green-500 transition-colors"
-        >
-          <Check className="h-4 w-4" />
-          {day.completed ? "Mark as incomplete" : "Mark as complete"}
-        </button>
+        day.completed ? (
+          <button
+            onClick={() => onToggleComplete(day.date, day.type, false)}
+            className="flex items-center gap-1.5 text-sm font-semibold text-green-600 hover:opacity-50 transition-opacity cursor-pointer"
+          >
+            <Check className="h-4 w-4" />
+            Completed
+          </button>
+        ) : (
+          <button
+            onClick={() => onToggleComplete(day.date, day.type, true)}
+            className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          >
+            Mark as complete
+          </button>
+        )
       )}
     </div>
   )

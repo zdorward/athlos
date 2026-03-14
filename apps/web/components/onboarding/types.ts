@@ -1,7 +1,6 @@
 export type Goal = "race"
 export type Day = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun"
 export type Distance = "5k" | "10k" | "half" | "full" | "ultra"
-export type Units = "km" | "miles"
 
 export const DISTANCE_LABELS: Record<Distance, string> = {
   "5k":    "5K",
@@ -37,28 +36,14 @@ export interface OnboardingData {
   goalTime?: { hours: number; minutes: number }
   selectedDays?: Day[]
   longRunDay?: Day
-  units?: Units
-  strengthTraining?: boolean
   strengthDays?: Day[]
-  manualRaceEntry?: boolean
 }
 
 export interface StepProps {
   formData: OnboardingData
   onNext: (data: Partial<OnboardingData>) => void
-  onBack: () => void
 }
 
-export function getSteps(timeGoal?: boolean, strengthTraining?: boolean, hasRace?: boolean): readonly string[] {
-  const base = [
-    ...(hasRace ? [] : ["findRace"]),
-    "timeGoal",
-    ...(timeGoal === true ? ["goalTime"] : []),
-    "whichDays",
-    "longRunDay",
-    "units",
-    "strength",
-  ]
-  if (strengthTraining === true) return [...base, "strengthDays"]
-  return base
+export function getSteps(): readonly string[] {
+  return ["goalTime", "whichDays", "strengthDays"]
 }

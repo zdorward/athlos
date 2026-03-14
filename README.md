@@ -1,4 +1,4 @@
-# Athloryx
+# Athlos
 
 An adaptive training system for hybrid athletes. The platform intelligently adjusts training programs based on athlete performance, recovery, and goals across multiple disciplines.
 

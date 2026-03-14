@@ -3,6 +3,8 @@
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 import { formatDistance, distanceUnit } from "./workout-utils"
+import { SavePlanButton, type SaveProps } from "./save-plan-button"
+
 interface PlanHeaderProps {
   planName: string
   totalWeeks: number
@@ -12,6 +14,8 @@ interface PlanHeaderProps {
   generatingWeek?: number
   goalTimeLabel?: string
   backHref?: string
+  saveProps?: SaveProps
+  onNewPlan?: () => void
 }
 
 export function PlanHeader({
@@ -23,9 +27,17 @@ export function PlanHeader({
   generatingWeek,
   goalTimeLabel,
   backHref = "/",
+  saveProps,
+  onNewPlan,
 }: PlanHeaderProps) {
   const totalDisplay = formatDistance(totalKm, units)
   const unit = distanceUnit(units)
+
+  const metaParts = [
+    totalWeeks > 0 ? `${totalWeeks} weeks` : null,
+    totalKm > 0 ? `${totalDisplay} ${unit}` : null,
+    goalTimeLabel ? `Goal ${goalTimeLabel}` : null,
+  ].filter(Boolean)
 
   return (
     <div className="border-b border-border">
@@ -39,53 +51,41 @@ export function PlanHeader({
           Back
         </Link>
 
-        {goalTimeLabel && (
-          <span className="rounded-sm border border-primary/20 bg-primary/12 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
-            Goal {goalTimeLabel}
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {status === "generating" && (
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+              </span>
+              <p className="text-xs text-muted-foreground">
+                Week {generatingWeek}{totalWeeks > 0 ? ` of ${totalWeeks}` : ""}
+              </p>
+            </div>
+          )}
+
+          {status === "error" && (
+            <p className="text-xs text-destructive">Generation failed — go back and try again.</p>
+          )}
+
+          {saveProps && <SavePlanButton {...saveProps} />}
+
+          {onNewPlan && (
+            <button
+              onClick={onNewPlan}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              New plan
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Plan info row */}
-      <div className="px-4 pb-4 space-y-3">
-        <h1 className="text-xl font-semibold tracking-tight truncate">{planName}</h1>
-
-        <div className="flex items-center gap-6">
-          <div>
-            <p className="text-2xl font-bold tabular-nums" style={{ color: "var(--foreground)" }}>
-              {totalWeeks > 0 ? totalWeeks : "—"}
-            </p>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground">
-              Weeks
-            </p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold tabular-nums text-primary">
-              {totalKm > 0 ? totalDisplay : "—"}
-            </p>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground">
-              Total {unit}
-            </p>
-          </div>
-        </div>
-
-        {status === "generating" && (
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-            </span>
-            <p className="text-xs text-muted-foreground">
-              Generating week {generatingWeek}
-              {totalWeeks > 0 ? ` of ${totalWeeks}` : ""}…
-            </p>
-          </div>
-        )}
-
-        {status === "error" && (
-          <p className="text-xs text-destructive">
-            Generation failed — please go back and try again.
-          </p>
+      {/* Centered plan info */}
+      <div className="text-center px-4 pb-4 space-y-1">
+        <h1 className="text-xl font-semibold tracking-tight">{planName}</h1>
+        {metaParts.length > 0 && (
+          <p className="text-sm text-muted-foreground">{metaParts.join(" · ")}</p>
         )}
       </div>
     </div>

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Athloryx is an adaptive training system for hybrid athletes. The platform intelligently adjusts training programs based on athlete performance, recovery, and goals across multiple disciplines (e.g., running, cycling, strength training).
+Athlos is an adaptive training system for hybrid athletes. The platform intelligently adjusts training programs based on athlete performance, recovery, and goals across multiple disciplines (e.g., running, cycling, strength training).
 
 ## Build Commands
 
@@ -58,3 +58,7 @@ import { ShimmerButton } from "@workspace/ui/components/shimmer-button";
 - Path aliases: `@/*` in web app, `@workspace/ui/*` for UI package
 - Components use Class Variance Authority (CVA) for variants
 - CSS variables in oklch color space for theming
+
+## General Principles
+
+Always follow standard, best-practice approaches. When multiple solutions exist, default to the conventional, well-established pattern for the technology in use. If a non-standard approach was used previously, refactor it to be correct rather than preserving the deviation.

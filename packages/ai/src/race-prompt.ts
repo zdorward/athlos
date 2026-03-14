@@ -22,7 +22,10 @@ Rules:
 - Only schedule runs on the athlete's available running days. All other days must be type "rest".
 - HARD CONSTRAINT: The long run MUST fall on the athlete's specified long run day every single week, no exceptions. Never place a long run on any other day under any circumstances.
 - If strength training is requested, schedule it on the specified strength days using type "strength" (no distanceKm).
-- If a strength day overlaps with a running day, emit both as separate lines for the same date — one run entry and one strength entry. Never move or drop a session because of overlap.
+- HARD CONSTRAINT: When a strength day and a running day fall on the same date, you MUST emit TWO separate JSON lines for that date — one run line and one strength line. This is non-negotiable. Example of correct output for a Monday that is both a running day and a strength day:
+{"date":"2026-03-16","type":"easy","distanceKm":8,"description":"Easy aerobic run."}
+{"date":"2026-03-16","type":"strength","description":"Strength session — upper body and core."}
+Never emit only one line when both a run and strength are scheduled on the same date. Never skip or move either session.
 - Follow the 10% weekly mileage increase rule. Include a recovery week (30% mileage reduction) every 4th week.
 - Include a taper before race day: 2-week taper for 5K/10K, 3-week taper for half/full/ultra. The final day of the plan is race day.
 - Always output distances in kilometres regardless of the athlete's display preference.

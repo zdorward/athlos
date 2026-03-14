@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  if (!input.goal || !input.selectedDays?.length || !input.longRunDay || !input.units) {
+  if (!input.goal || !input.selectedDays?.length || !input.longRunDay) {
     return new Response(JSON.stringify({ error: "Missing required fields" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },

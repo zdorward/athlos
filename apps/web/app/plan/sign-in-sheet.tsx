@@ -44,15 +44,13 @@ export function SignInSheet({ onBeforeSignIn, onClose, callbackURL = "/plan" }: 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <div
-        className="w-full rounded-t-xl bg-card border-t border-border p-6 space-y-4"
+        className="w-full max-w-sm rounded-2xl bg-card border border-border p-6 space-y-4 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Drag handle */}
-        <div className="mx-auto h-1 w-10 rounded-full bg-border" />
 
         {sheetState === "options" && (
           <>

@@ -31,7 +31,7 @@ export function DashboardHeader({ name, email, image }: DashboardHeaderProps) {
   return (
     <header className="border-b border-border">
       <div className="mx-auto flex max-w-xl items-center justify-between px-4 py-3">
-        <span className="text-lg font-semibold tracking-tight">Athloryx</span>
+        <span className="text-lg font-semibold tracking-tight">Athlos</span>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

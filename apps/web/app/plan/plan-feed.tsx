@@ -4,7 +4,6 @@ import { format, parseISO } from "date-fns"
 import { Star, Check } from "lucide-react"
 import type { WorkoutDay, WorkoutType } from "@workspace/ai"
 import { PlanDayDetail } from "./plan-day-detail"
-import { SavePlanButton, SaveProps } from "./save-plan-button"
 import {
   groupDaysByWeek,
   getPhaseLabel,
@@ -21,7 +20,6 @@ interface PlanFeedProps {
   units: "km" | "miles"
   totalWeeks: number
   raceDistance?: "5k" | "10k" | "half" | "full" | "ultra"
-  saveProps?: SaveProps
   onToggleComplete?: (date: string, type: WorkoutType, completed: boolean) => void
   onSaveEdit?: (
     date: string,
@@ -38,7 +36,7 @@ interface PlanFeedProps {
   onSelectedKeyChange: (key: { date: string; type: WorkoutType } | null) => void
 }
 
-export function PlanFeed({ days, units, totalWeeks, raceDistance, saveProps, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange }: PlanFeedProps) {
+export function PlanFeed({ days, units, totalWeeks, raceDistance, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange }: PlanFeedProps) {
   // Derive the live WorkoutDay from days so the detail sheet always reflects current state
   const selectedDay = selectedKey
     ? (days.find((d) => d.date === selectedKey.date && d.type === selectedKey.type) ?? null)
@@ -174,17 +172,6 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, saveProps, onT
             </div>
           )
         })}
-        {saveProps && (
-          <div className="pt-4 pb-2">
-            <SavePlanButton
-              status={saveProps.status}
-              isSaving={saveProps.isSaving}
-              saveError={saveProps.saveError}
-              onSave={saveProps.onSave}
-              className="w-full"
-            />
-          </div>
-        )}
       </div>
 
       {/* Bottom sheet overlay for detail */}

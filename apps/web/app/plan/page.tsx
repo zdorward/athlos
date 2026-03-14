@@ -9,8 +9,8 @@ import { PlanCalendar } from "./plan-calendar"
 import { PlanFeed } from "./plan-feed"
 import { SignInSheet } from "./sign-in-sheet"
 
-const SESSION_KEY = "athloryx_onboarding"
-const PLAN_KEY = "athloryx_plan"
+const SESSION_KEY = "athlos_onboarding"
+const PLAN_KEY = "athlos_plan"
 
 interface SavedPlanSnapshot {
   input: PlanGenerationInput
@@ -24,12 +24,12 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
   const goal = raw["goal"] as string | undefined
   const selectedDays = raw["selectedDays"] as string[] | undefined
   const longRunDay = raw["longRunDay"] as string | undefined
-  const units = raw["units"] as "km" | "miles" | undefined
 
-  if (!goal || !selectedDays?.length || !longRunDay || !units) return null
+  if (!goal || !selectedDays?.length || !longRunDay) return null
   if (goal !== "race" || !raw["race"]) return null
 
   const race = raw["race"] as Record<string, unknown>
+  const strengthDays = raw["strengthDays"] as string[] | undefined
   const input: PlanGenerationInput = {
     goal: "race",
     race: {
@@ -40,9 +40,9 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
     },
     selectedDays,
     longRunDay,
-    units,
-    strengthTraining: Boolean(raw["strengthTraining"]),
-    strengthDays: raw["strengthDays"] as string[] | undefined,
+    units: "km",
+    strengthTraining: Array.isArray(strengthDays) && strengthDays.length > 0,
+    strengthDays,
   }
 
   if (raw["timeGoal"] === true && raw["goalTime"]) {
@@ -332,6 +332,7 @@ export default function PlanPage() {
         status={status}
         generatingWeek={generatingWeek}
         goalTimeLabel={goalTimeLabel(input)}
+        saveProps={saveProps}
       />
 
       {/* Desktop: calendar */}
@@ -341,7 +342,6 @@ export default function PlanPage() {
           units={input.units}
           totalWeeks={plan.totalWeeks ?? 0}
           raceDistance={input.race?.distance}
-          saveProps={saveProps}
           selectedKey={selectedKey}
           onSelectedKeyChange={setSelectedKey}
         />
@@ -354,7 +354,6 @@ export default function PlanPage() {
           units={input.units}
           totalWeeks={plan.totalWeeks ?? 0}
           raceDistance={input.race?.distance}
-          saveProps={saveProps}
           selectedKey={selectedKey}
           onSelectedKeyChange={setSelectedKey}
         />

@@ -39,8 +39,8 @@ function RaceCard({ race, onClick }: { race: Race; onClick: () => void }) {
   )
 }
 
-export function StepFindRace({ formData, onNext }: Pick<StepProps, "formData" | "onNext">) {
-  const [mode, setMode] = useState<Mode>("search")
+export function StepFindRace({ formData, onNext, initialMode }: Pick<StepProps, "formData" | "onNext"> & { initialMode?: Mode }) {
+  const [mode, setMode] = useState<Mode>(initialMode ?? "search")
   const [query, setQuery] = useState("")
 
   // Manual form state

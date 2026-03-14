@@ -7,7 +7,7 @@ Output format: NDJSON — one JSON object per line, no markdown, no explanation,
 First line must be plan metadata:
 {"_meta":true,"totalWeeks":<n>,"totalKm":<total>,"peakWeekKm":<peak>}
 
-Then one line per calendar day from the first Monday on or after today through race day (or 16 weeks for aerobic base plans):
+Then one line per calendar day covering the exact date range provided in the user message — use only the dates listed in the "Week schedule" section:
 {"date":"YYYY-MM-DD","type":"<type>","distanceKm":<n>,"description":"<one sentence>"}
 
 For rest days, omit distanceKm:
@@ -20,7 +20,7 @@ Valid types: easy, long, tempo, intervals, rest, race, strength
 
 Rules:
 - Only schedule runs on the athlete's available running days. All other days must be type "rest".
-- The long run must always fall on the athlete's specified long run day.
+- HARD CONSTRAINT: The long run MUST fall on the athlete's specified long run day every single week, no exceptions. Never place a long run on any other day under any circumstances.
 - If strength training is requested, schedule it on the specified strength days using type "strength" (no distanceKm).
 - If a strength day overlaps with a running day, emit both as separate lines for the same date — one run entry and one strength entry. Never move or drop a session because of overlap.
 - Follow the 10% weekly mileage increase rule. Include a recovery week (30% mileage reduction) every 4th week.
@@ -36,13 +36,55 @@ const DAY_NAMES: Record<string, string> = {
   fri: "Friday", sat: "Saturday", sun: "Sunday",
 }
 
+const DAY_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
 const DISTANCE_KM_MAP: Record<string, number> = {
   "5k": 5, "10k": 10, half: 21.1, full: 42.2, ultra: 80,
+}
+
+function toISO(date: Date): string {
+  return date.toISOString().split("T")[0]!
+}
+
+function firstMondayOnOrAfter(date: Date): Date {
+  const d = new Date(date)
+  d.setUTCHours(0, 0, 0, 0)
+  const day = d.getUTCDay() // 0=Sun, 1=Mon
+  if (day !== 1) {
+    d.setUTCDate(d.getUTCDate() + (day === 0 ? 1 : 8 - day))
+  }
+  return d
+}
+
+function buildWeekSchedule(startDate: Date, endDate: Date): string {
+  const weeks: string[] = []
+  const cur = new Date(startDate)
+  let weekNum = 1
+  while (cur <= endDate) {
+    const weekStart = toISO(cur)
+    const weekEnd = new Date(cur)
+    weekEnd.setUTCDate(weekEnd.getUTCDate() + 6)
+    const clampedEnd = weekEnd <= endDate ? weekEnd : endDate
+    const dayLabels: string[] = []
+    const day = new Date(cur)
+    while (day <= clampedEnd) {
+      dayLabels.push(`${toISO(day)} (${DAY_OF_WEEK[day.getUTCDay()]})`)
+      day.setUTCDate(day.getUTCDate() + 1)
+    }
+    weeks.push(`Week ${weekNum} [${weekStart} – ${toISO(clampedEnd)}]: ${dayLabels.join(", ")}`)
+    cur.setUTCDate(cur.getUTCDate() + 7)
+    weekNum++
+  }
+  return weeks.join("\n")
 }
 
 export function buildPrompt(input: PlanGenerationInput): { system: string; user: string } {
   const lines: string[] = []
 
+  const today = new Date()
+  const startDate = firstMondayOnOrAfter(today)
+
+  let endDate: Date
   if (input.goal === "race" && input.race) {
     const { name, date, distance, city } = input.race
     const raceKm = DISTANCE_KM_MAP[distance] ?? 42.2
@@ -53,13 +95,18 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
     } else {
       lines.push("Time goal: finish (no specific time target)")
     }
+    endDate = new Date(date)
+    endDate.setUTCHours(0, 0, 0, 0)
   } else {
     lines.push("Goal: Build aerobic base (no race — 16-week plan)")
+    endDate = new Date(startDate)
+    endDate.setUTCDate(endDate.getUTCDate() + 16 * 7 - 1)
   }
 
   const runDayNames = input.selectedDays.map(d => DAY_NAMES[d] ?? d).join(", ")
   lines.push(`Available running days: ${runDayNames}`)
-  lines.push(`Long run day: ${DAY_NAMES[input.longRunDay] ?? input.longRunDay}`)
+  const longRunDayName = DAY_NAMES[input.longRunDay] ?? input.longRunDay
+  lines.push(`Long run day: ${longRunDayName} — every week's long run MUST be on ${longRunDayName}, no exceptions.`)
 
   if (input.strengthTraining && input.strengthDays?.length) {
     const strengthDayNames = input.strengthDays.map(d => DAY_NAMES[d] ?? d).join(", ")
@@ -68,8 +115,8 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
     lines.push("Strength training: none")
   }
 
-  lines.push(`Today's date: ${new Date().toISOString().split("T")[0]}`)
   lines.push("Output distances in kilometres.")
+  lines.push(`\nWeek schedule (use ONLY these exact dates — do not invent or shift any dates):\n${buildWeekSchedule(startDate, endDate)}`)
 
   return { system: SYSTEM_PROMPT, user: lines.join("\n") }
 }

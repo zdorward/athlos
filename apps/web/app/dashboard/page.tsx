@@ -36,7 +36,7 @@ function addDays(isoDate: string, n: number): string {
 function findNextWorkoutDay(days: WorkoutDay[], fromDateISO: string): string | null {
   const seen = new Set<string>()
   for (const day of days) {
-    if (day.date >= fromDateISO && day.type !== "rest") {
+    if (day.date >= fromDateISO && day.type !== "rest" && !day.completed) {
       seen.add(day.date)
     }
   }
@@ -131,6 +131,30 @@ export default function DashboardPage() {
     )
   }
 
+  function handleComplete(entry: WorkoutDay) {
+    if (typeof plan !== "object" || plan === null) return
+    const prevDays = plan.days
+    const updatedDays = plan.days.map((d) =>
+      d.date === entry.date && d.type === entry.type ? { ...d, completed: true } : d,
+    )
+    setPlan((prev) =>
+      prev && typeof prev !== "string"
+        ? { ...prev, days: updatedDays }
+        : prev,
+    )
+    fetch(`/api/plans/${plan.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: entry.date, type: entry.type, completed: true }),
+    }).catch(() => {
+      setPlan((prev) =>
+        prev && typeof prev !== "string"
+          ? { ...prev, days: prevDays }
+          : prev,
+      )
+    })
+  }
+
   // Resolved plan
   const todayISO = getTodayISO()
   const tomorrowISO = addDays(todayISO, 1)
@@ -181,6 +205,7 @@ export default function DashboardPage() {
                 dateISO={heroDate}
                 units={units}
                 variant="hero"
+                onComplete={() => handleComplete(entry)}
               />
             ))}
           </section>

@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { format, parseISO } from "date-fns"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
 import { authClient } from "@/lib/auth-client"
 import type { WorkoutDay, PlanGenerationInput } from "@workspace/ai"
 import { DashboardHeader } from "./dashboard-header"
-import { WorkoutCard, type DayCardState } from "./workout-card"
+import { WorkoutCard } from "./workout-card"
 import { WeekList } from "./week-list"
 import { Button } from "@workspace/ui/components/button"
 
@@ -30,6 +31,23 @@ function addDays(isoDate: string, n: number): string {
   const d = new Date(isoDate + "T00:00:00")
   d.setDate(d.getDate() + n)
   return d.toLocaleDateString("en-CA")
+}
+
+function findNextWorkoutDay(days: WorkoutDay[], fromDateISO: string): string | null {
+  const seen = new Set<string>()
+  for (const day of days) {
+    if (day.date >= fromDateISO && day.type !== "rest") {
+      seen.add(day.date)
+    }
+  }
+  if (seen.size === 0) return null
+  return [...seen].sort()[0]!
+}
+
+function getDayLabel(dateISO: string, todayISO: string, tomorrowISO: string): string {
+  if (dateISO === todayISO) return "Today"
+  if (dateISO === tomorrowISO) return "Tomorrow"
+  return format(parseISO(dateISO), "EEEE, MMM d")
 }
 
 export default function DashboardPage() {
@@ -74,8 +92,8 @@ export default function DashboardPage() {
     }
   }, [sessionPending, sessionData?.session, fetchPlan])
 
-  // Show spinner while session is loading or plan is fetching
-  if (sessionPending || fetching || plan === null) {
+  // Show spinner only on initial load — don't flash on background session re-validation
+  if (plan === null) {
     return (
       <main className="flex min-h-svh items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -116,8 +134,6 @@ export default function DashboardPage() {
   // Resolved plan
   const todayISO = getTodayISO()
   const tomorrowISO = addDays(todayISO, 1)
-  const planStartDate = plan.days[0]?.date ?? todayISO
-  const planEndDate = plan.days[plan.days.length - 1]?.date ?? todayISO
   const units = plan.input.units
 
   // Build date → entries lookup
@@ -128,26 +144,16 @@ export default function DashboardPage() {
     byDate.set(day.date, existing)
   }
 
-  const todayEntries = byDate.get(todayISO) ?? []
-  const tomorrowEntries = byDate.get(tomorrowISO) ?? []
+  // Forward-scan for next workout day
+  const heroDate = findNextWorkoutDay(plan.days, todayISO)
+  const thenDate = heroDate ? findNextWorkoutDay(plan.days, addDays(heroDate, 1)) : null
 
-  // Compute workout-level entries (non-rest) for multi-card rendering
-  const todayWorkouts = todayEntries.filter((e) => e.type !== "rest")
-  const tomorrowWorkouts = tomorrowEntries.filter((e) => e.type !== "rest")
-
-  const todayOutOfRange =
-    todayISO < planStartDate
-      ? ({ kind: "before-start", startDate: planStartDate } as DayCardState)
-      : todayISO > planEndDate
-        ? ({ kind: "after-end" } as DayCardState)
-        : null
-
-  const tomorrowOutOfRange =
-    tomorrowISO < planStartDate
-      ? ({ kind: "before-start", startDate: planStartDate } as DayCardState)
-      : tomorrowISO > planEndDate
-        ? ({ kind: "after-end" } as DayCardState)
-        : null
+  const heroWorkouts = heroDate
+    ? (byDate.get(heroDate) ?? []).filter((e) => e.type !== "rest")
+    : []
+  const thenWorkouts = thenDate
+    ? (byDate.get(thenDate) ?? []).filter((e) => e.type !== "rest")
+    : []
 
   return (
     <main className="min-h-svh">
@@ -155,69 +161,48 @@ export default function DashboardPage() {
 
       <div className="mx-auto max-w-xl px-4 py-6 space-y-8">
 
-        {/* Today */}
-        <section className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground px-1">
-            Today
-          </h2>
-          {todayOutOfRange ? (
-            <WorkoutCard
-              state={todayOutOfRange}
-              dateISO={todayISO}
-              units={units}
-              variant="hero"
-            />
-          ) : todayWorkouts.length === 0 ? (
-            <WorkoutCard
-              state={{ kind: "rest" }}
-              dateISO={todayISO}
-              units={units}
-              variant="hero"
-            />
-          ) : (
-            todayWorkouts.map((entry) => (
+        {/* Next Workout */}
+        {heroDate === null ? (
+          <WorkoutCard
+            state={{ kind: "after-end" }}
+            dateISO={todayISO}
+            units={units}
+            variant="hero"
+          />
+        ) : (
+          <section className="space-y-2">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground px-1">
+              {getDayLabel(heroDate, todayISO, tomorrowISO)}
+            </h2>
+            {heroWorkouts.map((entry) => (
               <WorkoutCard
-                key={`${entry.date}-${entry.type}`}
+                key={entry.date + "-" + entry.type}
                 state={{ kind: "workout", entry }}
-                dateISO={todayISO}
+                dateISO={heroDate}
                 units={units}
                 variant="hero"
               />
-            ))
-          )}
-        </section>
+            ))}
+          </section>
+        )}
 
-        {/* Tomorrow */}
-        <section className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground px-1">
-            Tomorrow
-          </h2>
-          {tomorrowOutOfRange ? (
-            <WorkoutCard
-              state={tomorrowOutOfRange}
-              dateISO={tomorrowISO}
-              units={units}
-              variant="preview"
-            />
-          ) : tomorrowWorkouts.length === 0 ? (
-            <WorkoutCard
-              state={{ kind: "rest" }}
-              dateISO={tomorrowISO}
-              units={units}
-              variant="preview"
-            />
-          ) : (
-            tomorrowWorkouts.map((entry) => (
+        {/* Then */}
+        {thenDate !== null && (
+          <section className="space-y-2">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground px-1">
+              {getDayLabel(thenDate, todayISO, tomorrowISO)}
+            </h2>
+            {thenWorkouts.map((entry) => (
               <WorkoutCard
-                key={`${entry.date}-${entry.type}`}
+                key={entry.date + "-" + entry.type}
                 state={{ kind: "workout", entry }}
-                dateISO={tomorrowISO}
+                dateISO={thenDate}
                 units={units}
                 variant="preview"
               />
-            ))
-          )}
-        </section>
+            ))}
+          </section>
+        )}
 
         {/* This Week */}
         <WeekList

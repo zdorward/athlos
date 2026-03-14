@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk"
 import type { AIProvider } from "../provider"
 import type { PlanGenerationInput } from "../types"
-import { buildPrompt } from "../prompt"
+import { buildPrompt } from "../race-prompt"
 
 export class ClaudeProvider implements AIProvider {
   private client = new Anthropic()

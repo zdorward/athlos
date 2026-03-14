@@ -1,7 +1,7 @@
 {
   "name": "web",
   "version": "0.0.1",
-  "description": "Athloryx web application - adaptive training for hybrid athletes",
+  "description": "Athlos web application - adaptive training for hybrid athletes",
   "type": "module",
   "private": true,
   "scripts": {

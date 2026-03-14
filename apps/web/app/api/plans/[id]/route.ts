@@ -38,6 +38,42 @@ export async function GET(
   }
 }
 
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const session = await auth.api.getSession({ headers: req.headers })
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const { id } = await params
+
+  if (!UUID_RE.test(id)) {
+    return Response.json({ error: "Not found" }, { status: 404 })
+  }
+
+  try {
+    const [existing] = await db
+      .select({ id: plans.id })
+      .from(plans)
+      .where(and(eq(plans.id, id), eq(plans.userId, session.user.id)))
+      .limit(1)
+
+    if (!existing) {
+      return Response.json({ error: "Not found" }, { status: 404 })
+    }
+
+    await db
+      .delete(plans)
+      .where(and(eq(plans.id, id), eq(plans.userId, session.user.id)))
+
+    return new Response(null, { status: 204 })
+  } catch {
+    return Response.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -64,21 +100,18 @@ export async function PATCH(
     date?: string
     type?: WorkoutType
     completed?: boolean
+    effort?: "hard" | "good" | "easy"
     update?: FieldUpdate
   }
 
   const isFieldUpdate = body.update !== undefined
-  const isCompletionToggle = !isFieldUpdate && body.completed !== undefined
+  const isCompletionOrEffort = !isFieldUpdate && (body.completed !== undefined || body.effort !== undefined)
 
-  if (!isFieldUpdate && !isCompletionToggle) {
+  if (!isFieldUpdate && !isCompletionOrEffort) {
     return Response.json({ error: "Bad request" }, { status: 400 })
   }
 
-  if (isCompletionToggle && (body.date === undefined || body.type === undefined)) {
-    return Response.json({ error: "Bad request" }, { status: 400 })
-  }
-
-  if (isFieldUpdate && (body.date === undefined || body.type === undefined)) {
+  if ((isCompletionOrEffort || isFieldUpdate) && (body.date === undefined || body.type === undefined)) {
     return Response.json({ error: "Bad request" }, { status: 400 })
   }
 
@@ -113,7 +146,8 @@ export async function PATCH(
         }
       }
     } else {
-      entry.completed = body.completed
+      if (body.completed !== undefined) entry.completed = body.completed
+      if (body.effort !== undefined) entry.effort = body.effort
     }
 
     await db

@@ -4,7 +4,6 @@ import { format, parseISO } from "date-fns"
 import { Star, Check } from "lucide-react"
 import type { WorkoutDay, WorkoutType } from "@workspace/ai"
 import { PlanDayDetail } from "./plan-day-detail"
-import { SavePlanButton, SaveProps } from "./save-plan-button"
 import {
   groupDaysByWeek,
   getPhaseLabel,
@@ -23,7 +22,6 @@ interface PlanCalendarProps {
   units: "km" | "miles"
   totalWeeks: number
   raceDistance?: "5k" | "10k" | "half" | "full" | "ultra"
-  saveProps?: SaveProps
   onToggleComplete?: (date: string, type: WorkoutType, completed: boolean) => void
   onSaveEdit?: (
     date: string,
@@ -40,7 +38,7 @@ interface PlanCalendarProps {
   onSelectedKeyChange: (key: { date: string; type: WorkoutType } | null) => void
 }
 
-export function PlanCalendar({ days, units, totalWeeks, raceDistance, saveProps, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange }: PlanCalendarProps) {
+export function PlanCalendar({ days, units, totalWeeks, raceDistance, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange }: PlanCalendarProps) {
   // Derive the live WorkoutDay from the days prop so the detail panel always reflects current state
   const selectedDay = selectedKey
     ? (days.find((d) => d.date === selectedKey.date && d.type === selectedKey.type) ?? null)
@@ -80,6 +78,10 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, saveProps,
           if (!weekDays) return null
           const weekNum = weekIdx + 1
           const phase = totalWeeks > 0 ? getPhaseLabel(weekNum, totalWeeks, taperWeeks) : ""
+          const prevPhase = totalWeeks > 0 && weekIdx > 0
+            ? getPhaseLabel(weekIdx, totalWeeks, taperWeeks)
+            : null
+          const showPhaseHeader = phase && phase !== prevPhase
 
           // Build a map of day-of-week → WorkoutDay[] for this week (multiple entries per day allowed)
           const dayMap: Record<string, WorkoutDay[]> = {}
@@ -92,15 +94,24 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, saveProps,
           const weeklyKm = weekDays.reduce((sum, d) => sum + (d.distanceKm ?? 0), 0)
 
           return (
-            <div key={weekIdx} className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1">
+            <div key={weekIdx}>
+              {showPhaseHeader && (
+                <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1 mt-3">
+                  <div />
+                  <div className="col-span-7 flex items-center gap-3">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground whitespace-nowrap">
+                      {phase}
+                    </span>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+                </div>
+              )}
+            <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1">
               {/* Week label column */}
               <div className="flex flex-col justify-center pr-2">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-subtle-foreground">
                   W{weekNum}
                 </p>
-                {phase && (
-                  <p className="text-[9px] text-muted-foreground">{phase}</p>
-                )}
                 {weeklyKm > 0 && (
                   <p className="text-[10px] font-semibold tabular-nums text-muted-foreground">
                     {formatDistance(weeklyKm, units)}{unit}
@@ -189,19 +200,9 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, saveProps,
                 )
               })}
             </div>
+            </div>
           )
         })}
-        {saveProps && (
-          <div className="pt-4 pb-4">
-            <SavePlanButton
-              status={saveProps.status}
-              isSaving={saveProps.isSaving}
-              saveError={saveProps.saveError}
-              onSave={saveProps.onSave}
-              className="w-full"
-            />
-          </div>
-        )}
         </div>
       </div>
 

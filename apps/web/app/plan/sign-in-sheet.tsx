@@ -9,11 +9,12 @@ import { authClient } from "@/lib/auth-client"
 interface SignInSheetProps {
   onBeforeSignIn: () => void
   onClose: () => void
+  callbackURL?: string
 }
 
 type SheetState = "options" | "email" | "sent" | "error"
 
-export function SignInSheet({ onBeforeSignIn, onClose }: SignInSheetProps) {
+export function SignInSheet({ onBeforeSignIn, onClose, callbackURL = "/plan" }: SignInSheetProps) {
   const [sheetState, setSheetState] = useState<SheetState>("options")
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
@@ -21,7 +22,7 @@ export function SignInSheet({ onBeforeSignIn, onClose }: SignInSheetProps) {
 
   async function handleGoogle() {
     onBeforeSignIn()
-    await authClient.signIn.social({ provider: "google", callbackURL: "/plan" })
+    await authClient.signIn.social({ provider: "google", callbackURL })
   }
 
   async function handleMagicLink() {
@@ -30,7 +31,7 @@ export function SignInSheet({ onBeforeSignIn, onClose }: SignInSheetProps) {
     setLoading(true)
     const { error } = await authClient.signIn.magicLink({
       email,
-      callbackURL: "/plan",
+      callbackURL,
     })
     setLoading(false)
     if (error) {
@@ -43,15 +44,13 @@ export function SignInSheet({ onBeforeSignIn, onClose }: SignInSheetProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <div
-        className="w-full rounded-t-xl bg-card border-t border-border p-6 space-y-4"
+        className="w-full max-w-sm rounded-2xl bg-card border border-border p-6 space-y-4 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Drag handle */}
-        <div className="mx-auto h-1 w-10 rounded-full bg-border" />
 
         {sheetState === "options" && (
           <>

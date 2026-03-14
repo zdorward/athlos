@@ -7,11 +7,12 @@ import { ORDERED_DAYS, DAY_LABELS, type Day } from "./types"
 
 interface StepDayPickerProps {
   title: string
+  description?: string
   initialDays: Day[]
   onNext: (days: Day[]) => void
 }
 
-export function StepDayPicker({ title, initialDays, onNext }: StepDayPickerProps) {
+export function StepDayPicker({ title, description, initialDays, onNext }: StepDayPickerProps) {
   const [selected, setSelected] = useState<Day[]>(initialDays)
 
   const allSelected = selected.length === ORDERED_DAYS.length
@@ -28,7 +29,12 @@ export function StepDayPicker({ title, initialDays, onNext }: StepDayPickerProps
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
+      <div className="space-y-2">
+        <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
+        {description && (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        )}
+      </div>
 
       <div className="flex w-full justify-between">
         {ORDERED_DAYS.map((day) => (

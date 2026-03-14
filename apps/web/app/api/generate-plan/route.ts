@@ -20,15 +20,14 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  if (!input.goal || !input.selectedDays?.length || !input.longRunDay || !input.units) {
+  if (!input.goal || !input.selectedDays?.length || !input.longRunDay) {
     return new Response(JSON.stringify({ error: "Missing required fields" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     })
   }
 
-  const validGoals = ["race", "aerobic_base"] as const
-  if (!validGoals.includes(input.goal as typeof validGoals[number])) {
+  if (input.goal !== "race") {
     return new Response(JSON.stringify({ error: "Invalid goal value" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },

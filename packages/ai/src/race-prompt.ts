@@ -1,6 +1,6 @@
 import type { PlanGenerationInput } from "./types"
 
-const SYSTEM_PROMPT = `You are an expert running coach who creates personalized training plans. You generate plans for athletes ranging from complete beginners to competitive runners targeting specific time goals.
+const SYSTEM_PROMPT = `You are an expert running coach who creates personalized race training plans. You generate plans for athletes ranging from complete beginners to competitive runners targeting specific race time goals.
 
 Output format: NDJSON — one JSON object per line, no markdown, no explanation, no code fences.
 
@@ -22,10 +22,12 @@ Rules:
 - Only schedule runs on the athlete's available running days. All other days must be type "rest".
 - HARD CONSTRAINT: The long run MUST fall on the athlete's specified long run day every single week, no exceptions. Never place a long run on any other day under any circumstances.
 - If strength training is requested, schedule it on the specified strength days using type "strength" (no distanceKm).
-- If a strength day overlaps with a running day, emit both as separate lines for the same date — one run entry and one strength entry. Never move or drop a session because of overlap.
+- HARD CONSTRAINT: When a strength day and a running day fall on the same date, you MUST emit TWO separate JSON lines for that date — one run line and one strength line. This is non-negotiable. Example of correct output for a Monday that is both a running day and a strength day:
+{"date":"2026-03-16","type":"easy","distanceKm":8,"description":"Easy aerobic run."}
+{"date":"2026-03-16","type":"strength","description":"Strength session — upper body and core."}
+Never emit only one line when both a run and strength are scheduled on the same date. Never skip or move either session.
 - Follow the 10% weekly mileage increase rule. Include a recovery week (30% mileage reduction) every 4th week.
-- For race plans: include a 2-week taper for 5K/10K, 3-week taper for half/full/ultra. The final day of the plan is race day.
-- For aerobic base plans: 16 weeks total, no taper.
+- Include a taper before race day: 2-week taper for 5K/10K, 3-week taper for half/full/ultra. The final day of the plan is race day.
 - Always output distances in kilometres regardless of the athlete's display preference.
 - Descriptions must be specific (e.g. "2km warm-up, 6×1km at 5K pace with 90sec jog recovery, 2km cool-down") not vague (e.g. "do intervals").
 - Output valid JSON only. No trailing commas, no comments, no extra whitespace.
@@ -81,27 +83,23 @@ function buildWeekSchedule(startDate: Date, endDate: Date): string {
 export function buildPrompt(input: PlanGenerationInput): { system: string; user: string } {
   const lines: string[] = []
 
-  const today = new Date()
-  const startDate = firstMondayOnOrAfter(today)
+  const startDate = input.startDate
+    ? new Date(input.startDate + "T00:00:00Z")
+    : firstMondayOnOrAfter(new Date())
 
-  let endDate: Date
-  if (input.goal === "race" && input.race) {
-    const { name, date, distance, city } = input.race
-    const raceKm = DISTANCE_KM_MAP[distance] ?? 42.2
-    lines.push(`Goal: Race — ${name} in ${city} on ${date} (${raceKm}km / ${distance})`)
-    if (input.goalTime) {
-      const { hours, minutes } = input.goalTime
-      lines.push(`Time goal: ${hours}h${minutes.toString().padStart(2, "0")}m (finish in under this time)`)
-    } else {
-      lines.push("Time goal: finish (no specific time target)")
-    }
-    endDate = new Date(date)
-    endDate.setUTCHours(0, 0, 0, 0)
+  const { name, date, distance, city } = input.race
+  const raceKm = DISTANCE_KM_MAP[distance] ?? 42.2
+  lines.push(`Goal: Race — ${name} in ${city} on ${date} (${raceKm}km / ${distance})`)
+
+  if (input.goalTime) {
+    const { hours, minutes } = input.goalTime
+    lines.push(`Time goal: ${hours}h${minutes.toString().padStart(2, "0")}m (finish in under this time)`)
   } else {
-    lines.push("Goal: Build aerobic base (no race — 16-week plan)")
-    endDate = new Date(startDate)
-    endDate.setUTCDate(endDate.getUTCDate() + 16 * 7 - 1)
+    lines.push("Time goal: finish (no specific time target)")
   }
+
+  const endDate = new Date(date)
+  endDate.setUTCHours(0, 0, 0, 0)
 
   const runDayNames = input.selectedDays.map(d => DAY_NAMES[d] ?? d).join(", ")
   lines.push(`Available running days: ${runDayNames}`)

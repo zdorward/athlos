@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import "@workspace/ui/globals.css"
 
 export const metadata: Metadata = {
-  title: "Athloryx",
+  title: "Athlos",
   description: "Adaptive training system for hybrid athletes",
 }
 import { ThemeProvider } from "@/components/theme-provider"

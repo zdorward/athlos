@@ -1,6 +1,7 @@
 "use client"
 
-import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { User } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
 import {
   DropdownMenu,
@@ -17,38 +18,32 @@ interface DashboardHeaderProps {
   image: string | null | undefined
 }
 
-function getInitials(name: string | null | undefined, email: string): string {
-  if (!name?.trim()) return (email[0] ?? "?").toUpperCase()
-  const parts = name.trim().split(/\s+/)
-  if (parts.length === 1) return (parts[0]![0] ?? "").toUpperCase()
-  return ((parts[0]![0] ?? "") + (parts[parts.length - 1]![0] ?? "")).toUpperCase()
-}
-
 export function DashboardHeader({ name, email, image }: DashboardHeaderProps) {
-  const router = useRouter()
+  const [imgError, setImgError] = useState(false)
 
   async function handleSignOut() {
-    try {
-      await authClient.signOut()
-    } finally {
-      router.replace("/")
-    }
+    await authClient.signOut()
+    window.location.href = "/"
   }
 
-  const initials = getInitials(name, email)
+  const showImage = image && !imgError
 
   return (
     <header className="border-b border-border">
-      <div className="mx-auto flex max-w-xl items-center justify-between px-4 py-3">
-        <span className="text-lg font-semibold tracking-tight">Athloryx</span>
-
+      <div className="flex items-center justify-end px-6 py-3">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex h-8 w-8 items-center justify-center rounded-full overflow-hidden bg-muted text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer">
-              {image ? (
-                <img src={image} alt={name ?? email} className="h-full w-full object-cover" />
+            <button className="flex h-8 w-8 items-center justify-center rounded-full overflow-hidden bg-muted text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer">
+              {showImage ? (
+                <img
+                  src={image}
+                  alt={name ?? email}
+                  className="h-full w-full object-cover"
+                  onError={() => setImgError(true)}
+                  referrerPolicy="no-referrer"
+                />
               ) : (
-                <span>{initials}</span>
+                <User className="h-4 w-4" />
               )}
             </button>
           </DropdownMenuTrigger>

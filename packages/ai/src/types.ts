@@ -15,6 +15,7 @@ export interface WorkoutDay {
   completed?: boolean  // undefined and false are both treated as incomplete
   targetHR?: string    // free text, e.g. "Zone 2 (130–145 bpm)"
   targetPace?: string  // free text, e.g. "5:30–6:00/km"
+  effort?: "hard" | "good" | "easy"
 }
 
 export interface TrainingPlanMeta {
@@ -32,8 +33,8 @@ export interface TrainingPlan {
 }
 
 export interface PlanGenerationInput {
-  goal: "race" | "aerobic_base"
-  race?: {
+  goal: "race"
+  race: {
     name: string
     date: string  // ISO string
     distance: "5k" | "10k" | "half" | "full" | "ultra"
@@ -45,4 +46,5 @@ export interface PlanGenerationInput {
   units: "km" | "miles"
   strengthTraining: boolean
   strengthDays?: string[]
+  startDate?: string  // ISO "YYYY-MM-DD" — first day of training
 }

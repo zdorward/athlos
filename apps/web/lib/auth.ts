@@ -23,10 +23,10 @@ export const auth = betterAuth({
     magicLink({
       sendMagicLink: async ({ email, url }) => {
         await resend.emails.send({
-          from: "Athloryx <noreply@athloryx.com>",
+          from: "Athlos <onboarding@resend.dev>",
           to: email,
-          subject: "Sign in to Athloryx",
-          html: `<p>Click the link below to sign in to Athloryx:</p><p><a href="${url}">${url}</a></p>`,
+          subject: "Sign in to Athlos",
+          html: `<p>Click the link below to sign in to Athlos:</p><p><a href="${url}">${url}</a></p>`,
         })
       },
     }),

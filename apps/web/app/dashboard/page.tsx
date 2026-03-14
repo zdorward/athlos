@@ -1,3 +1,4 @@
+// apps/web/app/dashboard/page.tsx
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
@@ -8,8 +9,8 @@ import Link from "next/link"
 import { authClient } from "@/lib/auth-client"
 import type { WorkoutDay, PlanGenerationInput } from "@workspace/ai"
 import { DashboardHeader } from "./dashboard-header"
-import { WorkoutCard } from "./workout-card"
-import { WeekList } from "./week-list"
+import { RaceBanner } from "./race-banner"
+import { TodayWorkoutCard } from "./today-workout-card"
 import { Button } from "@workspace/ui/components/button"
 
 interface Plan {
@@ -33,18 +34,23 @@ function addDays(isoDate: string, n: number): string {
   return d.toLocaleDateString("en-CA")
 }
 
-function findNextWorkoutDay(days: WorkoutDay[], fromDateISO: string): string | null {
-  const seen = new Set<string>()
-  for (const day of days) {
-    if (day.date >= fromDateISO && day.type !== "rest" && !day.completed) {
-      seen.add(day.date)
-    }
-  }
-  if (seen.size === 0) return null
-  return [...seen].sort()[0]!
+/** Returns entries on exactly `dateISO`. */
+function getEntriesForDate(days: WorkoutDay[], dateISO: string): WorkoutDay[] {
+  return days.filter((d) => d.date === dateISO)
 }
 
-function getDayLabel(dateISO: string, todayISO: string, tomorrowISO: string): string {
+/** Returns first date after `afterISO` that has at least one non-rest workout. */
+function getNextWorkoutDate(days: WorkoutDay[], afterISO: string): string | null {
+  const future = days
+    .filter((d) => d.date > afterISO && d.type !== "rest")
+    .map((d) => d.date)
+  if (future.length === 0) return null
+  return future.sort()[0]!
+}
+
+function getDayLabel(dateISO: string): string {
+  const todayISO = getTodayISO()
+  const tomorrowISO = addDays(todayISO, 1)
   if (dateISO === todayISO) return "Today"
   if (dateISO === tomorrowISO) return "Tomorrow"
   return format(parseISO(dateISO), "EEEE, MMM d")
@@ -55,44 +61,27 @@ export default function DashboardPage() {
   const { data: sessionData, isPending: sessionPending } = authClient.useSession()
 
   const [plan, setPlan] = useState<Plan | null | "empty" | "error">(null)
-  const [fetching, setFetching] = useState(false)
 
   const fetchPlan = useCallback(async () => {
-    setFetching(true)
     try {
       const res = await fetch("/api/plans")
-      if (res.status === 401) {
-        router.replace("/")
-        return
-      }
-      if (!res.ok) {
-        setPlan("error")
-        return
-      }
+      if (res.status === 401) { router.replace("/"); return }
+      if (!res.ok) { setPlan("error"); return }
       const data = (await res.json()) as { plans: Plan[] }
       setPlan(data.plans.length > 0 ? data.plans[0]! : "empty")
     } catch {
       setPlan("error")
-    } finally {
-      setFetching(false)
     }
   }, [router])
 
-  // Redirect to / if no session once resolved
   useEffect(() => {
-    if (!sessionPending && !sessionData?.session) {
-      router.replace("/")
-    }
+    if (!sessionPending && !sessionData?.session) router.replace("/")
   }, [sessionPending, sessionData?.session, router])
 
-  // Fetch plan once session is confirmed
   useEffect(() => {
-    if (!sessionPending && sessionData?.session) {
-      void fetchPlan()
-    }
+    if (!sessionPending && sessionData?.session) void fetchPlan()
   }, [sessionPending, sessionData?.session, fetchPlan])
 
-  // Show spinner only on initial load — don't flash on background session re-validation
   if (plan === null) {
     return (
       <main className="flex min-h-svh items-center justify-center">
@@ -109,9 +98,7 @@ export default function DashboardPage() {
         <DashboardHeader name={user.name} email={user.email} image={user.image} />
         <div className="mx-auto max-w-xl px-4 py-16 text-center space-y-4">
           <p className="text-muted-foreground">Unable to load your plan. Please try again.</p>
-          <Button variant="outline" onClick={() => void fetchPlan()}>
-            Retry
-          </Button>
+          <Button variant="outline" onClick={() => void fetchPlan()}>Retry</Button>
         </div>
       </main>
     )
@@ -123,127 +110,164 @@ export default function DashboardPage() {
         <DashboardHeader name={user.name} email={user.email} image={user.image} />
         <div className="mx-auto max-w-xl px-4 py-16 text-center space-y-4">
           <p className="text-muted-foreground">You don't have a saved plan yet.</p>
-          <Button asChild>
-            <Link href="/">Create a Plan</Link>
-          </Button>
+          <Button asChild><Link href="/?new=1">Create a Plan</Link></Button>
         </div>
       </main>
     )
   }
 
+  // ── Handlers ──────────────────────────────────────────────────────────────
+
+  // At this point plan is a resolved Plan object (null/"error"/"empty" are handled above)
+  const resolvedPlan = plan as Plan
+
   function handleComplete(entry: WorkoutDay) {
-    if (typeof plan !== "object" || plan === null) return
-    const prevDays = plan.days
-    const updatedDays = plan.days.map((d) =>
-      d.date === entry.date && d.type === entry.type ? { ...d, completed: true } : d,
+    const prevDays = resolvedPlan.days
+    const updated = resolvedPlan.days.map((d: WorkoutDay) =>
+      d.date === entry.date && d.type === entry.type ? { ...d, completed: true } : d
     )
-    setPlan((prev) =>
-      prev && typeof prev !== "string"
-        ? { ...prev, days: updatedDays }
-        : prev,
-    )
-    fetch(`/api/plans/${plan.id}`, {
+    setPlan((p) => (p === null || typeof p === "string" ? p : ({ ...p, days: updated } as Plan)))
+    fetch(`/api/plans/${resolvedPlan.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ date: entry.date, type: entry.type, completed: true }),
+    }).then((res) => {
+      if (!res.ok) throw new Error()
     }).catch(() => {
-      setPlan((prev) =>
-        prev && typeof prev !== "string"
-          ? { ...prev, days: prevDays }
-          : prev,
-      )
+      setPlan((p) => (p === null || typeof p === "string" ? p : ({ ...p, days: prevDays } as Plan)))
     })
   }
 
-  // Resolved plan
-  const todayISO = getTodayISO()
-  const tomorrowISO = addDays(todayISO, 1)
-  const units = plan.input.units
-
-  // Build date → entries lookup
-  const byDate = new Map<string, WorkoutDay[]>()
-  for (const day of plan.days) {
-    const existing = byDate.get(day.date) ?? []
-    existing.push(day)
-    byDate.set(day.date, existing)
+  function handleLogEffort(entry: WorkoutDay, effort: "hard" | "good" | "easy") {
+    const prevDays = resolvedPlan.days
+    const updated = resolvedPlan.days.map((d: WorkoutDay) =>
+      d.date === entry.date && d.type === entry.type ? { ...d, effort } : d
+    )
+    setPlan((p) => (p === null || typeof p === "string" ? p : ({ ...p, days: updated } as Plan)))
+    fetch(`/api/plans/${resolvedPlan.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: entry.date, type: entry.type, effort }),
+    }).then((res) => {
+      if (!res.ok) throw new Error()
+    }).catch(() => {
+      setPlan((p) => (p === null || typeof p === "string" ? p : ({ ...p, days: prevDays } as Plan)))
+    })
   }
 
-  // Forward-scan for next workout day
-  const heroDate = findNextWorkoutDay(plan.days, todayISO)
-  const thenDate = heroDate ? findNextWorkoutDay(plan.days, addDays(heroDate, 1)) : null
+  // ── Derived data ───────────────────────────────────────────────────────────
 
-  const heroWorkouts = heroDate
-    ? (byDate.get(heroDate) ?? []).filter((e) => e.type !== "rest")
-    : []
-  const thenWorkouts = thenDate
-    ? (byDate.get(thenDate) ?? []).filter((e) => e.type !== "rest")
+  const todayISO = getTodayISO()
+  const units = resolvedPlan.input.units
+  const raceDateISO = resolvedPlan.input.race.date
+
+  // Sort days once for stable first/last date lookups
+  const sortedDays = [...resolvedPlan.days].sort((a, b) => a.date.localeCompare(b.date))
+  const firstDayISO = sortedDays[0]?.date ?? null
+  const lastDayISO = sortedDays[sortedDays.length - 1]?.date ?? null
+
+  // Today's entries
+  const todayEntries = getEntriesForDate(resolvedPlan.days, todayISO)
+  const todayWorkouts = todayEntries.filter((e) => e.type !== "rest")
+  // Gap days (no entries at all) are treated the same as rest days —
+  // the plan generator assigns every day an entry, so this is a defensive fallback.
+  const isRestDay = todayWorkouts.length === 0
+  const allTodayComplete = todayWorkouts.length > 0 && todayWorkouts.every((e) => e.completed === true)
+  const isBeforePlanStart = firstDayISO !== null && todayISO < firstDayISO
+  const isAfterRace = todayISO > raceDateISO
+  // Plan exhausted: race hasn't passed but all workouts are in the past and today has none
+  const isPlanExhausted = !isAfterRace && lastDayISO !== null && todayISO > lastDayISO
+
+  // Tomorrow preview — show when rest day or all today complete
+  const showTomorrow = isRestDay || allTodayComplete
+  const tomorrowDate = showTomorrow ? getNextWorkoutDate(resolvedPlan.days, todayISO) : null
+  const tomorrowWorkouts = tomorrowDate
+    ? getEntriesForDate(resolvedPlan.days, tomorrowDate).filter((e) => e.type !== "rest")
     : []
 
   return (
     <main className="min-h-svh">
       <DashboardHeader name={user.name} email={user.email} image={user.image} />
 
-      <div className="mx-auto max-w-xl px-4 py-6 space-y-8">
+      <div className="mx-auto max-w-xl px-4 py-6 space-y-6">
 
-        {/* Next Workout */}
-        {heroDate === null ? (
-          <WorkoutCard
-            state={{ kind: "after-end" }}
-            dateISO={todayISO}
-            units={units}
-            variant="hero"
+        {/* Race banner — hidden after race date */}
+        {!isAfterRace && (
+          <RaceBanner
+            input={resolvedPlan.input}
+            days={resolvedPlan.days}
+            totalWeeks={resolvedPlan.totalWeeks}
           />
+        )}
+
+        {/* Before plan starts */}
+        {isBeforePlanStart ? (
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-sm text-muted-foreground">
+              Your plan starts on {format(parseISO(firstDayISO!), "EEEE, MMM d")}.
+            </p>
+          </div>
+        ) : isAfterRace || isPlanExhausted ? (
+          /* After race or plan exhausted */
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-sm text-muted-foreground">Your plan is complete 🎉</p>
+          </div>
         ) : (
-          <section className="space-y-2">
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground px-1">
-              {getDayLabel(heroDate, todayISO, tomorrowISO)}
-            </h2>
-            {heroWorkouts.map((entry) => (
-              <WorkoutCard
-                key={entry.date + "-" + entry.type}
-                state={{ kind: "workout", entry }}
-                dateISO={heroDate}
-                units={units}
-                variant="hero"
-                onComplete={() => handleComplete(entry)}
-              />
-            ))}
-          </section>
+          <>
+            {/* Today's workouts */}
+            <section className="space-y-2">
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                {format(parseISO(todayISO), "EEEE")}
+              </h2>
+
+              {isRestDay ? (
+                <div className="rounded-xl border border-border bg-card p-4 opacity-50">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Rest Day
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">Recovery is part of training.</p>
+                </div>
+              ) : (
+                todayWorkouts.map((entry) => (
+                  <TodayWorkoutCard
+                    key={entry.date + "-" + entry.type}
+                    entry={entry}
+                    units={units}
+                    onComplete={() => handleComplete(entry)}
+                    onLogEffort={(effort) => handleLogEffort(entry, effort)}
+                  />
+                ))
+              )}
+            </section>
+
+            {/* Tomorrow preview */}
+            {showTomorrow && tomorrowDate && tomorrowWorkouts.length > 0 && (
+              <section className="space-y-2">
+                <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  {getDayLabel(tomorrowDate)}
+                </h2>
+                {tomorrowWorkouts.map((entry) => (
+                  <TodayWorkoutCard
+                    key={entry.date + "-" + entry.type}
+                    entry={entry}
+                    units={units}
+                    onComplete={() => {}}
+                    onLogEffort={() => {}}
+                    variant="preview"
+                  />
+                ))}
+              </section>
+            )}
+          </>
         )}
 
-        {/* Then */}
-        {thenDate !== null && (
-          <section className="space-y-2">
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground px-1">
-              {getDayLabel(thenDate, todayISO, tomorrowISO)}
-            </h2>
-            {thenWorkouts.map((entry) => (
-              <WorkoutCard
-                key={entry.date + "-" + entry.type}
-                state={{ kind: "workout", entry }}
-                dateISO={thenDate}
-                units={units}
-                variant="preview"
-              />
-            ))}
-          </section>
-        )}
-
-        {/* This Week */}
-        <WeekList
-          days={plan.days}
-          todayISO={todayISO}
-          planId={plan.id}
-          units={units}
-        />
-
-        {/* View Full Plan */}
+        {/* View full plan */}
         <div className="pt-2 text-center">
           <Link
-            href={`/plan/${plan.id}`}
+            href={`/plan/${resolvedPlan.id}`}
             className="text-sm text-primary hover:underline"
           >
-            View Full Plan →
+            View full plan →
           </Link>
         </div>
 

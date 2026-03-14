@@ -92,6 +92,17 @@ export default function PlanViewPage({ params }: PageProps) {
   const units = plan.input.units
   const raceDistance = plan.input.race?.distance
 
+  async function handleStartNewPlan() {
+    if (typeof plan !== "object" || plan === null) return
+    if (!window.confirm("This will delete your current plan. Continue?")) return
+    try {
+      await fetch(`/api/plans/${plan.id}`, { method: "DELETE" })
+    } catch {
+      // ignore
+    }
+    router.push("/?new=1")
+  }
+
   function handleToggleComplete(date: string, type: WorkoutType, completed: boolean) {
     if (typeof plan !== "object" || plan === null) return
     const prevDays = days
@@ -166,6 +177,7 @@ export default function PlanViewPage({ params }: PageProps) {
         units={units}
         status="complete"
         backHref="/dashboard"
+        onNewPlan={() => void handleStartNewPlan()}
       />
 
       {/* Desktop: calendar */}

@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { format, parseISO } from "date-fns"
-import { Star } from "lucide-react"
-import type { WorkoutDay } from "@workspace/ai"
+import { Star, Check } from "lucide-react"
+import type { WorkoutDay, WorkoutType } from "@workspace/ai"
 import { PlanDayDetail } from "./plan-day-detail"
 import { SavePlanButton, SaveProps } from "./save-plan-button"
 import {
@@ -25,10 +25,15 @@ interface PlanCalendarProps {
   totalWeeks: number
   raceDistance?: "5k" | "10k" | "half" | "full" | "ultra"
   saveProps?: SaveProps
+  onToggleComplete?: (date: string, type: WorkoutType, completed: boolean) => void
 }
 
-export function PlanCalendar({ days, units, totalWeeks, raceDistance, saveProps }: PlanCalendarProps) {
-  const [selectedDay, setSelectedDay] = useState<WorkoutDay | null>(null)
+export function PlanCalendar({ days, units, totalWeeks, raceDistance, saveProps, onToggleComplete }: PlanCalendarProps) {
+  const [selectedKey, setSelectedKey] = useState<{ date: string; type: WorkoutType } | null>(null)
+  // Derive the live WorkoutDay from the days prop so the detail panel always reflects current state
+  const selectedDay = selectedKey
+    ? (days.find((d) => d.date === selectedKey.date && d.type === selectedKey.type) ?? null)
+    : null
   const weeks = groupDaysByWeek(days)
   const taperWeeks = getTaperWeeks(raceDistance)
   const unit = distanceUnit(units)
@@ -44,9 +49,9 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, saveProps 
   return (
     <div className="flex h-[calc(100vh-200px)]">
       {/* Calendar scroll area */}
-      <div className="flex-1 overflow-auto p-4">
+      <div className="flex-1 overflow-auto">
         {/* Day of week header */}
-        <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1 sticky top-0 bg-background z-10 pb-2">
+        <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1 sticky top-0 bg-background z-10 px-4 pt-4 pb-2">
           <div />
           {DAY_ORDER.map((d) => (
             <div
@@ -59,6 +64,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, saveProps 
         </div>
 
         {/* Weeks */}
+        <div className="px-4 pb-4">
         {weeks.map((weekDays, weekIdx) => {
           if (!weekDays) return null
           const weekNum = weekIdx + 1
@@ -110,24 +116,34 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, saveProps 
                 const isRace = entries.some((d) => d.type === "race")
                 const isRest = entries.every((d) => d.type === "rest")
                 const isSelected = selectedDay?.date === primary.date && selectedDay?.type === primary.type
+                const isFullyComplete = !isRest && entries.filter((e) => e.type !== "rest").every((e) => e.completed === true)
 
                 return (
                   <button
                     key={dow}
-                    onClick={() => setSelectedDay(isSelected ? null : primary)}
+                    onClick={() => setSelectedKey(isSelected ? null : { date: primary.date, type: primary.type })}
                     className={[
                       "min-h-[72px] rounded-md border p-2 text-left transition-colors cursor-pointer",
                       isRace
                         ? "bg-primary/12 border-primary"
+                        : isFullyComplete && isSelected
+                        ? "bg-green-500/10 border-green-500/50"
+                        : isFullyComplete
+                        ? "bg-green-500/10 border-green-500/30"
                         : isSelected
                         ? "bg-muted border-primary/40"
                         : "bg-card border-border hover:border-primary/25",
                       isRest ? "opacity-40" : "",
                     ].join(" ")}
                   >
-                    <p className="text-[10px] text-subtle-foreground mb-1">
-                      {format(parseISO(primary.date), "d")}
-                    </p>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-[10px] text-subtle-foreground">
+                        {format(parseISO(primary.date), "d")}
+                      </p>
+                      {isFullyComplete && (
+                        <Check className="h-3 w-3 text-green-600" />
+                      )}
+                    </div>
 
                     {isRace && (
                       <Star className="h-3 w-3 fill-primary text-primary mb-1" />
@@ -175,11 +191,12 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, saveProps 
             />
           </div>
         )}
+        </div>
       </div>
 
       {/* Detail side panel */}
       <div className="w-72 border-l border-border bg-card overflow-y-auto flex-shrink-0">
-        <PlanDayDetail day={selectedDay} units={units} />
+        <PlanDayDetail day={selectedDay} units={units} onToggleComplete={onToggleComplete} />
       </div>
     </div>
   )

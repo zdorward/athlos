@@ -12,6 +12,7 @@ export interface WorkoutDay {
   type: WorkoutType
   distanceKm?: number  // always km; omitted for rest days only
   description: string
+  completed?: boolean  // undefined and false are both treated as incomplete
 }
 
 export interface TrainingPlanMeta {

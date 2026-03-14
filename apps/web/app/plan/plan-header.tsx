@@ -10,7 +10,7 @@ interface PlanHeaderProps {
   totalKm: number
   units: "km" | "miles"
   status: "generating" | "complete" | "error"
-  generatingWeek: number
+  generatingWeek?: number
   goalTimeLabel?: string  // e.g. "3:30" — optional, only for race+timeGoal
 }
 

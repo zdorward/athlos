@@ -31,6 +31,7 @@ export default function PlanViewPage({ params }: PageProps) {
 
   const [plan, setPlan] = useState<Plan | null | "not-found">(null)
   const [days, setDays] = useState<WorkoutDay[]>([])
+  const [selectedKey, setSelectedKey] = useState<{ date: string; type: WorkoutType } | null>(null)
   const [fetching, setFetching] = useState(false)
 
   // Redirect if no session
@@ -107,6 +108,53 @@ export default function PlanViewPage({ params }: PageProps) {
     })
   }
 
+  function handleSaveEdit(
+    date: string,
+    originalType: WorkoutType,
+    update: {
+      type?: WorkoutType
+      distanceKm?: number | null
+      description?: string
+      targetHR?: string
+      targetPace?: string
+    }
+  ) {
+    if (typeof plan !== "object" || plan === null) return
+    const prevDays = days
+    const prevSelectedKey = selectedKey
+
+    const updatedDays = days.map((d) => {
+      if (d.date !== date || d.type !== originalType) return d
+      const next = { ...d }
+      if (update.type !== undefined) next.type = update.type
+      if (update.description !== undefined) next.description = update.description
+      if (update.targetHR !== undefined) next.targetHR = update.targetHR
+      if (update.targetPace !== undefined) next.targetPace = update.targetPace
+      if ("distanceKm" in update) {
+        if (update.distanceKm === null) {
+          delete next.distanceKm
+        } else if (update.distanceKm !== undefined) {
+          next.distanceKm = update.distanceKm
+        }
+      }
+      return next
+    })
+    setDays(updatedDays)
+
+    if (update.type !== undefined && update.type !== originalType) {
+      setSelectedKey({ date, type: update.type })
+    }
+
+    fetch(`/api/plans/${plan.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date, type: originalType, update }),
+    }).catch(() => {
+      setDays(prevDays)
+      setSelectedKey(prevSelectedKey)
+    })
+  }
+
   return (
     <main className="min-h-svh flex flex-col">
       <PlanHeader
@@ -126,6 +174,9 @@ export default function PlanViewPage({ params }: PageProps) {
           totalWeeks={plan.totalWeeks}
           raceDistance={raceDistance}
           onToggleComplete={handleToggleComplete}
+          onSaveEdit={handleSaveEdit}
+          selectedKey={selectedKey}
+          onSelectedKeyChange={setSelectedKey}
         />
       </div>
 
@@ -137,6 +188,9 @@ export default function PlanViewPage({ params }: PageProps) {
           totalWeeks={plan.totalWeeks}
           raceDistance={raceDistance}
           onToggleComplete={handleToggleComplete}
+          onSaveEdit={handleSaveEdit}
+          selectedKey={selectedKey}
+          onSelectedKeyChange={setSelectedKey}
         />
       </div>
     </main>

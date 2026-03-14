@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import type { PlanGenerationInput, TrainingPlan, WorkoutDay } from "@workspace/ai"
+import type { PlanGenerationInput, TrainingPlan, WorkoutDay, WorkoutType } from "@workspace/ai"
 import { authClient } from "@/lib/auth-client"
 import { PlanHeader } from "./plan-header"
 import { PlanCalendar } from "./plan-calendar"
@@ -78,6 +78,8 @@ export default function PlanPage() {
   const [status, setStatus] = useState<"generating" | "complete" | "error">("generating")
   const [generatingWeek, setGeneratingWeek] = useState(1)
   const [input, setInput] = useState<PlanGenerationInput | null>(null)
+
+  const [selectedKey, setSelectedKey] = useState<{ date: string; type: WorkoutType } | null>(null)
 
   // Save state
   const [isSaving, setIsSaving] = useState(false)
@@ -343,6 +345,8 @@ export default function PlanPage() {
           totalWeeks={plan.totalWeeks ?? 0}
           raceDistance={input.race?.distance}
           saveProps={saveProps}
+          selectedKey={selectedKey}
+          onSelectedKeyChange={setSelectedKey}
         />
       </div>
 
@@ -354,6 +358,8 @@ export default function PlanPage() {
           totalWeeks={plan.totalWeeks ?? 0}
           raceDistance={input.race?.distance}
           saveProps={saveProps}
+          selectedKey={selectedKey}
+          onSelectedKeyChange={setSelectedKey}
         />
       </div>
 

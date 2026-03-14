@@ -152,7 +152,7 @@ export default function PlanPage() {
     // Prevent double-execution when sessionPending changes
     if (streamStartedRef.current) return
 
-    // If athloryx_plan exists in sessionStorage, we may be returning from OAuth.
+    // If athlos_plan exists in sessionStorage, we may be returning from OAuth.
     // Wait until session state is resolved before deciding.
     if (sessionStorage.getItem(PLAN_KEY)) {
       if (sessionPending) return // wait — re-effect runs when sessionPending changes

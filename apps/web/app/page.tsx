@@ -187,7 +187,7 @@ export default function Page() {
           {/* Nav */}
           <nav style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "24px 36px", display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 10 }}>
             <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,0.85)" }}>
-              ATHLORYX
+              ATHLOS
             </span>
             <button
               onClick={() => setShowSignIn(true)}

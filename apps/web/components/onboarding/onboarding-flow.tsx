@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from "framer-motion"
 import { ChevronLeft, X } from "lucide-react"
 import { OnboardingProgress } from "./onboarding-progress"
 import { FinalScreen } from "./final-screen"
-import { StepGoal } from "./steps/step-goal"
 import { StepFindRace } from "./steps/step-find-race"
 import { StepWhichDays } from "./steps/step-which-days"
 import { StepLongRunDay } from "./steps/step-long-run-day"
@@ -22,12 +21,17 @@ const slideVariants = {
   exit: (direction: number) => ({ x: direction > 0 ? -60 : 60, opacity: 0 }),
 }
 
-export function OnboardingFlow({ onExit }: { onExit: () => void }) {
+interface OnboardingFlowProps {
+  onExit: () => void
+  initialData?: Partial<OnboardingData>
+}
+
+export function OnboardingFlow({ onExit, initialData }: OnboardingFlowProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [direction, setDirection] = useState<1 | -1>(1)
-  const [formData, setFormData] = useState<OnboardingData>({})
+  const [formData, setFormData] = useState<OnboardingData>(initialData ?? {})
 
-  const steps = getSteps(formData.goal, formData.timeGoal, formData.strengthTraining)
+  const steps = getSteps(formData.timeGoal, formData.strengthTraining, !!formData.race)
   const isComplete = currentStep >= steps.length
 
   function advance() {
@@ -42,11 +46,6 @@ export function OnboardingFlow({ onExit }: { onExit: () => void }) {
 
   function handleNext(data: Partial<OnboardingData>) {
     let merged: OnboardingData = { ...formData, ...data }
-
-    // Goal change: clear race data
-    if ("goal" in data && data.goal !== formData.goal) {
-      merged = { ...merged, race: undefined }
-    }
 
     // timeGoal change to false: clear goal time
     if ("timeGoal" in data && data.timeGoal === false) {
@@ -77,13 +76,12 @@ export function OnboardingFlow({ onExit }: { onExit: () => void }) {
     if (isComplete) return <FinalScreen formData={formData} />
     const stepName = steps[currentStep]
     switch (stepName) {
-      case "goal":      return <StepGoal {...stepProps} />
-      case "findRace":  return <StepFindRace {...stepProps} />
+      case "findRace":  return <StepFindRace {...stepProps} initialMode={formData.manualRaceEntry ? "manual" : "search"} />
       case "timeGoal":  return <StepTimeGoal {...stepProps} />
       case "goalTime":  return <StepGoalTime {...stepProps} />
       case "whichDays": return <StepWhichDays {...stepProps} />
-      case "longRunDay":  return <StepLongRunDay {...stepProps} />
-      case "units":       return <StepUnits {...stepProps} />
+      case "longRunDay":    return <StepLongRunDay {...stepProps} />
+      case "units":         return <StepUnits {...stepProps} />
       case "strength":      return <StepStrengthTraining {...stepProps} />
       case "strengthDays":  return <StepStrengthDays {...stepProps} />
       default:              return null

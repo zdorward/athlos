@@ -15,6 +15,7 @@ export interface WorkoutDay {
   completed?: boolean  // undefined and false are both treated as incomplete
   targetHR?: string    // free text, e.g. "Zone 2 (130–145 bpm)"
   targetPace?: string  // free text, e.g. "5:30–6:00/km"
+  effort?: "hard" | "good" | "easy"
 }
 
 export interface TrainingPlanMeta {

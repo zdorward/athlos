@@ -2,9 +2,8 @@
 
 import { use, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2 } from "lucide-react"
+import { Loader2, ChevronLeft } from "lucide-react"
 import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
 import type { WorkoutDay, PlanGenerationInput } from "@workspace/ai"
 import { PlanHeader } from "@/app/plan/plan-header"

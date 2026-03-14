@@ -175,9 +175,9 @@ export default function DashboardPage() {
               variant="hero"
             />
           ) : (
-            todayWorkouts.map((entry, i) => (
+            todayWorkouts.map((entry) => (
               <WorkoutCard
-                key={i}
+                key={`${entry.date}-${entry.type}`}
                 state={{ kind: "workout", entry }}
                 dateISO={todayISO}
                 units={units}
@@ -207,9 +207,9 @@ export default function DashboardPage() {
               variant="preview"
             />
           ) : (
-            tomorrowWorkouts.map((entry, i) => (
+            tomorrowWorkouts.map((entry) => (
               <WorkoutCard
-                key={i}
+                key={`${entry.date}-${entry.type}`}
                 state={{ kind: "workout", entry }}
                 dateISO={tomorrowISO}
                 units={units}

@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { format, parseISO } from "date-fns"
 import { Star, Check } from "lucide-react"
 import type { WorkoutDay, WorkoutType } from "@workspace/ai"
@@ -26,10 +25,22 @@ interface PlanCalendarProps {
   raceDistance?: "5k" | "10k" | "half" | "full" | "ultra"
   saveProps?: SaveProps
   onToggleComplete?: (date: string, type: WorkoutType, completed: boolean) => void
+  onSaveEdit?: (
+    date: string,
+    originalType: WorkoutType,
+    update: {
+      type?: WorkoutType
+      distanceKm?: number | null
+      description?: string
+      targetHR?: string
+      targetPace?: string
+    }
+  ) => void
+  selectedKey: { date: string; type: WorkoutType } | null
+  onSelectedKeyChange: (key: { date: string; type: WorkoutType } | null) => void
 }
 
-export function PlanCalendar({ days, units, totalWeeks, raceDistance, saveProps, onToggleComplete }: PlanCalendarProps) {
-  const [selectedKey, setSelectedKey] = useState<{ date: string; type: WorkoutType } | null>(null)
+export function PlanCalendar({ days, units, totalWeeks, raceDistance, saveProps, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange }: PlanCalendarProps) {
   // Derive the live WorkoutDay from the days prop so the detail panel always reflects current state
   const selectedDay = selectedKey
     ? (days.find((d) => d.date === selectedKey.date && d.type === selectedKey.type) ?? null)
@@ -121,7 +132,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, saveProps,
                 return (
                   <button
                     key={dow}
-                    onClick={() => setSelectedKey(isSelected ? null : { date: primary.date, type: primary.type })}
+                    onClick={() => onSelectedKeyChange(isSelected ? null : { date: primary.date, type: primary.type })}
                     className={[
                       "min-h-[72px] rounded-md border p-2 text-left transition-colors cursor-pointer",
                       isRace
@@ -196,7 +207,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, saveProps,
 
       {/* Detail side panel */}
       <div className="w-72 border-l border-border bg-card overflow-y-auto flex-shrink-0">
-        <PlanDayDetail day={selectedDay} units={units} onToggleComplete={onToggleComplete} />
+        <PlanDayDetail day={selectedDay} units={units} onToggleComplete={onToggleComplete} onSaveEdit={onSaveEdit} />
       </div>
     </div>
   )

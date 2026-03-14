@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { format, parseISO } from "date-fns"
 import { Star, Check } from "lucide-react"
 import type { WorkoutDay, WorkoutType } from "@workspace/ai"
@@ -24,10 +23,22 @@ interface PlanFeedProps {
   raceDistance?: "5k" | "10k" | "half" | "full" | "ultra"
   saveProps?: SaveProps
   onToggleComplete?: (date: string, type: WorkoutType, completed: boolean) => void
+  onSaveEdit?: (
+    date: string,
+    originalType: WorkoutType,
+    update: {
+      type?: WorkoutType
+      distanceKm?: number | null
+      description?: string
+      targetHR?: string
+      targetPace?: string
+    }
+  ) => void
+  selectedKey: { date: string; type: WorkoutType } | null
+  onSelectedKeyChange: (key: { date: string; type: WorkoutType } | null) => void
 }
 
-export function PlanFeed({ days, units, totalWeeks, raceDistance, saveProps, onToggleComplete }: PlanFeedProps) {
-  const [selectedKey, setSelectedKey] = useState<{ date: string; type: WorkoutType } | null>(null)
+export function PlanFeed({ days, units, totalWeeks, raceDistance, saveProps, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange }: PlanFeedProps) {
   // Derive the live WorkoutDay from days so the detail sheet always reflects current state
   const selectedDay = selectedKey
     ? (days.find((d) => d.date === selectedKey.date && d.type === selectedKey.type) ?? null)
@@ -101,7 +112,7 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, saveProps, onT
                   return (
                     <button
                       key={`${day.date}-${day.type}`}
-                      onClick={() => setSelectedKey(isSelected ? null : { date: day.date, type: day.type })}
+                      onClick={() => onSelectedKeyChange(isSelected ? null : { date: day.date, type: day.type })}
                       className={[
                         "w-full rounded-lg border border-l-4 p-3 text-left transition-colors cursor-pointer",
                         isRace
@@ -178,13 +189,13 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, saveProps, onT
 
       {/* Bottom sheet overlay for detail */}
       {selectedDay && (
-        <div className="fixed inset-0 z-50 flex items-end" onClick={() => setSelectedKey(null)}>
+        <div className="fixed inset-0 z-50 flex items-end" onClick={() => onSelectedKeyChange(null)}>
           <div
             className="w-full max-h-[70vh] overflow-y-auto rounded-t-xl bg-card border-t border-border"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-border mb-2" />
-            <PlanDayDetail day={selectedDay} units={units} onClose={() => setSelectedKey(null)} onToggleComplete={onToggleComplete} />
+            <PlanDayDetail day={selectedDay} units={units} onClose={() => onSelectedKeyChange(null)} onToggleComplete={onToggleComplete} onSaveEdit={onSaveEdit} />
           </div>
         </div>
       )}

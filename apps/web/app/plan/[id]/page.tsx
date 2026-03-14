@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Loader2, ChevronLeft } from "lucide-react"
 import Link from "next/link"
 import { authClient } from "@/lib/auth-client"
-import type { WorkoutDay, PlanGenerationInput } from "@workspace/ai"
+import type { WorkoutDay, WorkoutType, PlanGenerationInput } from "@workspace/ai"
 import { PlanHeader } from "@/app/plan/plan-header"
 import { PlanCalendar } from "@/app/plan/plan-calendar"
 import { PlanFeed } from "@/app/plan/plan-feed"
@@ -30,6 +30,7 @@ export default function PlanViewPage({ params }: PageProps) {
   const { data: sessionData, isPending: sessionPending } = authClient.useSession()
 
   const [plan, setPlan] = useState<Plan | null | "not-found">(null)
+  const [days, setDays] = useState<WorkoutDay[]>([])
   const [fetching, setFetching] = useState(false)
 
   // Redirect if no session
@@ -57,12 +58,14 @@ export default function PlanViewPage({ params }: PageProps) {
         }
         const data = (await res.json()) as { plan: Plan }
         setPlan(data.plan)
+        setDays(data.plan.days)
       })
       .catch(() => setPlan("not-found"))
       .finally(() => setFetching(false))
   }, [id, sessionPending, sessionData?.session])
 
-  if (sessionPending || fetching || plan === null) {
+  // Show spinner only on initial load — don't flash on background session re-validation
+  if (plan === null) {
     return (
       <main className="flex min-h-svh items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -88,6 +91,22 @@ export default function PlanViewPage({ params }: PageProps) {
   const units = plan.input.units
   const raceDistance = plan.input.race?.distance
 
+  function handleToggleComplete(date: string, type: WorkoutType, completed: boolean) {
+    if (typeof plan !== "object" || plan === null) return
+    const prevDays = days
+    const updatedDays = days.map((d) =>
+      d.date === date && d.type === type ? { ...d, completed } : d,
+    )
+    setDays(updatedDays)
+    fetch(`/api/plans/${plan.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date, type, completed }),
+    }).catch(() => {
+      setDays(prevDays)
+    })
+  }
+
   return (
     <main className="min-h-svh flex flex-col">
       <PlanHeader
@@ -102,20 +121,22 @@ export default function PlanViewPage({ params }: PageProps) {
       {/* Desktop: calendar */}
       <div className="hidden md:block flex-1">
         <PlanCalendar
-          days={plan.days}
+          days={days}
           units={units}
           totalWeeks={plan.totalWeeks}
           raceDistance={raceDistance}
+          onToggleComplete={handleToggleComplete}
         />
       </div>
 
       {/* Mobile: feed */}
       <div className="md:hidden flex-1 overflow-y-auto pt-2">
         <PlanFeed
-          days={plan.days}
+          days={days}
           units={units}
           totalWeeks={plan.totalWeeks}
           raceDistance={raceDistance}
+          onToggleComplete={handleToggleComplete}
         />
       </div>
     </main>

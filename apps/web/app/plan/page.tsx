@@ -81,7 +81,6 @@ export default function PlanPage() {
 
   // Save state
   const [isSaving, setIsSaving] = useState(false)
-  const [isSaved, setIsSaved] = useState(false)
   const [saveError, setSaveError] = useState(false)
   const [showSignInSheet, setShowSignInSheet] = useState(false)
 
@@ -117,7 +116,9 @@ export default function PlanPage() {
       return
     }
 
-    // Restore plan state from snapshot and trigger save
+    // Restore plan state from snapshot and trigger save.
+    // Mark stream as started so the streaming effect doesn't fire a new generation.
+    streamStartedRef.current = true
     setInput(snapshot.input)
     setPlan({
       days: snapshot.days,
@@ -273,8 +274,12 @@ export default function PlanPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ input: planInput, days, totalWeeks, totalKm, peakWeekKm }),
       })
+      if (res.status === 401) {
+        setShowSignInSheet(true)
+        return
+      }
       if (!res.ok) throw new Error("Save failed")
-      setIsSaved(true)
+      router.push("/dashboard")
     } catch {
       setSaveError(true)
     } finally {
@@ -296,7 +301,7 @@ export default function PlanPage() {
   }
 
   function handleSave() {
-    if (isSaved || isSaving) return
+    if (isSaving) return
     if (!sessionData?.session) {
       setShowSignInSheet(true)
       return
@@ -316,7 +321,7 @@ export default function PlanPage() {
 
   if (!input) return null  // redirecting
 
-  const saveProps = { status, isSaving, isSaved, saveError, onSave: handleSave }
+  const saveProps = { status, isSaving, saveError, onSave: handleSave }
 
   return (
     <main className="min-h-svh flex flex-col">
@@ -328,7 +333,6 @@ export default function PlanPage() {
         status={status}
         generatingWeek={generatingWeek}
         goalTimeLabel={goalTimeLabel(input)}
-        saveProps={saveProps}
       />
 
       {/* Desktop: calendar */}

@@ -155,7 +155,6 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, saveProps }: P
             <SavePlanButton
               status={saveProps.status}
               isSaving={saveProps.isSaving}
-              isSaved={saveProps.isSaved}
               saveError={saveProps.saveError}
               onSave={saveProps.onSave}
               className="w-full"

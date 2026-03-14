@@ -110,7 +110,7 @@ export default function DashboardPage() {
         <DashboardHeader name={user.name} email={user.email} image={user.image} />
         <div className="mx-auto max-w-xl px-4 py-16 text-center space-y-4">
           <p className="text-muted-foreground">You don't have a saved plan yet.</p>
-          <Button asChild><Link href="/">Create a Plan</Link></Button>
+          <Button asChild><Link href="/?new=1">Create a Plan</Link></Button>
         </div>
       </main>
     )

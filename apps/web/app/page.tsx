@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { Wordmark } from "@/components/wordmark"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Search, Loader2, CalendarIcon } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { authClient } from "@/lib/auth-client"
@@ -72,8 +72,10 @@ const MOCK_WEEKS = [
 
 export default function Page() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isNewPlan = searchParams.get("new") === "1"
   const { data: sessionData, isPending } = authClient.useSession()
-  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(isNewPlan)
   const [showSignIn, setShowSignIn] = useState(false)
   const [showManualEntry, setShowManualEntry] = useState(false)
   const [initialData, setInitialData] = useState<Partial<OnboardingData> | undefined>()
@@ -82,10 +84,10 @@ export default function Page() {
   const wrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!isPending && sessionData?.session) {
+    if (!isPending && sessionData?.session && !isNewPlan) {
       router.replace("/dashboard")
     }
-  }, [isPending, sessionData?.session, router])
+  }, [isPending, sessionData?.session, isNewPlan, router])
 
   useEffect(() => {
     function handleMouseDown(e: MouseEvent) {
@@ -97,7 +99,7 @@ export default function Page() {
     return () => document.removeEventListener("mousedown", handleMouseDown)
   }, [])
 
-  if (isPending || sessionData?.session) {
+  if (isPending || (sessionData?.session && !isNewPlan)) {
     return (
       <main style={{ display: "flex", minHeight: "100svh", alignItems: "center", justifyContent: "center", background: "#020208" }}>
         <Loader2 className="h-6 w-6 animate-spin" style={{ color: "rgba(255,255,255,0.3)" }} />

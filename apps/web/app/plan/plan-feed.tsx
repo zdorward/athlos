@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { format, parseISO } from "date-fns"
-import { Star } from "lucide-react"
-import type { WorkoutDay } from "@workspace/ai"
+import { Star, Check } from "lucide-react"
+import type { WorkoutDay, WorkoutType } from "@workspace/ai"
 import { PlanDayDetail } from "./plan-day-detail"
 import { SavePlanButton, SaveProps } from "./save-plan-button"
 import {
@@ -23,10 +23,15 @@ interface PlanFeedProps {
   totalWeeks: number
   raceDistance?: "5k" | "10k" | "half" | "full" | "ultra"
   saveProps?: SaveProps
+  onToggleComplete?: (date: string, type: WorkoutType, completed: boolean) => void
 }
 
-export function PlanFeed({ days, units, totalWeeks, raceDistance, saveProps }: PlanFeedProps) {
-  const [selectedDay, setSelectedDay] = useState<WorkoutDay | null>(null)
+export function PlanFeed({ days, units, totalWeeks, raceDistance, saveProps, onToggleComplete }: PlanFeedProps) {
+  const [selectedKey, setSelectedKey] = useState<{ date: string; type: WorkoutType } | null>(null)
+  // Derive the live WorkoutDay from days so the detail sheet always reflects current state
+  const selectedDay = selectedKey
+    ? (days.find((d) => d.date === selectedKey.date && d.type === selectedKey.type) ?? null)
+    : null
   const weeks = groupDaysByWeek(days)
   const taperWeeks = getTaperWeeks(raceDistance)
   const unit = distanceUnit(units)
@@ -76,7 +81,7 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, saveProps }: P
                 {weekDays.map((day) => {
                   const isRest = day.type === "rest"
                   const isRace = day.type === "race"
-                  const isSelected = selectedDay?.date === day.date && selectedDay?.type === day.type
+                  const isSelected = selectedKey?.date === day.date && selectedKey?.type === day.type
                   const color = getWorkoutColor(day.type)
                   const textClass = WORKOUT_TEXT_CLASS[day.type]
 
@@ -88,20 +93,27 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, saveProps }: P
                     ? { borderLeftColor: "var(--subtle-foreground)" }
                     : { borderLeftColor: "var(--muted-foreground)" }
 
+                  const isComplete = !isRest && day.completed === true
+                  const effectiveBorderStyle = isComplete
+                    ? { borderLeftColor: "#22c55e" }
+                    : borderStyle
+
                   return (
                     <button
                       key={`${day.date}-${day.type}`}
-                      onClick={() => setSelectedDay(isSelected ? null : day)}
+                      onClick={() => setSelectedKey(isSelected ? null : { date: day.date, type: day.type })}
                       className={[
                         "w-full rounded-lg border border-l-4 p-3 text-left transition-colors cursor-pointer",
                         isRace
                           ? "bg-primary/12 border-border"
+                          : isComplete
+                          ? "bg-green-500/5 border-border"
                           : isSelected
                           ? "bg-muted border-border"
                           : "bg-card border-border hover:bg-muted",
                         isRest ? "opacity-40" : "",
                       ].join(" ")}
-                      style={borderStyle}
+                      style={effectiveBorderStyle}
                     >
                       <div className="flex items-center justify-between gap-3">
                         {/* Date */}
@@ -121,6 +133,7 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, saveProps }: P
                             style={color ? { color } : undefined}
                           >
                             {isRace && <Star className="h-3.5 w-3.5 fill-primary text-primary" />}
+                            {isComplete && <Check className="h-4 w-4 text-green-600" />}
                             {WORKOUT_NAMES[day.type]}
                           </p>
                           {!isRest && (
@@ -165,13 +178,13 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, saveProps }: P
 
       {/* Bottom sheet overlay for detail */}
       {selectedDay && (
-        <div className="fixed inset-0 z-50 flex items-end" onClick={() => setSelectedDay(null)}>
+        <div className="fixed inset-0 z-50 flex items-end" onClick={() => setSelectedKey(null)}>
           <div
             className="w-full max-h-[70vh] overflow-y-auto rounded-t-xl bg-card border-t border-border"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-border mb-2" />
-            <PlanDayDetail day={selectedDay} units={units} onClose={() => setSelectedDay(null)} />
+            <PlanDayDetail day={selectedDay} units={units} onClose={() => setSelectedKey(null)} onToggleComplete={onToggleComplete} />
           </div>
         </div>
       )}

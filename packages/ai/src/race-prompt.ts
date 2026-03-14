@@ -83,8 +83,9 @@ function buildWeekSchedule(startDate: Date, endDate: Date): string {
 export function buildPrompt(input: PlanGenerationInput): { system: string; user: string } {
   const lines: string[] = []
 
-  const today = new Date()
-  const startDate = firstMondayOnOrAfter(today)
+  const startDate = input.startDate
+    ? new Date(input.startDate + "T00:00:00Z")
+    : firstMondayOnOrAfter(new Date())
 
   const { name, date, distance, city } = input.race
   const raceKm = DISTANCE_KM_MAP[distance] ?? 42.2

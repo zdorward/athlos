@@ -53,6 +53,10 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
     }
   }
 
+  if (typeof raw["startDate"] === "string" && raw["startDate"]) {
+    input.startDate = raw["startDate"]
+  }
+
   return input
 }
 

@@ -46,4 +46,5 @@ export interface PlanGenerationInput {
   units: "km" | "miles"
   strengthTraining: boolean
   strengthDays?: string[]
+  startDate?: string  // ISO "YYYY-MM-DD" — first day of training
 }

@@ -11,6 +11,7 @@ import { StepFindRace } from "./steps/step-find-race"
 import { StepWhichDays } from "./steps/step-which-days"
 import { StepStrengthDays } from "./steps/step-strength-days"
 import { StepGoalTime } from "./steps/step-goal-time"
+import { StepStartDate } from "./steps/step-start-date"
 import { getSteps, type OnboardingData, type RaceData } from "./types"
 
 const slideVariants = {
@@ -34,6 +35,7 @@ const STEP_LABELS: Record<string, string> = {
   goalTime: "Goal time",
   whichDays: "Running days",
   strengthDays: "Lifting days",
+  startDate: "Start date",
 }
 
 interface OnboardingFlowProps {
@@ -297,6 +299,7 @@ export function OnboardingFlow({ onExit, initialData }: OnboardingFlowProps) {
       case "goalTime":     return <StepGoalTime {...stepProps} />
       case "whichDays":    return <StepWhichDays {...stepProps} />
       case "strengthDays": return <StepStrengthDays {...stepProps} />
+      case "startDate":    return <StepStartDate {...stepProps} />
       default:             return null
     }
   }

@@ -37,6 +37,7 @@ export interface OnboardingData {
   selectedDays?: Day[]
   longRunDay?: Day
   strengthDays?: Day[]
+  startDate?: string  // ISO "YYYY-MM-DD"
 }
 
 export interface StepProps {
@@ -45,5 +46,5 @@ export interface StepProps {
 }
 
 export function getSteps(): readonly string[] {
-  return ["findRace", "goalTime", "whichDays", "strengthDays"]
+  return ["findRace", "goalTime", "whichDays", "strengthDays", "startDate"]
 }

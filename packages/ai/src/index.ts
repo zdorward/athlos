@@ -10,6 +10,8 @@ export {
   type PlanGenerationInput,
 } from "./types.js"
 
+const _provider: AIProvider = new ClaudeProvider()
+
 export function getProvider(): AIProvider {
-  return new ClaudeProvider()
+  return _provider
 }

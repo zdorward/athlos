@@ -8,6 +8,7 @@ import * as schema from "@workspace/db/schema"
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 export const auth = betterAuth({
+  secret: process.env.BETTER_AUTH_SECRET,
   database: drizzleAdapter(db, {
     provider: "pg",
     schema,

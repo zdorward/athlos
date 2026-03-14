@@ -3,12 +3,15 @@
 import { Check, Loader2, BookmarkPlus } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 
-interface SavePlanButtonProps {
+export interface SaveProps {
   status: "generating" | "complete" | "error"
   isSaving: boolean
   isSaved: boolean
   saveError: boolean
   onSave: () => void
+}
+
+interface SavePlanButtonProps extends SaveProps {
   className?: string
 }
 

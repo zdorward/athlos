@@ -3,15 +3,7 @@
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 import { formatDistance, distanceUnit } from "./workout-utils"
-import { SavePlanButton } from "./save-plan-button"
-
-interface SaveProps {
-  status: "generating" | "complete" | "error"
-  isSaving: boolean
-  isSaved: boolean
-  saveError: boolean
-  onSave: () => void
-}
+import { SavePlanButton, SaveProps } from "./save-plan-button"
 
 interface PlanHeaderProps {
   planName: string

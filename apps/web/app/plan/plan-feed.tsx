@@ -5,7 +5,7 @@ import { format, parseISO } from "date-fns"
 import { Star } from "lucide-react"
 import type { WorkoutDay } from "@workspace/ai"
 import { PlanDayDetail } from "./plan-day-detail"
-import { SavePlanButton } from "./save-plan-button"
+import { SavePlanButton, SaveProps } from "./save-plan-button"
 import {
   groupDaysByWeek,
   getPhaseLabel,
@@ -16,14 +16,6 @@ import {
   formatDistance,
   distanceUnit,
 } from "./workout-utils"
-
-interface SaveProps {
-  status: "generating" | "complete" | "error"
-  isSaving: boolean
-  isSaved: boolean
-  saveError: boolean
-  onSave: () => void
-}
 
 interface PlanFeedProps {
   days: WorkoutDay[]

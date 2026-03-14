@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { Wordmark } from "@/components/wordmark"
 import { User } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
 import {
@@ -31,7 +32,7 @@ export function DashboardHeader({ name, email, image }: DashboardHeaderProps) {
   return (
     <header className="border-b border-border">
       <div className="mx-auto flex max-w-xl items-center justify-between px-4 py-3">
-        <span className="text-lg font-semibold tracking-tight">Athlos</span>
+        <Wordmark />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

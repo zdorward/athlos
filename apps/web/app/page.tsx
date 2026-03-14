@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { Wordmark } from "@/components/wordmark"
 import { useRouter } from "next/navigation"
 import { Search, Loader2, CalendarIcon } from "lucide-react"
 import { format, parseISO } from "date-fns"
@@ -186,9 +187,7 @@ export default function Page() {
 
           {/* Nav */}
           <nav style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "24px 36px", display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 10 }}>
-            <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,0.85)" }}>
-              ATHLOS
-            </span>
+            <Wordmark className="text-white/85" />
             <button
               onClick={() => setShowSignIn(true)}
               style={{ fontSize: 13, color: "rgba(255,255,255,0.38)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "7px 18px", background: "none", cursor: "pointer" }}

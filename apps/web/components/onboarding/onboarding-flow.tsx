@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { Wordmark } from "@/components/wordmark"
 import { AnimatePresence, motion } from "framer-motion"
 import { ChevronLeft, X, Check } from "lucide-react"
 import { format } from "date-fns"
@@ -99,16 +100,7 @@ function LeftPanel({
       {/* Content */}
       <div className="relative flex flex-col h-full p-10 justify-between">
         {/* Wordmark */}
-        <span
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            letterSpacing: "0.12em",
-            color: "rgba(255,255,255,0.6)",
-          }}
-        >
-          ATHLOS
-        </span>
+        <Wordmark className="text-white/60" />
 
         {/* Race info */}
         {race && (

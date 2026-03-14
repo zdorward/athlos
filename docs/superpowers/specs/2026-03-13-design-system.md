@@ -8,73 +8,119 @@ Sharp, data-driven, minimal, adaptive visual language for serious competitive at
 
 ---
 
+## Implementation Notes
+
+### Color format
+All CSS custom properties must be in **oklch format** to work with Tailwind v4's opacity modifier syntax (`bg-primary/12`, `text-foreground/60`, etc.). Hex values will not compose with Tailwind opacity modifiers. The hex values in this doc are design references only — oklch equivalents are provided for every token.
+
+### File to edit
+The token file is **`packages/ui/src/styles/globals.css`** (not `apps/web/app/globals.css`). The web app imports it via `@workspace/ui/globals.css` in `layout.tsx`.
+
+### Font loading
+`layout.tsx` already loads both `Geist` and `Geist_Mono` as variable fonts via `next/font/google`. No weight array is needed — variable fonts expose the full weight axis (100–900) automatically. The variables `--font-sans` (Geist) and `--font-mono` (Geist Mono) are already registered. No changes to `layout.tsx` are needed.
+
+### Animations
+`globals.css` imports `tw-animate-css` which provides `shimmer-slide` and `spin-around` keyframes used by animated Magic UI components. These are unaffected by this design system update and should remain.
+
+---
+
 ## Color System
 
-All colors implemented as CSS custom properties in `globals.css`, consumed by Tailwind via `@theme`. Both dark and light modes defined — switching is handled by `next-themes` (already in the stack).
+Replace the `:root` and `.dark` blocks in `packages/ui/src/styles/globals.css`. All tokens not listed below (sidebar-*, chart-*, destructive) remain unchanged.
 
-### Dark Mode (default)
+### Dark mode (`.dark`)
 
-| Token | Value | Usage |
+| Token | oklch | Hex ref | Usage |
+|---|---|---|---|
+| `--background` | `oklch(0.13 0.025 255)` | `#0f1520` | Page background |
+| `--card` | `oklch(0.18 0.03 255)` | `#161c2d` | Card / panel background |
+| `--card-foreground` | `oklch(0.93 0.02 255)` | `#e2eaf8` | Text on cards |
+| `--popover` | `oklch(0.18 0.03 255)` | `#161c2d` | Dropdown / tooltip background |
+| `--popover-foreground` | `oklch(0.93 0.02 255)` | `#e2eaf8` | Text in popovers |
+| `--muted` | `oklch(0.22 0.035 255)` | `#1c2438` | Raised surfaces, hover backgrounds |
+| `--muted-foreground` | `oklch(0.55 0.06 255)` | `#6b80a8` | Secondary text |
+| `--subtle-foreground` | `oklch(0.38 0.06 255)` | `#3d4f6e` | Labels, placeholders, metadata |
+| `--primary` | `oklch(0.68 0.16 255)` | `#5b9cf6` | Accent — CTAs, active labels, key metrics |
+| `--primary-foreground` | `oklch(0.10 0.03 255)` | `#0b1120` | Text on primary buttons |
+| `--secondary` | `oklch(0.22 0.035 255)` | `#1c2438` | Same as muted |
+| `--secondary-foreground` | `oklch(0.93 0.02 255)` | `#e2eaf8` | Text on secondary elements |
+| `--accent` | `oklch(0.22 0.035 255)` | `#1c2438` | Hover states (nav, dropdowns) — NOT the blue accent |
+| `--accent-foreground` | `oklch(0.93 0.02 255)` | `#e2eaf8` | Text on accent hover |
+| `--foreground` | `oklch(0.93 0.02 255)` | `#e2eaf8` | Primary text |
+| `--border` | `oklch(1 0 0 / 7%)` | — | All borders |
+| `--input` | `oklch(1 0 0 / 15%)` | — | Input borders / backgrounds |
+| `--ring` | `oklch(0.68 0.16 255)` | `#5b9cf6` | Focus rings (matches primary) |
+
+> **Note:** In shadcn, `--accent` is the hover background for nav/menu items — not a brand color. Our blue accent maps to `--primary`. Do not overwrite `--accent` with the blue.
+
+### Light mode (`:root`)
+
+| Token | oklch | Hex ref | Usage |
+|---|---|---|---|
+| `--background` | `oklch(0.97 0.01 255)` | `#f0f4f9` | Page background |
+| `--card` | `oklch(1 0 0)` | `#ffffff` | Card background |
+| `--card-foreground` | `oklch(0.12 0.025 255)` | `#0d1421` | Text on cards |
+| `--popover` | `oklch(1 0 0)` | `#ffffff` | Dropdown background |
+| `--popover-foreground` | `oklch(0.12 0.025 255)` | `#0d1421` | Text in popovers |
+| `--muted` | `oklch(0.985 0.004 255)` | `#f8fafc` | Raised surfaces |
+| `--muted-foreground` | `oklch(0.51 0.04 255)` | `#64748b` | Secondary text |
+| `--subtle-foreground` | `oklch(0.68 0.03 255)` | `#94a3b8` | Labels, placeholders |
+| `--primary` | `oklch(0.52 0.24 264)` | `#2563eb` | Accent |
+| `--primary-foreground` | `oklch(1 0 0)` | `#ffffff` | Text on primary buttons |
+| `--secondary` | `oklch(0.97 0 0)` | — | Keep current |
+| `--secondary-foreground` | `oklch(0.205 0 0)` | — | Keep current |
+| `--accent` | `oklch(0.97 0 0)` | — | Keep current (nav hover) |
+| `--accent-foreground` | `oklch(0.205 0 0)` | — | Keep current |
+| `--foreground` | `oklch(0.12 0.025 255)` | `#0d1421` | Primary text |
+| `--border` | `oklch(0.92 0.01 255)` | `#e2e8f0` | All borders |
+| `--input` | `oklch(0.92 0.01 255)` | `#e2e8f0` | Input borders |
+| `--ring` | `oklch(0.52 0.24 264)` | `#2563eb` | Focus rings |
+
+### `@theme inline` addition
+
+Add one line to the `@theme inline` block for the new token:
+
+```css
+--color-subtle-foreground: var(--subtle-foreground);
+```
+
+This registers it as a Tailwind utility so `text-subtle-foreground` works as a class.
+
+---
+
+## Border Radius
+
+Set `--radius: 0.5rem` (8px) in both `:root` and `.dark`. The existing calculated scale then produces:
+
+| Tailwind class | Computed value | Used for |
 |---|---|---|
-| `--background` | `#0f1520` | Page background |
-| `--card` | `#161c2d` | Card / surface background |
-| `--muted` | `#1c2438` | Raised surface, hover states |
-| `--border` | `rgba(255,255,255,0.07)` | All borders |
-| `--primary` | `#5b9cf6` | Accent — CTAs, active labels, key metrics |
-| `--primary-foreground` | `#0b1120` | Text on primary buttons |
-| `--primary/12` | `rgba(91,156,246,0.12)` | Accent muted background |
-| `--foreground` | `#e2eaf8` | Primary text |
-| `--muted-foreground` | `#6b80a8` | Secondary text |
-| `--subtle-foreground` | `#3d4f6e` | Labels, placeholders, metadata |
+| `rounded-[2px]` | 2px (arbitrary) | Progress bars, thin dividers |
+| `rounded-sm` | 4.8px | Tags, badges, chips |
+| `rounded-md` | 6.4px | Buttons, inputs, selects |
+| `rounded-lg` | 8px | Cards, containers |
 
-### Light Mode
-
-| Token | Value | Usage |
-|---|---|---|
-| `--background` | `#f0f4f9` | Page background |
-| `--card` | `#ffffff` | Card background |
-| `--muted` | `#f8fafc` | Raised surface |
-| `--border` | `#e2e8f0` | All borders |
-| `--primary` | `#2563eb` | Accent |
-| `--primary-foreground` | `#ffffff` | Text on primary buttons |
-| `--foreground` | `#0d1421` | Primary text |
-| `--muted-foreground` | `#64748b` | Secondary text |
-| `--subtle-foreground` | `#94a3b8` | Labels, metadata |
+> Current value is `0.625rem` (10px). Changing to `0.5rem` reduces all `rounded-*` classes proportionally. No component class names change — only the pixel output changes.
 
 ---
 
 ## Typography
 
-**Font:** Geist (already loaded via `next/font/google` in the Next.js app). One font family throughout — no secondary typeface.
+Geist (sans) and Geist Mono are both already loaded via `next/font/google` as variable fonts. No font loading changes needed.
 
-Data values are differentiated from prose through weight, size, and `font-variant-numeric: tabular-nums` — not a separate font.
+**Rule:** All data values (pace, distance, HR, dates, times) use `font-mono` (`font-variant-numeric: tabular-nums` is implicit in Geist Mono). All other text uses the default `font-sans` (Geist).
 
 ### Scale
 
-| Role | Size | Weight | Tracking | Notes |
+| Role | Class | Weight | Tracking | Notes |
 |---|---|---|---|---|
-| Display / hero metric | 42–48px | 800 | -2px | Large KPIs, race name |
-| H1 | 28px | 800 | -1px | Page titles |
-| H2 | 22px | 700 | -0.5px | Section headings |
-| H3 | 16px | 600 | -0.25px | Card titles |
-| Body | 14px | 400 | normal | Prose, descriptions |
-| Data value (large) | 28–36px | 700 | -0.5px | Pace, distance, HR |
-| Data value (small) | 14–16px | 600 | normal | Inline stats |
-| Label | 10–11px | 600 | 0.14em | Uppercase, metric keys |
-| Caption | 11px | 400 | normal | Sub-labels, units |
-
-**Rule:** Labels are always uppercase with `letter-spacing: 0.14em`. Data values always use `font-variant-numeric: tabular-nums`.
-
----
-
-## Shape
-
-| Context | Radius |
-|---|---|
-| Cards, modals, large containers | 8px |
-| Buttons, inputs, selects | 6px |
-| Tags, badges, chips | 4px |
-| Progress bars, dividers | 2px |
+| Display / hero metric | `text-4xl` to `text-5xl` | `font-extrabold` (800) | `tracking-tighter` | Large KPIs |
+| H1 | `text-2xl` | `font-bold` (700) | `tracking-tight` | Page/step titles |
+| H2 | `text-xl` | `font-semibold` (600) | `tracking-tight` | Section headings |
+| Body | `text-sm` | `font-normal` (400) | default | Prose |
+| Data value (large) | `text-3xl` + `font-mono` | `font-bold` (700) | `tracking-tight` | Pace, distance |
+| Data value (small) | `text-sm` + `font-mono` | `font-medium` (500) | default | Inline stats |
+| Label | `text-[10px]` + `uppercase` | `font-semibold` (600) | `tracking-[0.14em]` | Metric keys, category labels |
+| Caption | `text-xs` | `font-normal` (400) | default | Units, sub-labels |
 
 ---
 
@@ -82,81 +128,65 @@ Data values are differentiated from prose through weight, size, and `font-varian
 
 ### Cards
 
-- Background: `--card`
-- Border: `1px solid --border`
-- Border radius: `8px`
-- Padding: `20–24px`
-- **Primary metric variant:** `border-top: 2px solid --primary`, background shifted to `--primary/12`
+```
+bg-card border border-border rounded-lg p-5
+```
+
+Primary metric variant adds `border-t-2 border-t-primary bg-primary/12` to highlight the key card.
 
 ### Buttons
 
-- **Primary:** `background: --primary`, `color: --primary-foreground`, `font-weight: 600`, subtle uppercase label tracking
-- **Ghost:** `background: transparent`, `border: 1px solid --border`, `color: --muted-foreground`
-- Border radius: `6px`
-- Transition: `150ms ease-out` on background and color only
-- No shadows
+**Primary:**
+```
+bg-primary text-primary-foreground rounded-md font-semibold
+```
 
-### Labels / Metric Keys
+**Ghost** (updated to include visible border — different from current implementation):
+```
+bg-transparent border border-border text-muted-foreground rounded-md
+hover:bg-muted hover:text-foreground
+```
 
-- `font-size: 10–11px`, `font-weight: 600`, `letter-spacing: 0.14em`, `text-transform: uppercase`
-- Active / primary: `color: --primary`
-- Inactive / metadata: `color: --subtle-foreground`
+> This is a change from the current ghost CVA variant which has no border. The developer should update the `ghost` variant in `packages/ui/src/components/button.tsx` — or use the existing `outline` variant which already has a border if it otherwise matches.
 
 ### Tags / Badges
 
-- **Active state** (e.g. "Race", "Week 14"): `background: --primary/12`, `border: 1px solid rgba(primary, 0.2)`, `color: --primary`
-- **Neutral** (e.g. "Full Marathon"): `background: rgba(255,255,255,0.04)`, `border: 1px solid --border`, `color: --muted-foreground`
-- Border radius: `4px`, `font-size: 10px`, `font-weight: 600`, uppercase
+Active (e.g. "Race"):
+```
+bg-primary/12 border border-primary/20 text-primary
+text-[10px] font-semibold tracking-[0.1em] uppercase rounded-sm px-2.5 py-1
+```
 
-### Progress Bars
+Neutral (metadata):
+```
+bg-white/4 border border-border text-muted-foreground
+text-[10px] font-semibold tracking-[0.1em] uppercase rounded-sm px-2.5 py-1
+```
 
-- Height: `3px` (prominent) or `2px` (subtle)
-- Track: `--muted` or `--border`
-- Fill: `--primary`
-- Border radius: `2px`
+> A `badge.tsx` update or new variant is needed for the active state. Check current `packages/ui/src/components/badge.tsx` and either add a variant or override per-usage.
 
 ### Inputs
 
-- Background: `--muted` (raised surface)
-- Border: `1px solid --border`
-- Focus border: `--primary`
-- Border radius: `6px`
-- Font: Geist 14px, `--foreground`
+```
+bg-muted border border-input rounded-md text-sm text-foreground
+focus:border-primary focus:outline-none transition-colors
+```
+
+### Progress Bars
+
+```
+h-[3px] bg-border rounded-[2px]          /* track */
+h-full bg-primary rounded-[2px]           /* fill */
+transition-all duration-300               /* animated fill */
+```
 
 ---
 
 ## Motion
 
-Purposeful and fast. Nothing decorative.
-
-- **Step transitions:** Existing Framer Motion slide (already implemented) — keep as-is
-- **Hover / focus:** `transition: 150ms ease-out` on `color`, `border-color`, `background` only
-- **No bounce, no spring, no scale transforms** on interactive elements
-- Easing: `ease-out` throughout
-
----
-
-## Implementation Approach
-
-### 1. Update `globals.css`
-
-Replace current shadcn color tokens with the new palette. Tailwind v4 reads these via `@theme`. Both `:root` (light) and `.dark` overrides defined here.
-
-### 2. `next/font/google` — Geist
-
-Geist is already configured in `apps/web/app/layout.tsx` as the default font via `next/font/google`. No changes needed to font loading.
-
-### 3. Tailwind config
-
-No changes to `tailwind.config.ts` — the token names map directly to existing shadcn conventions (`background`, `foreground`, `card`, `primary`, `muted`, `border`, etc.), so all existing component classes continue to work.
-
-### 4. shadcn/ui component overrides
-
-Minor tweaks to `button.tsx`, `card.tsx`, and `input.tsx` CVA base classes to apply correct border-radius values and remove any default shadows.
-
-### 5. `next-themes`
-
-Already configured. No changes needed — light/dark switching works via the `.dark` class on `<html>`.
+- **Step transitions:** Keep existing Framer Motion slide implementation unchanged
+- **Hover / focus:** `transition-colors duration-150` only — no scale, no translate, no bounce
+- **Easing:** `ease-out` throughout
 
 ---
 
@@ -164,8 +194,8 @@ Already configured. No changes needed — light/dark switching works via the `.d
 
 | File | Change |
 |---|---|
-| `apps/web/app/globals.css` | Replace color tokens, add `font-variant-numeric: tabular-nums` utility |
-| `packages/ui/src/components/button.tsx` | Adjust radius (already has `cursor-pointer` fix) |
-| `packages/ui/src/components/card.tsx` | Confirm radius matches spec |
-| `packages/ui/src/components/input.tsx` | Confirm radius and focus ring |
-| `apps/web/app/layout.tsx` | Confirm Geist is loaded with correct weights (400–800) |
+| `packages/ui/src/styles/globals.css` | Replace color tokens (`:root`, `.dark`), set `--radius: 0.5rem`, add `--subtle-foreground` tokens and `--color-subtle-foreground` to `@theme inline` |
+| `packages/ui/src/components/button.tsx` | Update `ghost` variant to include `border border-border`; adjust `rounded-lg` → `rounded-md` on base class if needed |
+| `packages/ui/src/components/card.tsx` | Confirm uses `rounded-lg` (will auto-update when `--radius` changes) |
+| `packages/ui/src/components/input.tsx` | Confirm uses `rounded-md` and `border-input`; confirm focus ring uses `ring-ring` |
+| `packages/ui/src/components/badge.tsx` | Add active (accent) variant for tags used in onboarding summary |

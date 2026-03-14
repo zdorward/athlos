@@ -95,7 +95,7 @@ When in edit mode, the entire panel content is replaced with a form:
 
 **Type → rest behaviour:** When the user selects "rest" from the type dropdown, the distance field hides and its form value clears (set to empty string / undefined). When switching back to any non-rest type, the distance field reappears empty.
 
-**Distance unit conversion:** `formatDistance` in `workout-utils` returns a formatted string and cannot be used for round-trip arithmetic. Inline `const KM_TO_MILES = 0.621371` in `PlanDayDetail`. Display value = `distanceKm * (units === "miles" ? KM_TO_MILES : 1)`. On save, convert back: `displayValue / (units === "miles" ? KM_TO_MILES : 1)`.
+**Distance unit conversion:** `formatDistance` in `workout-utils` returns a formatted string and cannot be used for round-trip arithmetic. Inline `const KM_TO_MILES = 0.621371` in `PlanDayDetail`. Use the existing `units` prop (already present on `PlanDayDetail`) — no new prop required. Display value = `distanceKm * (units === "miles" ? KM_TO_MILES : 1)`. On save, convert back: `displayValue / (units === "miles" ? KM_TO_MILES : 1)`.
 
 **Bottom of form:** "Save" button (primary action) and "Cancel" text link. Cancel returns to view mode with no changes applied. Save triggers the save flow below.
 
@@ -127,13 +127,13 @@ onSaveEdit?: (
 
 The "Edit" button and form only render when `onSaveEdit` is provided.
 
-**Mode reset:** `PlanDayDetail` does not await the async save result. It returns to view mode immediately when the user clicks Save (optimistic). The parent's re-render (from updated `days`) will update the `day` prop naturally. If the save fails and `days` reverts, the displayed values will revert too. `handleSaveEdit` in `PlanViewPage` should be a regular (non-async) function that fires the fetch without awaiting — this matches the `() => void` prop type and avoids TypeScript friction.
+**Mode reset:** `PlanDayDetail` does not await the async save result. It returns to view mode immediately when the user clicks Save (optimistic). The parent's re-render (from updated `days`) will update the `day` prop naturally. If the save fails and `days` reverts, the displayed values will revert too. `handleSaveEdit` in `PlanViewPage` should be a regular (non-async) function that fires the fetch without awaiting — this satisfies the `(...args) => void` return type (the function returns `void`; it just doesn't `await` internally) and avoids TypeScript friction.
 
 ### `PlanCalendar` and `PlanFeed`
 
 Both accept `onSaveEdit` as a new optional prop and forward it to their `PlanDayDetail` instance.
 
-Both components must expose `selectedKey` and `onSelectedKeyChange` as controlled props (replacing their current internal `useState`). In both components, replace all existing `setSelectedKey(...)` call sites — including backdrop taps, close-button handlers, and cell/card click handlers — with `onSelectedKeyChange(...)`.
+Both components must expose `selectedKey` and `onSelectedKeyChange` as controlled props (replacing their current internal `useState`). In both components, replace all existing `setSelectedKey(...)` call sites — cell/card click handlers, close-button handlers, and (for `PlanFeed` only) backdrop taps — with `onSelectedKeyChange(...)`. `PlanCalendar` has no backdrop; the backdrop-dismiss case applies to `PlanFeed` only.
 
 ---
 
@@ -145,7 +145,7 @@ Both components must expose `selectedKey` and `onSelectedKeyChange` as controlle
 2. Optimistically update local `days` state: map over `days`, find entry by `(date, originalType)`, then:
    - If `update.distanceKm === null`: build the updated entry **without** `distanceKm` (omit the property, do not set it to null).
    - Otherwise: spread `update` fields onto the entry normally.
-3. If `update.type` differs from `originalType`, update the selection key: call the `onSelectedKeyChange` prop on whichever component is active (`PlanCalendar` or `PlanFeed`) with `{ date, type: update.type }`. Since both components now expose `selectedKey` / `onSelectedKeyChange` as controlled props owned by `PlanViewPage`, `handleSaveEdit` can call the shared setter directly. Without this, a type change causes `selectedKey.type` to no longer match any entry and the detail panel goes blank.
+3. If `update.type` differs from `originalType`, update the selection key: call `setSelectedKey({ date, type: update.type })`. Use a **single** `selectedKey` / `setSelectedKey` state in `PlanViewPage`, shared between `PlanCalendar` and `PlanFeed`. Since only one is mounted at a time (desktop vs. mobile), sharing the state is safe and `handleSaveEdit` can update it directly. Without this, a type change causes `selectedKey.type` to no longer match any entry and the detail panel goes blank.
 4. Send `PATCH /api/plans/${plan.id}` with `{ date, type: originalType, update }`.
 5. On error: revert `days` to previous snapshot and revert `selectedKey` to `{ date, type: originalType }`. No error toast in v1.
 

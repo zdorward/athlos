@@ -1,8 +1,8 @@
 "use client"
 
 import { format, parseISO } from "date-fns"
-import { Star } from "lucide-react"
-import type { WorkoutDay } from "@workspace/ai"
+import { Star, Check } from "lucide-react"
+import type { WorkoutDay, WorkoutType } from "@workspace/ai"
 import {
   WORKOUT_NAMES,
   WORKOUT_TEXT_CLASS,
@@ -15,9 +15,10 @@ interface PlanDayDetailProps {
   day: WorkoutDay | null
   units: "km" | "miles"
   onClose?: () => void
+  onToggleComplete?: (date: string, type: WorkoutType, completed: boolean) => void
 }
 
-export function PlanDayDetail({ day, units, onClose }: PlanDayDetailProps) {
+export function PlanDayDetail({ day, units, onClose, onToggleComplete }: PlanDayDetailProps) {
   if (!day) {
     return (
       <div className="flex h-full items-center justify-center p-6">
@@ -85,6 +86,16 @@ export function PlanDayDetail({ day, units, onClose }: PlanDayDetailProps) {
         </p>
         <p className="text-sm text-subtle-foreground">—</p>
       </div>
+
+      {day.type !== "rest" && onToggleComplete && (
+        <button
+          onClick={() => onToggleComplete(day.date, day.type, !day.completed)}
+          className="flex items-center gap-1.5 text-sm font-semibold text-green-600 hover:text-green-500 transition-colors"
+        >
+          <Check className="h-4 w-4" />
+          {day.completed ? "Mark as incomplete" : "Mark as complete"}
+        </button>
+      )}
     </div>
   )
 }

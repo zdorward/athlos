@@ -1,4 +1,5 @@
 import { type NextRequest } from "next/server"
+import { eq, desc } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { db, plans } from "@workspace/db"
 import type { PlanGenerationInput, WorkoutDay } from "@workspace/ai"
@@ -48,4 +49,19 @@ export async function POST(req: NextRequest) {
     .returning({ id: plans.id })
 
   return Response.json({ id: saved?.id })
+}
+
+export async function GET(req: NextRequest) {
+  const session = await auth.api.getSession({ headers: req.headers })
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const userPlans = await db
+    .select()
+    .from(plans)
+    .where(eq(plans.userId, session.user.id))
+    .orderBy(desc(plans.createdAt))
+
+  return Response.json({ plans: userPlans })
 }

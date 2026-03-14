@@ -3,11 +3,22 @@
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import type { PlanGenerationInput, TrainingPlan, WorkoutDay } from "@workspace/ai"
+import { authClient } from "@/lib/auth-client"
 import { PlanHeader } from "./plan-header"
 import { PlanCalendar } from "./plan-calendar"
 import { PlanFeed } from "./plan-feed"
+import { SignInSheet } from "./sign-in-sheet"
 
 const SESSION_KEY = "athloryx_onboarding"
+const PLAN_KEY = "athloryx_plan"
+
+interface SavedPlanSnapshot {
+  input: PlanGenerationInput
+  days: WorkoutDay[]
+  totalWeeks: number
+  totalKm: number
+  peakWeekKm: number
+}
 
 function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
   const goal = raw["goal"] as string | undefined
@@ -61,16 +72,67 @@ function planName(input: PlanGenerationInput): string {
 
 export default function PlanPage() {
   const router = useRouter()
+  const { data: sessionData, isPending: sessionPending } = authClient.useSession()
+
   const [plan, setPlan] = useState<Partial<TrainingPlan>>({ days: [] })
   const [status, setStatus] = useState<"generating" | "complete" | "error">("generating")
   const [generatingWeek, setGeneratingWeek] = useState(1)
   const [input, setInput] = useState<PlanGenerationInput | null>(null)
 
+  // Save state
+  const [isSaving, setIsSaving] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
+  const [saveError, setSaveError] = useState(false)
+  const [showSignInSheet, setShowSignInSheet] = useState(false)
+
   // Refs to avoid stale closures inside the async stream loop
   const totalWeeksRef = useRef(0)
   const dayCountRef = useRef(0)
   const startDateRef = useRef<string | null>(null)
+  const planRef = useRef<Partial<TrainingPlan>>({ days: [] })
+  const streamStartedRef = useRef(false)
 
+  // Keep planRef in sync with plan state for use in callbacks
+  useEffect(() => { planRef.current = plan }, [plan])
+
+  // ── Auto-save after OAuth redirect ────────────────────────────────────────
+  useEffect(() => {
+    if (!sessionData?.session) return
+    const raw = sessionStorage.getItem(PLAN_KEY)
+    if (!raw) return
+
+    // Guard: don't restore stale sessionStorage from a previous visit
+    // if a stream is already in progress (totalWeeksRef.current > 0)
+    if (totalWeeksRef.current > 0) {
+      sessionStorage.removeItem(PLAN_KEY)
+      return
+    }
+
+    sessionStorage.removeItem(PLAN_KEY)
+
+    let snapshot: SavedPlanSnapshot
+    try {
+      snapshot = JSON.parse(raw) as SavedPlanSnapshot
+    } catch {
+      return
+    }
+
+    // Restore plan state from snapshot and trigger save
+    setInput(snapshot.input)
+    setPlan({
+      days: snapshot.days,
+      totalWeeks: snapshot.totalWeeks,
+      totalKm: snapshot.totalKm,
+      peakWeekKm: snapshot.peakWeekKm,
+    })
+    setStatus("complete")
+    totalWeeksRef.current = snapshot.totalWeeks
+
+    void savePlanToServer(snapshot.input, snapshot.days, snapshot.totalWeeks, snapshot.totalKm, snapshot.peakWeekKm)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionData?.session?.id])
+
+  // ── Streaming ─────────────────────────────────────────────────────────────
   useEffect(() => {
     const raw = sessionStorage.getItem(SESSION_KEY)
     if (!raw) { router.replace("/"); return }
@@ -86,6 +148,21 @@ export default function PlanPage() {
     const mapped = mapToInput(parsed)
     if (!mapped) { router.replace("/"); return }
     setInput(mapped)
+
+    // Prevent double-execution when sessionPending changes
+    if (streamStartedRef.current) return
+
+    // If athloryx_plan exists in sessionStorage, we may be returning from OAuth.
+    // Wait until session state is resolved before deciding.
+    if (sessionStorage.getItem(PLAN_KEY)) {
+      if (sessionPending) return // wait — re-effect runs when sessionPending changes
+      if (sessionData?.session) return // session confirmed, auto-save effect handles it
+      // Session resolved to null (e.g., magic link opened in different browser).
+      // Clear stale PLAN_KEY and fall through to stream normally.
+      sessionStorage.removeItem(PLAN_KEY)
+    }
+
+    streamStartedRef.current = true
 
     async function stream() {
       let response: Response
@@ -120,8 +197,6 @@ export default function PlanPage() {
         }
 
         if (done) {
-          // Check meta was received and at least some days arrived.
-          // We avoid a strict totalWeeks*7 check because race plans can end mid-week.
           if (totalWeeksRef.current === 0 || dayCountRef.current === 0) {
             setStatus("error")
           } else {
@@ -179,9 +254,69 @@ export default function PlanPage() {
 
     void stream()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [sessionPending]) // re-run when session loading state resolves
+
+  // ── Save helpers ──────────────────────────────────────────────────────────
+
+  async function savePlanToServer(
+    planInput: PlanGenerationInput,
+    days: WorkoutDay[],
+    totalWeeks: number,
+    totalKm: number,
+    peakWeekKm: number,
+  ) {
+    setIsSaving(true)
+    setSaveError(false)
+    try {
+      const res = await fetch("/api/plans", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input: planInput, days, totalWeeks, totalKm, peakWeekKm }),
+      })
+      if (!res.ok) throw new Error("Save failed")
+      setIsSaved(true)
+    } catch {
+      setSaveError(true)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  function handleBeforeSignIn() {
+    const current = planRef.current
+    if (!input) return
+    const snapshot: SavedPlanSnapshot = {
+      input,
+      days: current.days ?? [],
+      totalWeeks: current.totalWeeks ?? 0,
+      totalKm: current.totalKm ?? 0,
+      peakWeekKm: current.peakWeekKm ?? 0,
+    }
+    sessionStorage.setItem(PLAN_KEY, JSON.stringify(snapshot))
+  }
+
+  function handleSave() {
+    if (isSaved || isSaving) return
+    if (!sessionData?.session) {
+      setShowSignInSheet(true)
+      return
+    }
+    const current = planRef.current
+    if (!input || !current.days?.length) return
+    void savePlanToServer(
+      input,
+      current.days,
+      current.totalWeeks ?? 0,
+      current.totalKm ?? 0,
+      current.peakWeekKm ?? 0,
+    )
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   if (!input) return null  // redirecting
+
+  const saveProps = { status, isSaving, isSaved, saveError, onSave: handleSave }
 
   return (
     <main className="min-h-svh flex flex-col">
@@ -193,6 +328,7 @@ export default function PlanPage() {
         status={status}
         generatingWeek={generatingWeek}
         goalTimeLabel={goalTimeLabel(input)}
+        saveProps={saveProps}
       />
 
       {/* Desktop: calendar */}
@@ -202,6 +338,7 @@ export default function PlanPage() {
           units={input.units}
           totalWeeks={plan.totalWeeks ?? 0}
           raceDistance={input.race?.distance}
+          saveProps={saveProps}
         />
       </div>
 
@@ -212,8 +349,16 @@ export default function PlanPage() {
           units={input.units}
           totalWeeks={plan.totalWeeks ?? 0}
           raceDistance={input.race?.distance}
+          saveProps={saveProps}
         />
       </div>
+
+      {showSignInSheet && (
+        <SignInSheet
+          onBeforeSignIn={handleBeforeSignIn}
+          onClose={() => setShowSignInSheet(false)}
+        />
+      )}
     </main>
   )
 }

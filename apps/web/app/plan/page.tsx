@@ -120,8 +120,7 @@ export default function PlanPage() {
         }
 
         if (done) {
-          const expected = totalWeeksRef.current * 7
-          if (expected > 0 && dayCountRef.current < expected) {
+          if (totalWeeksRef.current === 0 || dayCountRef.current < totalWeeksRef.current * 7) {
             setStatus("error")
           } else {
             setStatus("complete")

@@ -109,8 +109,12 @@ export function PlanDayDetail({ day, units, onClose, onToggleComplete, onSaveEdi
         const raw = parseFloat(formState.distanceDisplay)
         const newKm = isNaN(raw) ? null : raw / (units === "miles" ? KM_TO_MILES : 1)
         const origKm = day.distanceKm ?? null
-        // Only include if changed
-        if (newKm !== origKm) {
+        // Compare in display units (rounded to 2dp) to avoid float precision drift on round-trip
+        const origDisplayStr =
+          origKm != null
+            ? String(+(origKm * (units === "miles" ? KM_TO_MILES : 1)).toFixed(2))
+            : ""
+        if (formState.distanceDisplay !== origDisplayStr) {
           update.distanceKm = newKm
         }
       }

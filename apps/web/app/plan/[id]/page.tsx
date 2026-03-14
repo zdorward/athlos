@@ -149,6 +149,8 @@ export default function PlanViewPage({ params }: PageProps) {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ date, type: originalType, update }),
+    }).then((res) => {
+      if (!res.ok) throw new Error()
     }).catch(() => {
       setDays(prevDays)
       setSelectedKey(prevSelectedKey)

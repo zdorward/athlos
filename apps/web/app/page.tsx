@@ -1,11 +1,31 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
+import { authClient } from "@/lib/auth-client"
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow"
 import { Button } from "@workspace/ui/components/button"
 
 export default function Page() {
+  const router = useRouter()
+  const { data: sessionData, isPending } = authClient.useSession()
   const [showOnboarding, setShowOnboarding] = useState(false)
+
+  useEffect(() => {
+    if (!isPending && sessionData?.session) {
+      router.replace("/dashboard")
+    }
+  }, [isPending, sessionData?.session, router])
+
+  // Show spinner while loading or while redirecting (session exists)
+  if (isPending || sessionData?.session) {
+    return (
+      <main className="flex min-h-svh items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </main>
+    )
+  }
 
   if (showOnboarding) {
     return (

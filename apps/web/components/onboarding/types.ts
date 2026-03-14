@@ -45,5 +45,5 @@ export interface StepProps {
 }
 
 export function getSteps(): readonly string[] {
-  return ["goalTime", "whichDays", "strengthDays"]
+  return ["findRace", "goalTime", "whichDays", "strengthDays"]
 }

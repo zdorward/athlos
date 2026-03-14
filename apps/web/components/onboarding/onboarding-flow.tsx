@@ -7,6 +7,7 @@ import { ChevronLeft, X, Check } from "lucide-react"
 import { format } from "date-fns"
 import { OnboardingProgress } from "./onboarding-progress"
 import { FinalScreen } from "./final-screen"
+import { StepFindRace } from "./steps/step-find-race"
 import { StepWhichDays } from "./steps/step-which-days"
 import { StepStrengthDays } from "./steps/step-strength-days"
 import { StepGoalTime } from "./steps/step-goal-time"
@@ -29,6 +30,7 @@ const DISTANCE_KM: Record<string, string> = {
 }
 
 const STEP_LABELS: Record<string, string> = {
+  findRace: "Your race",
   goalTime: "Goal time",
   whichDays: "Running days",
   strengthDays: "Lifting days",
@@ -237,7 +239,8 @@ export function OnboardingFlow({ onExit, initialData }: OnboardingFlowProps) {
       const saved = sessionStorage.getItem(DRAFT_KEY)
       if (saved) return JSON.parse(saved).currentStep ?? 0
     } catch {}
-    return 0
+    // Skip "findRace" step if race is already provided (e.g. selected on landing page)
+    return initialData?.race ? 1 : 0
   })
   const [direction, setDirection] = useState<1 | -1>(1)
   const [formData, setFormData] = useState<OnboardingData>(() => {
@@ -290,6 +293,7 @@ export function OnboardingFlow({ onExit, initialData }: OnboardingFlowProps) {
     if (isComplete) return <FinalScreen formData={formData} />
     const stepName = steps[currentStep]
     switch (stepName) {
+      case "findRace":     return <StepFindRace {...stepProps} />
       case "goalTime":     return <StepGoalTime {...stepProps} />
       case "whichDays":    return <StepWhichDays {...stepProps} />
       case "strengthDays": return <StepStrengthDays {...stepProps} />

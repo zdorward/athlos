@@ -1,4 +1,5 @@
 import { format, parseISO } from "date-fns"
+import { Check } from "lucide-react"
 import type { WorkoutDay } from "@workspace/ai"
 import {
   WORKOUT_NAMES,
@@ -19,9 +20,10 @@ interface WorkoutCardProps {
   dateISO: string
   units: "km" | "miles"
   variant: "hero" | "preview"
+  onComplete?: () => void
 }
 
-export function WorkoutCard({ state, dateISO, units, variant }: WorkoutCardProps) {
+export function WorkoutCard({ state, dateISO, units, variant, onComplete }: WorkoutCardProps) {
   const isHero = variant === "hero"
   const dateLabel = format(parseISO(dateISO), "EEEE, MMM d")
 
@@ -81,6 +83,15 @@ export function WorkoutCard({ state, dateISO, units, variant }: WorkoutCardProps
       <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
         {entry.description}
       </p>
+      {isHero && onComplete && (
+        <button
+          onClick={onComplete}
+          className="mt-3 flex items-center gap-1 text-xs font-semibold text-green-600 hover:text-green-500 transition-colors"
+        >
+          <Check className="h-3 w-3" />
+          Done
+        </button>
+      )}
     </div>
   )
 }

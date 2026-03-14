@@ -1,55 +1,74 @@
-import { format } from "date-fns"
+import { differenceInWeeks, format } from "date-fns"
+import type { ReactNode } from "react"
+import { Calendar, MapPin, Timer } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { DISTANCE_LABELS, DAY_LABELS, type OnboardingData } from "./types"
+import { type Distance, type OnboardingData } from "./types"
+
+const DISTANCE_KM: Record<Distance, string> = {
+  "5k":   "5 km",
+  "10k":  "10 km",
+  "half": "21.1 km",
+  "full": "42.2 km",
+  "ultra": "Ultra",
+}
+
+const DISTANCE_MI: Record<Distance, string> = {
+  "5k":   "3.1 mi",
+  "10k":  "6.2 mi",
+  "half": "13.1 mi",
+  "full": "26.2 mi",
+  "ultra": "Ultra",
+}
 
 interface FinalScreenProps {
   formData: OnboardingData
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function DetailRow({ icon, text }: { icon: ReactNode; text: string }) {
   return (
-    <div className="flex items-start justify-between gap-4">
-      <span className="text-sm text-muted-foreground shrink-0">{label}</span>
-      <span className="text-sm font-medium text-right">{value}</span>
+    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+      <span className="shrink-0">{icon}</span>
+      <span>{text}</span>
     </div>
   )
 }
 
 export function FinalScreen({ formData }: FinalScreenProps) {
+  const { race, goal, units } = formData
+  const isRace = goal === "race" && race
+
+  const distanceLabel = isRace
+    ? (units === "miles" ? DISTANCE_MI[race.distance] : DISTANCE_KM[race.distance])
+    : null
+
+  const weeks = isRace ? Math.max(0, differenceInWeeks(race.date, new Date())) : null
+
+  const cityDisplay = isRace ? race.city : null
+
+  const title = isRace
+    ? `Your ${race.name} plan is nearly ready`
+    : "Your aerobic base plan is nearly ready"
+
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-semibold tracking-tight">Here's your plan summary</h2>
+    <div className="space-y-8">
+      <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
 
-      <div className="rounded-xl border p-6 space-y-4">
-        <Row
-          label="Goal"
-          value={formData.goal === "race" ? "Race" : "Build Aerobic Base"}
-        />
-
-        {formData.goal === "race" && formData.race && (
-          <Row
-            label="Race"
-            value={`${formData.race.name} · ${formData.race.city} · ${format(formData.race.date, "MMM d, yyyy")} · ${DISTANCE_LABELS[formData.race.distance]}`}
+      {isRace && (
+        <div className="space-y-4">
+          <DetailRow
+            icon={<Timer className="h-4 w-4" />}
+            text={`${weeks} weeks · ${distanceLabel}`}
           />
-        )}
-
-        <Row
-          label="Training days"
-          value={`${formData.daysPerWeek} days/week — ${formData.selectedDays?.map((d) => DAY_LABELS[d].short).join(", ")}`}
-        />
-
-        <Row
-          label="Long run"
-          value={formData.longRunDay ? DAY_LABELS[formData.longRunDay].full : "—"}
-        />
-
-        <Row label="Units" value={formData.units ?? "—"} />
-
-        <Row
-          label="Strength training"
-          value={formData.strengthTraining === true ? "Yes" : "No"}
-        />
-      </div>
+          <DetailRow
+            icon={<Calendar className="h-4 w-4" />}
+            text={format(race.date, "EEE, MMM d, yyyy")}
+          />
+          <DetailRow
+            icon={<MapPin className="h-4 w-4" />}
+            text={cityDisplay!}
+          />
+        </div>
+      )}
 
       <Button className="w-full" size="lg" onClick={() => {}}>
         Generate Plan

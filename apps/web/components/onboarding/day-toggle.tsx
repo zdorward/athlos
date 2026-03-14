@@ -6,7 +6,7 @@ interface DayToggleProps {
   label: string
   selected: boolean
   onClick: () => void
-  disabled: boolean
+  disabled?: boolean
 }
 
 export function DayToggle({ label, selected, onClick, disabled }: DayToggleProps) {
@@ -15,11 +15,11 @@ export function DayToggle({ label, selected, onClick, disabled }: DayToggleProps
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium border transition-all",
+        "flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-sm font-medium border transition-all",
         selected
           ? "bg-primary text-primary-foreground border-primary"
           : disabled
-          ? "opacity-40 cursor-not-allowed border-border"
+          ? "cursor-not-allowed opacity-40 border-border"
           : "border-border hover:bg-muted"
       )}
     >

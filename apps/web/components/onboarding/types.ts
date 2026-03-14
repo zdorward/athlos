@@ -33,21 +33,25 @@ export interface RaceData {
 export interface OnboardingData {
   goal?: Goal
   race?: RaceData
-  daysPerWeek?: 1 | 2 | 3 | 4 | 5 | 6 | 7
+  timeGoal?: boolean
+  goalTime?: { hours: number; minutes: number }
   selectedDays?: Day[]
   longRunDay?: Day
   units?: Units
   strengthTraining?: boolean
+  strengthDays?: Day[]
 }
 
-export const STEPS_RACE = [
-  "goal", "findRace", "daysPerWeek", "whichDays", "longRunDay", "units", "strength",
-] as const
+export interface StepProps {
+  formData: OnboardingData
+  onNext: (data: Partial<OnboardingData>) => void
+  onBack: () => void
+}
 
-export const STEPS_AEROBIC = [
-  "goal", "daysPerWeek", "whichDays", "longRunDay", "units", "strength",
-] as const
-
-export function getSteps(goal?: Goal): readonly string[] {
-  return goal === "race" ? STEPS_RACE : STEPS_AEROBIC
+export function getSteps(goal?: Goal, timeGoal?: boolean, strengthTraining?: boolean): readonly string[] {
+  const raceSteps = ["goal", "findRace", "timeGoal", ...(timeGoal === true ? ["goalTime"] : []), "whichDays", "longRunDay", "units", "strength"]
+  const aerobicSteps = ["goal", "whichDays", "longRunDay", "units", "strength"]
+  const base = goal === "race" ? raceSteps : aerobicSteps
+  if (strengthTraining === true) return [...base, "strengthDays"]
+  return base
 }

@@ -12,7 +12,7 @@ export function OnboardingCard({ label, description, selected, onClick }: Onboar
     <button
       onClick={onClick}
       className={cn(
-        "w-full rounded-xl border p-4 text-left transition-all",
+        "w-full cursor-pointer rounded-xl border p-5 text-left transition-all",
         selected
           ? "ring-2 ring-primary bg-primary/5 border-primary/20"
           : "border-border bg-card hover:bg-muted/50"

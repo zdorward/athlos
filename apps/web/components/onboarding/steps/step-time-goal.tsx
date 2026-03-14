@@ -4,18 +4,18 @@ import { useState } from "react"
 import { OnboardingCard } from "../onboarding-card"
 import type { StepProps } from "../types"
 
-export function StepStrengthTraining({ onNext }: Pick<StepProps, "onNext">) {
+export function StepTimeGoal({ onNext }: Pick<StepProps, "onNext">) {
   const [selected, setSelected] = useState<boolean | undefined>(undefined)
 
   function handleSelect(value: boolean) {
     setSelected(value)
-    onNext({ strengthTraining: value })
+    onNext({ timeGoal: value })
   }
 
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold tracking-tight">
-        Would you like to include strength training?
+        Do you have a time goal?
       </h2>
       <div className="space-y-3">
         <OnboardingCard

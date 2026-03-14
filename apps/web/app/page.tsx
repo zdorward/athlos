@@ -1,9 +1,29 @@
+"use client"
+
+import { useState } from "react"
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow"
+import { Button } from "@workspace/ui/components/button"
 
 export default function Page() {
+  const [showOnboarding, setShowOnboarding] = useState(false)
+
+  if (showOnboarding) {
+    return (
+      <main className="min-h-svh">
+        <OnboardingFlow onExit={() => setShowOnboarding(false)} />
+      </main>
+    )
+  }
+
   return (
-    <main className="min-h-svh">
-      <OnboardingFlow />
+    <main className="flex min-h-svh items-center justify-center px-5">
+      <div className="text-center space-y-6">
+        <h1 className="text-4xl font-bold tracking-tight">Athloryx</h1>
+        <p className="text-muted-foreground">Your adaptive training plan, built around you.</p>
+        <Button size="lg" onClick={() => setShowOnboarding(true)}>
+          Create a Plan
+        </Button>
+      </div>
     </main>
   )
 }

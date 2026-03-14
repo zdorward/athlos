@@ -163,7 +163,7 @@ export default function PlanPage() {
               setGeneratingWeek(weekNum)
               setPlan((p) => {
                 const existing = p.days ?? []
-                const idx = existing.findIndex((d) => d.date === day.date)
+                const idx = existing.findIndex((d) => d.date === day.date && d.type === day.type)
                 const days = idx >= 0
                   ? existing.map((d, i) => (i === idx ? day : d))
                   : [...existing, day]

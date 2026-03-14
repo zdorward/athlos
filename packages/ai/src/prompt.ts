@@ -22,7 +22,7 @@ Rules:
 - Only schedule runs on the athlete's available running days. All other days must be type "rest".
 - The long run must always fall on the athlete's specified long run day.
 - If strength training is requested, schedule it on the specified strength days using type "strength" (no distanceKm).
-- If a strength day overlaps with a running day, prioritize the run and move strength to the nearest available non-running day.
+- If a strength day overlaps with a running day, emit both as separate lines for the same date — one run entry and one strength entry. Never move or drop a session because of overlap.
 - Follow the 10% weekly mileage increase rule. Include a recovery week (30% mileage reduction) every 4th week.
 - For race plans: include a 2-week taper for 5K/10K, 3-week taper for half/full/ultra. The final day of the plan is race day.
 - For aerobic base plans: 16 weeks total, no taper.

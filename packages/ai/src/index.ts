@@ -1,4 +1,5 @@
 import { ClaudeProvider } from "./providers/claude"
+import { loadConfig } from "./config"
 import type { AIProvider } from "./provider"
 
 export { type AIProvider } from "./provider"
@@ -10,7 +11,13 @@ export {
   type PlanGenerationInput,
 } from "./types"
 
-const _provider: AIProvider = new ClaudeProvider()
+function createProvider(): AIProvider {
+  const { provider, model } = loadConfig()
+  if (provider === "claude") return new ClaudeProvider(model)
+  throw new Error(`Unhandled provider: ${provider}`)
+}
+
+const _provider: AIProvider = createProvider()
 
 export function getProvider(): AIProvider {
   return _provider

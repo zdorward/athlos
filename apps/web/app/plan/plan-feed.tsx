@@ -74,7 +74,7 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance }: PlanFeedProp
                 {weekDays.map((day) => {
                   const isRest = day.type === "rest"
                   const isRace = day.type === "race"
-                  const isSelected = selectedDay?.date === day.date
+                  const isSelected = selectedDay?.date === day.date && selectedDay?.type === day.type
                   const color = getWorkoutColor(day.type)
                   const textClass = WORKOUT_TEXT_CLASS[day.type]
 
@@ -88,7 +88,7 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance }: PlanFeedProp
 
                   return (
                     <button
-                      key={day.date}
+                      key={`${day.date}-${day.type}`}
                       onClick={() => setSelectedDay(isSelected ? null : day)}
                       className={[
                         "w-full rounded-lg border border-l-4 p-3 text-left transition-colors cursor-pointer",

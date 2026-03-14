@@ -62,11 +62,12 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance }: PlanCale
           const weekNum = weekIdx + 1
           const phase = totalWeeks > 0 ? getPhaseLabel(weekNum, totalWeeks, taperWeeks) : ""
 
-          // Build a map of day-of-week → WorkoutDay for this week
-          const dayMap: Record<string, WorkoutDay> = {}
+          // Build a map of day-of-week → WorkoutDay[] for this week (multiple entries per day allowed)
+          const dayMap: Record<string, WorkoutDay[]> = {}
           for (const day of weekDays) {
             const dow = format(parseISO(day.date), "EEE") // "Mon", "Tue", etc.
-            dayMap[dow] = day
+            if (!dayMap[dow]) dayMap[dow] = []
+            dayMap[dow]!.push(day)
           }
 
           const weeklyKm = weekDays.reduce((sum, d) => sum + (d.distanceKm ?? 0), 0)
@@ -90,8 +91,8 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance }: PlanCale
 
               {/* 7 day cells */}
               {DAY_ORDER.map((dow) => {
-                const day = dayMap[dow]
-                if (!day) {
+                const entries = dayMap[dow]
+                if (!entries?.length) {
                   // Day not in plan yet (still streaming) — empty placeholder
                   return (
                     <div
@@ -101,16 +102,17 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance }: PlanCale
                   )
                 }
 
-                const isRest = day.type === "rest"
-                const isRace = day.type === "race"
-                const isSelected = selectedDay?.date === day.date
-                const color = getWorkoutColor(day.type)
-                const textClass = WORKOUT_TEXT_CLASS[day.type]
+                // Primary entry for selection: prefer run types over strength/rest
+                const RUN_TYPES = new Set(["easy", "long", "tempo", "intervals", "race"])
+                const primary = entries.find((d) => RUN_TYPES.has(d.type)) ?? entries[0]!
+                const isRace = entries.some((d) => d.type === "race")
+                const isRest = entries.every((d) => d.type === "rest")
+                const isSelected = selectedDay?.date === primary.date && selectedDay?.type === primary.type
 
                 return (
                   <button
                     key={dow}
-                    onClick={() => setSelectedDay(isSelected ? null : day)}
+                    onClick={() => setSelectedDay(isSelected ? null : primary)}
                     className={[
                       "min-h-[72px] rounded-md border p-2 text-left transition-colors cursor-pointer",
                       isRace
@@ -122,31 +124,38 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance }: PlanCale
                     ].join(" ")}
                   >
                     <p className="text-[10px] text-subtle-foreground mb-1">
-                      {format(parseISO(day.date), "d")}
+                      {format(parseISO(primary.date), "d")}
                     </p>
 
                     {isRace && (
                       <Star className="h-3 w-3 fill-primary text-primary mb-1" />
                     )}
 
-                    {day.distanceKm != null && (
-                      <p
-                        className={`text-sm font-bold tabular-nums ${textClass}`}
-                        style={color ? { color } : undefined}
-                      >
-                        {formatDistance(day.distanceKm, units)}
-                        <span className="text-[9px] font-normal ml-0.5 text-muted-foreground">
-                          {unit}
-                        </span>
-                      </p>
-                    )}
-
-                    <p
-                      className={`text-[10px] mt-0.5 ${textClass}`}
-                      style={color ? { color } : undefined}
-                    >
-                      {WORKOUT_NAMES[day.type]}
-                    </p>
+                    {entries.map((entry) => {
+                      const color = getWorkoutColor(entry.type)
+                      const textClass = WORKOUT_TEXT_CLASS[entry.type]
+                      return (
+                        <div key={entry.type}>
+                          {entry.distanceKm != null && (
+                            <p
+                              className={`text-sm font-bold tabular-nums ${textClass}`}
+                              style={color ? { color } : undefined}
+                            >
+                              {formatDistance(entry.distanceKm, units)}
+                              <span className="text-[9px] font-normal ml-0.5 text-muted-foreground">
+                                {unit}
+                              </span>
+                            </p>
+                          )}
+                          <p
+                            className={`text-[10px] mt-0.5 ${textClass}`}
+                            style={color ? { color } : undefined}
+                          >
+                            {WORKOUT_NAMES[entry.type]}
+                          </p>
+                        </div>
+                      )
+                    })}
                   </button>
                 )
               })}

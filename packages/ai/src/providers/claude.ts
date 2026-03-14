@@ -5,12 +5,17 @@ import { buildPrompt } from "../prompt"
 
 export class ClaudeProvider implements AIProvider {
   private client = new Anthropic()
+  private model: string
+
+  constructor(model: string) {
+    this.model = model
+  }
 
   async *streamPlan(input: PlanGenerationInput): AsyncIterable<string> {
     const { system, user } = buildPrompt(input)
 
     const stream = await this.client.messages.stream({
-      model: "claude-sonnet-4-6",
+      model: this.model,
       max_tokens: 16000,
       system,
       messages: [{ role: "user", content: user }],

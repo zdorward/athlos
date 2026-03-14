@@ -110,6 +110,9 @@ importers:
       '@workspace/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
+      dotenv:
+        specifier: ^16.0.0
+        version: 16.0.3
       drizzle-kit:
         specifier: ^0.30.0
         version: 0.30.6

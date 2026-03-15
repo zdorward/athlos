@@ -78,8 +78,8 @@ interface PaceZones {
 | Threshold | 106–110% | Comfortably hard; 20–40 min sustainable |
 | Marathon pace (mp) | 113–120% | Goal race pace; varies with runner fitness |
 | Medium-long | 120–125% | Moderate-easy; mid-week medium long |
-| Long run | 125–135% | Conversational; weekly long run |
-| Easy | 130–142% | Fully aerobic; recovery and base |
+| Long run | 125–133% | Conversational; weekly long run |
+| Easy | 134–145% | Fully aerobic; recovery and base |
 
 All zones use **5K equivalent pace** as the single reference. The ordering threshold < mp < medium-long < long < easy must always hold (lower multiplier = faster pace). Never overlap these ranges.
 
@@ -254,8 +254,8 @@ Phase schedule (follow exactly):
   General Fitness: weeks 1–6
   Base:            weeks 7–14
   Build:           weeks 15–21
-  Peak:            weeks 22–25
-  Taper:           weeks 26–28
+  Peak:            weeks 22–24
+  Taper:           weeks 25–28
 
 Week schedule (use ONLY these exact dates):
 Week 1 [2026-03-16 – 2026-03-22]: ...
@@ -269,7 +269,7 @@ Week 1 [2026-03-16 – 2026-03-22]: ...
 
 **`packages/ai/src/types.ts`**
 - Add `"medium-long"` and `"mp"` to `WorkoutType`
-- Add `weeklyMileageRange: "under-40" | "40-60" | "60-80" | "80-plus"` to `PlanGenerationInput`
+- Add `weeklyMileageRange: "under-40" | "40-60" | "60-80" | "80-plus"` to `PlanGenerationInput` (required; `mapToInput` applies the `"40-60"` default if the field is absent, so `PlanGenerationInput` always receives a value)
 - Add `recentRace?: { distance: "5k"|"10k"|"half"|"full"; hours: number; minutes: number; seconds: number }` to `PlanGenerationInput`
 - Add `phases?: Array<{ name: string; startWeek: number; endWeek: number }>` to `TrainingPlan` (used to pass phase schedule from server to client via `_meta` line)
 
@@ -297,7 +297,7 @@ Week 1 [2026-03-16 – 2026-03-22]: ...
 | `apps/web/app/plan/workout-utils.ts` | Add `medium-long` and `mp` to `WORKOUT_NAMES` and `WORKOUT_TEXT_CLASS`; update `getPhaseLabel()` to accept phase schedule |
 | `apps/web/app/dashboard/today-workout-card.tsx` | Handle medium-long and mp types |
 | `apps/web/app/plan/final-screen.tsx` | No code change required — the existing `{ ...formData, race: ... }` spread already includes new fields. Verify the spread is unconditional. |
-| `apps/web/app/plan/page.tsx` (mapToInput) | Map new onboarding fields to PlanGenerationInput; update `VALID_WORKOUT_TYPES` set; store `phases` array from `_meta` line in plan state |
+| `apps/web/app/plan/page.tsx` (mapToInput) | Map new onboarding fields to PlanGenerationInput; update `VALID_WORKOUT_TYPES` set; add `phases` state; read `phases` from `_meta` NDJSON line; pass `phases` prop to `PlanCalendar` and `PlanFeed`; add `phases` to `SavedPlanSnapshot` |
 
 ### `mapToInput` field mapping (`apps/web/app/plan/page.tsx`)
 

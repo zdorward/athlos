@@ -1,33 +1,38 @@
-import type { WorkoutType, WorkoutDay } from "@workspace/ai"
+import type { WorkoutType, WorkoutDay, PhaseEntry } from "@workspace/ai"
 
 export const WORKOUT_NAMES: Record<WorkoutType, string> = {
-  easy: "Easy Run",
-  long: "Long Run",
-  tempo: "Tempo Run",
-  intervals: "Intervals",
-  strength: "Strength",
-  rest: "Rest Day",
-  race: "Race Day",
+  easy:          "Easy Run",
+  long:          "Long Run",
+  "medium-long": "Medium-Long",
+  mp:            "Race Pace",
+  tempo:         "Tempo Run",
+  intervals:     "Intervals",
+  strength:      "Strength",
+  rest:          "Rest Day",
+  race:          "Race Day",
 }
 
-// Tailwind class for text color. For types that need oklch values not in the
-// design system, use getWorkoutColor() below for the inline style instead.
+// Tailwind class for text color. Use getWorkoutColor() for oklch values.
+// Types with an empty string here rely on getWorkoutColor() for their inline oklch style instead.
 export const WORKOUT_TEXT_CLASS: Record<WorkoutType, string> = {
-  easy: "text-muted-foreground",
-  long: "text-primary",
-  tempo: "",
-  intervals: "",
-  strength: "",
-  rest: "text-subtle-foreground",
-  race: "text-primary",
+  easy:          "text-muted-foreground",
+  long:          "text-primary",
+  "medium-long": "text-primary/70",
+  mp:            "",  // color applied via getWorkoutColor() (warm amber oklch)
+  tempo:         "",
+  intervals:     "",
+  strength:      "",
+  rest:          "text-subtle-foreground",
+  race:          "text-primary",
 }
 
 // Inline color style for types that can't be expressed as Tailwind classes.
 export function getWorkoutColor(type: WorkoutType): string {
   const map: Partial<Record<WorkoutType, string>> = {
-    tempo: "oklch(0.78 0.15 80)",
-    intervals: "oklch(0.75 0.18 30)",
-    strength: "oklch(0.65 0.15 300)",
+    mp:            "oklch(0.78 0.15 55)",   // warm amber — between easy and tempo
+    tempo:         "oklch(0.78 0.15 80)",
+    intervals:     "oklch(0.75 0.18 30)",
+    strength:      "oklch(0.65 0.15 300)",
   }
   return map[type] ?? ""
 }
@@ -57,11 +62,27 @@ export function groupDaysByWeek(days: WorkoutDay[]): WorkoutDay[][] {
   return weeks
 }
 
+/**
+ * Returns the phase label for a given week.
+ *
+ * If `phases` is provided (from the server-computed schedule), uses it directly.
+ * Falls back to the legacy percentage-based heuristic for plans without phase data.
+ *
+ * Note: the spec defines a 2-param signature `getPhaseLabel(weekNum, phases)`,
+ * but the legacy fallback requires `totalWeeks` and `taperWeeks`. This 4-param
+ * signature is used instead to preserve backward compatibility.
+ */
 export function getPhaseLabel(
   weekNum: number,
   totalWeeks: number,
-  taperWeeks: number
+  taperWeeks: number,
+  phases?: PhaseEntry[]
 ): string {
+  if (phases && phases.length > 0) {
+    const phase = phases.find((p) => weekNum >= p.startWeek && weekNum <= p.endWeek)
+    return phase?.name ?? ""
+  }
+  // Legacy fallback
   if (weekNum <= Math.floor(totalWeeks * 0.4)) return "Base"
   if (weekNum <= Math.floor(totalWeeks * 0.7)) return "Build"
   if (weekNum <= totalWeeks - taperWeeks) return "Peak"

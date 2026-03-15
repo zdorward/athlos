@@ -1,7 +1,10 @@
 import type { PlanGenerationInput } from "./types"
 import { calculatePaceZones, computePhases } from "./pace-calculator"
 
-const SYSTEM_PROMPT = `You are an expert running coach building a personalised race training plan. Your output is a complete, week-by-week schedule in NDJSON format.
+function buildSystemPrompt(units: "km" | "miles"): string {
+  const unitLabel = units === "km" ? "kilometres" : "miles"
+  const u = units === "km" ? "km" : "mi"
+  return `You are an expert running coach building a personalised race training plan. Your output is a complete, week-by-week schedule in NDJSON format.
 
 ## Output Format
 
@@ -68,7 +71,7 @@ Follow the phase schedule provided in the user message. Apply the rules below pe
 
 **Peak:**
 - Highest mileage weeks
-- Long runs may include race-pace segments in the final 10–16 km — use type "long" and describe the mp segment in the description (e.g. "22 km long run — last 12 km at race pace")
+- Long runs may include race-pace segments in the final 10–16 ${u} — use type "long" and describe the mp segment in the description (e.g. "22 ${u} long run — last 12 ${u} at race pace")
 - One VO2max session per week
 - One tempo or standalone mp run per week
 
@@ -86,8 +89,9 @@ Follow the phase schedule provided in the user message. Apply the rules below pe
 - Strength training NEVER replaces a run. If a day appears in both the running days list AND the strength days list, emit TWO lines for that date: the run workout first, then a strength line. The run is determined by the training plan as normal; strength is always additive.
 - If a strength day is NOT a running day, emit a single "strength" type line for that date (no run, no distanceKm)
 - Follow the 10% weekly mileage increase rule; include a recovery week (30% mileage reduction) every 4th week
-- Always output distances in kilometres
-- Descriptions must be specific (e.g. "2 km warm-up, 5 × 1000 m at vo2max zone with 90 sec jog, 2 km cool-down") not vague (e.g. "do intervals")`
+- Always output distances in ${unitLabel}
+- Descriptions must be specific (e.g. "2 ${u} warm-up, 5 × 1000 m at vo2max zone with 90 sec jog, 2 ${u} cool-down") not vague (e.g. "do intervals")`
+}
 
 const DAY_NAMES: Record<string, string> = {
   mon: "Monday", tue: "Tuesday", wed: "Wednesday", thu: "Thursday",
@@ -199,7 +203,8 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   // ── User message ─────────────────────────────────────────────────────────
   const lines: string[] = []
 
-  lines.push(`Goal: Race — ${name} in ${city} on ${toISO(endDate)} (${raceKm} km / ${distance})`)
+  const u = input.units === "km" ? "km" : "mi"
+  lines.push(`Goal: Race — ${name} in ${city} on ${toISO(endDate)} (${raceKm} ${u} / ${distance})`)
 
   if (input.goalTime) {
     const { hours, minutes } = input.goalTime
@@ -211,8 +216,8 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
 
   lines.push("")
   lines.push("Fitness baseline:")
-  lines.push(`  Current weekly mileage: ${rangeLabel} km/week`)
-  lines.push(`  Starting volume (week 1 total): ${startingVolume} km`)
+  lines.push(`  Current weekly mileage: ${rangeLabel} ${u}/week`)
+  lines.push(`  Starting volume (week 1 total): ${startingVolume} ${u}`)
   lines.push(`  Fitness source: ${fitnessSource}`)
 
   if (paceZones) {
@@ -263,5 +268,5 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   lines.push("")
   lines.push(`Week schedule (use ONLY these exact dates — do not invent or shift any dates):\n${buildWeekSchedule(startDate, endDate)}`)
 
-  return { system: SYSTEM_PROMPT, user: lines.join("\n") }
+  return { system: buildSystemPrompt(input.units), user: lines.join("\n") }
 }

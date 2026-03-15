@@ -34,21 +34,25 @@ export async function POST(req: NextRequest) {
       ? body.input.race.name
       : "Aerobic Base Plan"
 
-  const [saved] = await db
-    .insert(plans)
-    .values({
-      userId: session.user.id,
-      goal: body.input.goal,
-      name,
-      input: body.input,
-      days: body.days,
-      totalWeeks: body.totalWeeks,
-      totalKm: String(body.totalKm),
-      peakWeekKm: String(body.peakWeekKm),
-    })
-    .returning({ id: plans.id })
+  try {
+    const [saved] = await db
+      .insert(plans)
+      .values({
+        userId: session.user.id,
+        goal: body.input.goal,
+        name,
+        input: body.input,
+        days: body.days,
+        totalWeeks: body.totalWeeks,
+        totalKm: String(body.totalKm),
+        peakWeekKm: String(body.peakWeekKm),
+      })
+      .returning({ id: plans.id })
 
-  return Response.json({ id: saved?.id })
+    return Response.json({ id: saved?.id })
+  } catch {
+    return Response.json({ error: "Internal server error" }, { status: 500 })
+  }
 }
 
 export async function GET(req: NextRequest) {

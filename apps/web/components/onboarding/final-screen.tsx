@@ -52,7 +52,12 @@ export function FinalScreen({ formData }: FinalScreenProps) {
   const { race, goal, selectedDays, longRunDay, goalTime, strengthDays } = formData
 
   function handleGenerate() {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(formData))
+    // Normalize race.date (Date object) to ISO "YYYY-MM-DD" before JSON.stringify
+    const serializable = {
+      ...formData,
+      race: race ? { ...race, date: race.date.toLocaleDateString("en-CA") } : undefined,
+    }
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(serializable))
     sessionStorage.removeItem(DRAFT_KEY)
     router.push("/plan")
   }
@@ -60,6 +65,7 @@ export function FinalScreen({ formData }: FinalScreenProps) {
   const isRace = goal === "race" && race
   const distanceLabel = isRace ? DISTANCE_KM[race.distance] : null
   const weeks = isRace ? Math.max(0, differenceInWeeks(race.date, new Date())) : null
+  const tooSoon = weeks !== null && weeks < 2
   const goalTimeLabel = goalTime
     ? `${goalTime.hours}:${goalTime.minutes.toString().padStart(2, "0")}`
     : null
@@ -105,7 +111,12 @@ export function FinalScreen({ formData }: FinalScreenProps) {
         )}
       </div>
 
-      <Button className="w-full" size="lg" onClick={handleGenerate}>
+      {tooSoon && (
+        <p className="text-sm text-destructive text-center">
+          Your race is less than 2 weeks away — not enough time for a meaningful plan.
+        </p>
+      )}
+      <Button className="w-full" size="lg" onClick={handleGenerate} disabled={!!tooSoon}>
         Build My Plan
       </Button>
     </div>

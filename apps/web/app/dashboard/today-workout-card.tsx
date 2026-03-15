@@ -39,7 +39,7 @@ export function TodayWorkoutCard({ entry, units, onComplete, onLogEffort, varian
       <div className="rounded-xl border border-green-500/30 bg-green-500/5 border-l-[3px] border-l-green-500 p-4 space-y-3">
         {/* Completed header */}
         <div className="flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500 flex-shrink-0">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500 shrink-0">
             <Check className="h-3 w-3 text-white" />
           </span>
           <div>

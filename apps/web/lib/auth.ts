@@ -8,7 +8,7 @@ import * as schema from "@workspace/db/schema"
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 export const auth = betterAuth({
-  secret: process.env.BETTER_AUTH_SECRET,
+  secret: process.env.BETTER_AUTH_SECRET!,
   database: drizzleAdapter(db, {
     provider: "pg",
     schema,
@@ -23,7 +23,7 @@ export const auth = betterAuth({
     magicLink({
       sendMagicLink: async ({ email, url }) => {
         await resend.emails.send({
-          from: "Athlos <onboarding@resend.dev>",
+          from: "Athlos <hello@athlos.run>",
           to: email,
           subject: "Sign in to Athlos",
           html: `<p>Click the link below to sign in to Athlos:</p><p><a href="${url}">${url}</a></p>`,

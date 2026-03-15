@@ -18,7 +18,7 @@ export interface PaceZones {
   source: "recent-race" | "goal-time"
 }
 
-const DISTANCE_KM: Record<string, number> = {
+const DISTANCE_KM: Record<"5k" | "10k" | "half" | "full", number> = {
   "5k": 5,
   "10k": 10,
   half: 21.0975,

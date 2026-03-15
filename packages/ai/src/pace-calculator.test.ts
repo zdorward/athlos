@@ -207,3 +207,50 @@ describe("computePhases — exactly 21 weeks triggers 5-phase", () => {
     expect(total).toBe(21)
   })
 })
+
+describe("computePhases — exactly 20 weeks (last 4-phase case)", () => {
+  const phases = computePhases(20, "half")
+
+  it("produces 4 phases (not 5)", () => {
+    expect(phases.some(p => p.name === "General Fitness")).toBe(false)
+    expect(phases.map(p => p.name)).toEqual(["Base", "Build", "Peak", "Taper"])
+  })
+
+  it("weeks sum to 20", () => {
+    const total = phases.reduce((s, p) => s + p.endWeek - p.startWeek + 1, 0)
+    expect(total).toBe(20)
+  })
+
+  it("taper is at least 3 weeks for half", () => {
+    const taper = phases.find(p => p.name === "Taper")!
+    expect(taper.endWeek - taper.startWeek + 1).toBeGreaterThanOrEqual(3)
+  })
+})
+
+describe("calculatePaceZones — slow runner (no zone overlap)", () => {
+  // 5K in 35:00 → ref = 2100/5 = 420 s/km (active, recent-race, no Riegel conversion needed)
+  // Actually: T_5k = 2100 * (5/5)^1.06 = 2100 → ref = 420
+  // longRun upper: Math.round(420 * 1.33) = Math.round(558.6) = 559 → 9:19
+  // easy lower:    Math.round(420 * 1.34) = Math.round(562.8) = 563 → 9:23
+  // Verify no zone string overlap between longRun and easy
+  const zones = calculatePaceZones(
+    { hours: 0, minutes: 35, seconds: 0, distance: "5k", context: "active" },
+    "recent-race"
+  )!
+
+  it("returns non-null", () => {
+    expect(zones).not.toBeNull()
+  })
+
+  it("longRun and easy zones do not overlap", () => {
+    // Parse the upper bound of longRun and lower bound of easy
+    const longRunUpper = zones.longRun.split("–")[1]!.replace("/km", "")
+    const easyLower = zones.easy.split("–")[0]!
+    // Verify easy lower pace is slower (more seconds) than longRun upper
+    function toSec(pace: string): number {
+      const [m, s] = pace.split(":").map(Number)
+      return m! * 60 + s!
+    }
+    expect(toSec(easyLower)).toBeGreaterThanOrEqual(toSec(longRunUpper))
+  })
+})

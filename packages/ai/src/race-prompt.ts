@@ -160,6 +160,10 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   const msPerWeek = 7 * 24 * 60 * 60 * 1000
   const totalWeeks = Math.floor((endDate.getTime() - startDate.getTime()) / msPerWeek) + 1
 
+  if (totalWeeks < 4) {
+    throw new Error(`Race date too soon: only ${totalWeeks} week(s) of training available. Minimum 4 weeks required.`)
+  }
+
   const { name, date, distance, city } = input.race
   const raceKm = DISTANCE_KM_MAP[distance] ?? 42.2
 
@@ -194,7 +198,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   const rangeLabel = RANGE_LABEL[mileageRange] ?? "40–60"
 
   // ── Fitness source description ───────────────────────────────────────────
-  let fitnessSource = "goal time"
+  let fitnessSource = "not provided"
   if (input.recentRace) {
     const { hours, minutes, seconds, distance: rd, context } = input.recentRace
     const timeStr = hours > 0
@@ -203,12 +207,14 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
     const ctxNote = context === "short-break" ? " (short break applied)" :
                     context === "long-break"   ? " (long break applied)" : ""
     fitnessSource = `recent ${rd.toUpperCase()} in ${timeStr}${ctxNote}`
+  } else if (input.goalTime) {
+    fitnessSource = "goal time"
   }
 
   // ── User message ─────────────────────────────────────────────────────────
   const lines: string[] = []
 
-  lines.push(`Goal: Race — ${name} in ${city} on ${date} (${raceKm} km / ${distance})`)
+  lines.push(`Goal: Race — ${name} in ${city} on ${toISO(endDate)} (${raceKm} km / ${distance})`)
 
   if (input.goalTime) {
     const { hours, minutes } = input.goalTime

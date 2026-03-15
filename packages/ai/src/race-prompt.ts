@@ -171,15 +171,10 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   // ── Pace zones ──────────────────────────────────────────────────────────
   let paceZones = null
 
-  if (input.recentRace) {
-    const { hours, minutes, seconds, distance: rd, context } = input.recentRace
-    paceZones = calculatePaceZones({ hours, minutes, seconds, distance: rd, context }, "recent-race")
-  }
-
-  if (!paceZones && input.goalTime) {
+  if (input.goalTime) {
     const { hours, minutes } = input.goalTime
     paceZones = calculatePaceZones(
-      // ultra is out of scope per spec; use "full" as a proxy for pace zone calculation
+      // ultra is out of scope; use "full" as a proxy for pace zone calculation
       { hours, minutes, seconds: 0, distance: distance === "ultra" ? "full" : distance as "5k" | "10k" | "half" | "full" },
       "goal-time"
     )
@@ -199,18 +194,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   const rangeLabel = RANGE_LABEL[mileageRange] ?? "40–60"
 
   // ── Fitness source description ───────────────────────────────────────────
-  let fitnessSource = "not provided"
-  if (input.recentRace) {
-    const { hours, minutes, seconds, distance: rd, context } = input.recentRace
-    const timeStr = hours > 0
-      ? `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
-      : `${minutes}:${seconds.toString().padStart(2, "0")}`
-    const ctxNote = context === "short-break" ? " (short break applied)" :
-                    context === "long-break"   ? " (long break applied)" : ""
-    fitnessSource = `recent ${rd.toUpperCase()} in ${timeStr}${ctxNote}`
-  } else if (input.goalTime) {
-    fitnessSource = "goal time"
-  }
+  const fitnessSource = input.goalTime ? "goal time" : "not provided"
 
   // ── User message ─────────────────────────────────────────────────────────
   const lines: string[] = []

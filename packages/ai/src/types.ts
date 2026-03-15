@@ -1,6 +1,8 @@
 export type WorkoutType =
   | "easy"
   | "long"
+  | "medium-long"
+  | "mp"
   | "tempo"
   | "intervals"
   | "rest"
@@ -12,17 +14,24 @@ export interface WorkoutDay {
   type: WorkoutType
   distanceKm?: number  // always km; omitted for rest days only
   description: string
-  completed?: boolean  // undefined and false are both treated as incomplete
+  completed?: boolean
   targetHR?: string    // free text, e.g. "Zone 2 (130–145 bpm)"
   targetPace?: string  // free text, e.g. "5:30–6:00/km"
   effort?: "hard" | "good" | "easy"
 }
 
+export interface PhaseEntry {
+  name: string
+  startWeek: number
+  endWeek: number
+}
+
 export interface TrainingPlanMeta {
   _meta: true
   totalWeeks: number
-  totalKm: number     // always km
-  peakWeekKm: number  // always km
+  totalKm: number
+  peakWeekKm: number
+  phases?: PhaseEntry[]  // optional for backward compatibility with older prompts
 }
 
 export interface TrainingPlan {
@@ -30,6 +39,7 @@ export interface TrainingPlan {
   totalKm: number
   peakWeekKm: number
   days: WorkoutDay[]
+  phases?: PhaseEntry[]
 }
 
 export interface PlanGenerationInput {
@@ -47,4 +57,12 @@ export interface PlanGenerationInput {
   strengthTraining: boolean
   strengthDays?: string[]
   startDate?: string  // ISO "YYYY-MM-DD" — first day of training
+  weeklyMileageRange: "under-40" | "40-60" | "60-80" | "80-plus"
+  recentRace?: {
+    distance: "5k" | "10k" | "half" | "full"
+    hours: number
+    minutes: number
+    seconds: number
+    context: "active" | "short-break" | "long-break"
+  }
 }

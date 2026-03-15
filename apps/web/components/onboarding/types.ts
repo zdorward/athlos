@@ -36,8 +36,16 @@ export interface OnboardingData {
   goalTime?: { hours: number; minutes: number }
   selectedDays?: Day[]
   longRunDay?: Day
+  strengthTraining?: boolean
   strengthDays?: Day[]
-  startDate?: string  // ISO "YYYY-MM-DD"
+  weeklyMileageRange?: "under-40" | "40-60" | "60-80" | "80-plus"
+  recentRace?: {
+    distance: "5k" | "10k" | "half" | "full"
+    hours: number
+    minutes: number
+    seconds: number
+    context: "active" | "short-break" | "long-break"
+  }
 }
 
 export interface StepProps {
@@ -46,5 +54,13 @@ export interface StepProps {
 }
 
 export function getSteps(): readonly string[] {
-  return ["findRace", "goalTime", "whichDays", "strengthDays", "startDate"]
+  return [
+    "findRace",
+    "goalTime",
+    "whichDays",
+    "strengthTraining",
+    "strengthDays",
+    "weeklyMileage",
+    "recentRace",
+  ]
 }

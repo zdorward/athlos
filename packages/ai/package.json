@@ -6,11 +6,15 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "scripts": {
+    "test": "vitest run"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0"
   },
   "devDependencies": {
     "@workspace/typescript-config": "workspace:*",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^2.0.0"
   }
 }

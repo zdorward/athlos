@@ -2,7 +2,7 @@
 
 import { format, parseISO } from "date-fns"
 import { Star, Check } from "lucide-react"
-import type { WorkoutDay, WorkoutType } from "@workspace/ai"
+import type { WorkoutDay, WorkoutType, PhaseEntry } from "@workspace/ai"
 import { PlanDayDetail } from "./plan-day-detail"
 import {
   groupDaysByWeek,
@@ -34,9 +34,10 @@ interface PlanFeedProps {
   ) => void
   selectedKey: { date: string; type: WorkoutType } | null
   onSelectedKeyChange: (key: { date: string; type: WorkoutType } | null) => void
+  phases?: PhaseEntry[]
 }
 
-export function PlanFeed({ days, units, totalWeeks, raceDistance, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange }: PlanFeedProps) {
+export function PlanFeed({ days, units, totalWeeks, raceDistance, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange, phases }: PlanFeedProps) {
   // Derive the live WorkoutDay from days so the detail sheet always reflects current state
   const selectedDay = selectedKey
     ? (days.find((d) => d.date === selectedKey.date && d.type === selectedKey.type) ?? null)
@@ -59,7 +60,7 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, onToggleComple
         {weeks.map((weekDays, weekIdx) => {
           if (!weekDays) return null
           const weekNum = weekIdx + 1
-          const phase = totalWeeks > 0 ? getPhaseLabel(weekNum, totalWeeks, taperWeeks) : ""
+          const phase = totalWeeks > 0 ? getPhaseLabel(weekNum, totalWeeks, taperWeeks, phases) : ""
           const weeklyKm = weekDays.reduce((sum, d) => sum + (d.distanceKm ?? 0), 0)
           const firstDate = weekDays[0] ? format(parseISO(weekDays[0].date), "MMM d") : ""
           const lastDate = weekDays[weekDays.length - 1]
@@ -126,11 +127,11 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, onToggleComple
                     >
                       <div className="flex items-center justify-between gap-3">
                         {/* Date */}
-                        <div className="flex flex-col items-center w-10 flex-shrink-0">
+                        <div className="flex flex-col items-center w-10 shrink-0">
                           <p className="text-lg font-bold tabular-nums leading-none">
                             {format(parseISO(day.date), "d")}
                           </p>
-                          <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-subtle-foreground">
+                          <p className="text-[9px] font-semibold uppercase tracking-widest text-subtle-foreground">
                             {format(parseISO(day.date), "EEE")}
                           </p>
                         </div>
@@ -154,7 +155,7 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, onToggleComple
 
                         {/* Distance */}
                         {day.distanceKm != null && (
-                          <div className="text-right flex-shrink-0">
+                          <div className="text-right shrink-0">
                             <p
                               className={`text-lg font-bold tabular-nums ${textClass}`}
                               style={color ? { color } : undefined}

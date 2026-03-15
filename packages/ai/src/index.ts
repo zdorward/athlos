@@ -9,6 +9,7 @@ export {
   type TrainingPlan,
   type TrainingPlanMeta,
   type PlanGenerationInput,
+  type PhaseEntry,
 } from "./types"
 
 function createProvider(): AIProvider {

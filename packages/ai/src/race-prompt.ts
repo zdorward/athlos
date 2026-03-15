@@ -1,37 +1,92 @@
 import type { PlanGenerationInput } from "./types"
+import { calculatePaceZones, computePhases } from "./pace-calculator"
 
-const SYSTEM_PROMPT = `You are an expert running coach who creates personalized race training plans. You generate plans for athletes ranging from complete beginners to competitive runners targeting specific race time goals.
+const SYSTEM_PROMPT = `You are an expert running coach building a personalised race training plan. Your output is a complete, week-by-week schedule in NDJSON format.
 
-Output format: NDJSON — one JSON object per line, no markdown, no explanation, no code fences.
+## Output Format
 
-First line must be plan metadata:
-{"_meta":true,"totalWeeks":<n>,"totalKm":<total>,"peakWeekKm":<peak>}
+First line — plan metadata. Copy phases array verbatim from user message. Estimate totalKm and peakWeekKm from your planned weekly distances:
+{"_meta":true,"totalWeeks":<n>,"totalKm":<your estimate of total km>,"peakWeekKm":<your estimate of peak week km>,"phases":<phases array from user message>}
 
-Then one line per calendar day covering the exact date range provided in the user message — use only the dates listed in the "Week schedule" section:
-{"date":"YYYY-MM-DD","type":"<type>","distanceKm":<n>,"description":"<one sentence>"}
+Then one line per calendar day in the exact date range provided. Use ONLY the dates in the "Week schedule" section — never invent or shift dates:
+{"date":"YYYY-MM-DD","type":"<type>","distanceKm":<n>,"targetPace":"<pace zone from user message>","description":"<specific one sentence>"}
 
-For rest days, omit distanceKm:
+Rest days:
 {"date":"YYYY-MM-DD","type":"rest","description":"Full rest day."}
 
-For race day, emit distanceKm equal to the actual race distance:
+Race day:
 {"date":"YYYY-MM-DD","type":"race","distanceKm":<race_distance_km>,"description":"Race day — <race name>. Trust your training."}
 
-Valid types: easy, long, tempo, intervals, rest, race, strength
+No markdown, no explanation, no code fences. Output valid JSON only. No trailing commas.
 
-Rules:
-- Only schedule runs on the athlete's available running days. All other days must be type "rest".
-- HARD CONSTRAINT: The long run MUST fall on the athlete's specified long run day every single week, no exceptions. Never place a long run on any other day under any circumstances.
-- If strength training is requested, schedule it on the specified strength days using type "strength" (no distanceKm).
-- HARD CONSTRAINT: When a strength day and a running day fall on the same date, you MUST emit TWO separate JSON lines for that date — one run line and one strength line. This is non-negotiable. Example of correct output for a Monday that is both a running day and a strength day:
-{"date":"2026-03-16","type":"easy","distanceKm":8,"description":"Easy aerobic run."}
-{"date":"2026-03-16","type":"strength","description":"Strength session — upper body and core."}
-Never emit only one line when both a run and strength are scheduled on the same date. Never skip or move either session.
-- Follow the 10% weekly mileage increase rule. Include a recovery week (30% mileage reduction) every 4th week.
-- Include a taper before race day: 2-week taper for 5K/10K, 3-week taper for half/full/ultra. The final day of the plan is race day.
-- Always output distances in kilometres regardless of the athlete's display preference.
-- Descriptions must be specific (e.g. "2km warm-up, 6×1km at 5K pace with 90sec jog recovery, 2km cool-down") not vague (e.g. "do intervals").
-- Output valid JSON only. No trailing commas, no comments, no extra whitespace.
-- Do not emit any line that is not valid JSON.`
+## Valid Workout Types
+
+- easy        — fully aerobic, conversational pace; use easy zone for targetPace
+- long        — weekly long run; use longRun zone; ALWAYS on the designated long run day
+- medium-long — 60–75% of long run distance, moderate-easy effort; use mediumLong zone; mid-week only
+- mp          — standalone race-pace run; use mp zone
+- tempo       — sustained threshold effort 20–40 min; use threshold zone
+- intervals   — short repetitions 600m–1600m with recovery; use vo2max zone
+- strength    — no distanceKm
+- rest        — full rest, no distanceKm
+- race        — race day
+
+Every workout except rest and strength MUST have a targetPace matching the zone label exactly as given in the user message.
+
+## Intensity Distribution (80/20 Rule)
+
+- At least 80% of weekly running distance must be at easy, medium-long, or long run pace
+- Maximum 2 quality sessions per week (tempo, intervals, mp)
+- If athlete has only 3 running days: max 1 quality session per week
+
+## Weekly Structure Rules
+
+- Never schedule two quality sessions on consecutive days
+- The day after the long run must be rest or easy only
+- At least one easy or rest day before any quality session
+- Long run MUST fall on the designated long run day every single week — no exceptions
+
+## Phase-Specific Guidance
+
+Follow the phase schedule provided in the user message. Apply the rules below per phase.
+
+**General Fitness (21+ week plans only):**
+- Easy runs and long runs only — no tempo, no intervals, no mp
+- Build mileage progressively from the stated starting volume
+- From week 3 onward: optional strides (4–6 × 20 sec) may be noted in description of easy runs
+
+**Base:**
+- Easy runs, long runs, medium-long runs
+- Strides on easy days (note in description)
+- Final week of this phase only: introduce one tempo run (20–25 min)
+
+**Build:**
+- One tempo session per week (25–40 min or cruise intervals)
+- VO2max intervals in the second half of this phase only
+- Medium-long run mid-week on a non-quality day
+- Long run builds toward peak distance
+
+**Peak:**
+- Highest mileage weeks
+- Long runs may include race-pace segments in the final 10–16 km — use type "long" and describe the mp segment in the description (e.g. "22 km long run — last 12 km at race pace")
+- One VO2max session per week
+- One tempo or standalone mp run per week
+
+**Taper:**
+- First taper week: reduce total volume by 20% from peak week
+- Final taper week(s): reduce total volume by 40% from peak week
+- Keep workout intensity — shorten sessions but do not drop quality entirely
+- Use only workout types the athlete has already seen in the plan
+- Long run is 60–70% of peak long run distance
+
+## Hard Constraints
+
+- Only schedule runs on the athlete's available running days — all other days must be type "rest"
+- Long run MUST be on the designated long run day every single week, no exceptions
+- When a strength day and a running day fall on the same date: emit TWO separate JSON lines for that date (one run, one strength)
+- Follow the 10% weekly mileage increase rule; include a recovery week (30% mileage reduction) every 4th week
+- Always output distances in kilometres
+- Descriptions must be specific (e.g. "2 km warm-up, 5 × 1000 m at vo2max zone with 90 sec jog, 2 km cool-down") not vague (e.g. "do intervals")`
 
 const DAY_NAMES: Record<string, string> = {
   mon: "Monday", tue: "Tuesday", wed: "Wednesday", thu: "Thursday",
@@ -44,6 +99,20 @@ const DISTANCE_KM_MAP: Record<string, number> = {
   "5k": 5, "10k": 10, half: 21.1, full: 42.2, ultra: 80,
 }
 
+const RANGE_LABEL: Record<string, string> = {
+  "under-40": "under 40",
+  "40-60": "40–60",
+  "60-80": "60–80",
+  "80-plus": "80+",
+}
+
+const STARTING_VOLUME_KM: Record<string, number> = {
+  "under-40": 30,
+  "40-60": 50,
+  "60-80": 70,
+  "80-plus": 90,
+}
+
 function toISO(date: Date): string {
   return date.toISOString().split("T")[0]!
 }
@@ -51,7 +120,7 @@ function toISO(date: Date): string {
 function firstMondayOnOrAfter(date: Date): Date {
   const d = new Date(date)
   d.setUTCHours(0, 0, 0, 0)
-  const day = d.getUTCDay() // 0=Sun, 1=Mon
+  const day = d.getUTCDay()
   if (day !== 1) {
     d.setUTCDate(d.getUTCDate() + (day === 0 ? 1 : 8 - day))
   }
@@ -81,29 +150,98 @@ function buildWeekSchedule(startDate: Date, endDate: Date): string {
 }
 
 export function buildPrompt(input: PlanGenerationInput): { system: string; user: string } {
-  const lines: string[] = []
-
   const startDate = input.startDate
     ? new Date(input.startDate + "T00:00:00Z")
     : firstMondayOnOrAfter(new Date())
 
+  const endDate = new Date(input.race.date)
+  endDate.setUTCHours(0, 0, 0, 0)
+
+  const msPerWeek = 7 * 24 * 60 * 60 * 1000
+  const totalWeeks = Math.floor((endDate.getTime() - startDate.getTime()) / msPerWeek) + 1
+
   const { name, date, distance, city } = input.race
   const raceKm = DISTANCE_KM_MAP[distance] ?? 42.2
-  lines.push(`Goal: Race — ${name} in ${city} on ${date} (${raceKm}km / ${distance})`)
+
+  // ── Pace zones ──────────────────────────────────────────────────────────
+  let paceZones = null
+
+  if (input.recentRace) {
+    const { hours, minutes, seconds, distance: rd, context } = input.recentRace
+    paceZones = calculatePaceZones({ hours, minutes, seconds, distance: rd, context }, "recent-race")
+  }
+
+  if (!paceZones && input.goalTime) {
+    const { hours, minutes } = input.goalTime
+    paceZones = calculatePaceZones(
+      // ultra is out of scope per spec; use "full" as a proxy for pace zone calculation
+      { hours, minutes, seconds: 0, distance: distance === "ultra" ? "full" : distance as "5k" | "10k" | "half" | "full" },
+      "goal-time"
+    )
+  }
+
+  // ── Phase schedule ───────────────────────────────────────────────────────
+  const phases = computePhases(totalWeeks, distance)
+  const phasesJson = JSON.stringify(phases)
+
+  const phaseScheduleLines = phases
+    .map(p => `  ${p.name.padEnd(18)}: weeks ${p.startWeek}–${p.endWeek}`)
+    .join("\n")
+
+  // ── Weekly mileage / starting volume ────────────────────────────────────
+  const mileageRange = input.weeklyMileageRange  // required field; default applied upstream in mapToInput
+  const startingVolume = STARTING_VOLUME_KM[mileageRange] ?? 50
+  const rangeLabel = RANGE_LABEL[mileageRange] ?? "40–60"
+
+  // ── Fitness source description ───────────────────────────────────────────
+  let fitnessSource = "goal time"
+  if (input.recentRace) {
+    const { hours, minutes, seconds, distance: rd, context } = input.recentRace
+    const timeStr = hours > 0
+      ? `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+      : `${minutes}:${seconds.toString().padStart(2, "0")}`
+    const ctxNote = context === "short-break" ? " (short break applied)" :
+                    context === "long-break"   ? " (long break applied)" : ""
+    fitnessSource = `recent ${rd.toUpperCase()} in ${timeStr}${ctxNote}`
+  }
+
+  // ── User message ─────────────────────────────────────────────────────────
+  const lines: string[] = []
+
+  lines.push(`Goal: Race — ${name} in ${city} on ${date} (${raceKm} km / ${distance})`)
 
   if (input.goalTime) {
     const { hours, minutes } = input.goalTime
-    lines.push(`Time goal: ${hours}h${minutes.toString().padStart(2, "0")}m (finish in under this time)`)
+    lines.push(`Time goal: ${hours}h${minutes.toString().padStart(2, "0")}m`)
   } else {
     lines.push("Time goal: finish (no specific time target)")
   }
 
-  const endDate = new Date(date)
-  endDate.setUTCHours(0, 0, 0, 0)
+  lines.push("")
+  lines.push("Fitness baseline:")
+  lines.push(`  Current weekly mileage: ${rangeLabel} km/week`)
+  lines.push(`  Starting volume (week 1 total): ${startingVolume} km`)
+  lines.push(`  Fitness source: ${fitnessSource}`)
+
+  if (paceZones) {
+    lines.push("")
+    lines.push("Pace zones (use these exactly for targetPace on every non-rest, non-strength workout):")
+    lines.push(`  Easy:         ${paceZones.easy}`)
+    lines.push(`  Long run:     ${paceZones.longRun}`)
+    lines.push(`  Medium-long:  ${paceZones.mediumLong}`)
+    lines.push(`  Race pace:    ${paceZones.mp}`)
+    lines.push(`  Threshold:    ${paceZones.threshold}`)
+    lines.push(`  VO2max:       ${paceZones.vo2max}`)
+  } else {
+    lines.push("")
+    lines.push("Pace zones: not available — calibrate paces to the athlete's goal time and fitness level.")
+  }
 
   const runDayNames = input.selectedDays.map(d => DAY_NAMES[d] ?? d).join(", ")
-  lines.push(`Available running days: ${runDayNames}`)
   const longRunDayName = DAY_NAMES[input.longRunDay] ?? input.longRunDay
+
+  lines.push("")
+  lines.push(`Available running days: ${runDayNames}`)
   lines.push(`Long run day: ${longRunDayName} — every week's long run MUST be on ${longRunDayName}, no exceptions.`)
 
   if (input.strengthTraining && input.strengthDays?.length) {
@@ -113,8 +251,16 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
     lines.push("Strength training: none")
   }
 
-  lines.push("Output distances in kilometres.")
-  lines.push(`\nWeek schedule (use ONLY these exact dates — do not invent or shift any dates):\n${buildWeekSchedule(startDate, endDate)}`)
+  lines.push("")
+  lines.push("Phase schedule (follow exactly):")
+  lines.push(phaseScheduleLines)
+
+  lines.push("")
+  lines.push(`Meta line phases (copy verbatim into your first JSON line's "phases" field):`)
+  lines.push(phasesJson)
+
+  lines.push("")
+  lines.push(`Week schedule (use ONLY these exact dates — do not invent or shift any dates):\n${buildWeekSchedule(startDate, endDate)}`)
 
   return { system: SYSTEM_PROMPT, user: lines.join("\n") }
 }

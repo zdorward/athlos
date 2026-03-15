@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import type { PlanGenerationInput, TrainingPlan, WorkoutDay, WorkoutType } from "@workspace/ai"
+import type { PlanGenerationInput, TrainingPlan, WorkoutDay, WorkoutType, PhaseEntry } from "@workspace/ai"
 import { authClient } from "@/lib/auth-client"
 import { PlanHeader } from "./plan-header"
 import { PlanCalendar } from "./plan-calendar"
@@ -12,12 +12,18 @@ import { SignInSheet } from "./sign-in-sheet"
 const SESSION_KEY = "athlos_onboarding"
 const PLAN_KEY = "athlos_plan"
 
+const VALID_WORKOUT_TYPES = new Set([
+  "easy", "long", "medium-long", "mp", "tempo", "intervals", "rest", "race", "strength",
+])
+
 interface SavedPlanSnapshot {
   input: PlanGenerationInput
   days: WorkoutDay[]
   totalWeeks: number
   totalKm: number
   peakWeekKm: number
+  phases?: PhaseEntry[]  // optional for backward compatibility with snapshots saved before this change
+  savedAt: number  // Date.now() timestamp for staleness check
 }
 
 function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
@@ -43,6 +49,7 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
     units: "km",
     strengthTraining: Array.isArray(strengthDays) && strengthDays.length > 0,
     strengthDays,
+    weeklyMileageRange: "40-60",  // default; overwritten below
   }
 
   if (raw["timeGoal"] === true && raw["goalTime"]) {
@@ -53,8 +60,24 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
     }
   }
 
-  if (typeof raw["startDate"] === "string" && raw["startDate"]) {
-    input.startDate = raw["startDate"]
+  // weeklyMileageRange — apply default if missing
+  const rawRange = raw["weeklyMileageRange"] as string | undefined
+  const validRanges = ["under-40", "40-60", "60-80", "80-plus"]
+  input.weeklyMileageRange = validRanges.includes(rawRange ?? "")
+    ? (rawRange as PlanGenerationInput["weeklyMileageRange"])
+    : "40-60"
+
+  // recentRace — passthrough with numeric coercion
+  if (raw["recentRace"]) {
+    const rr = raw["recentRace"] as Record<string, unknown>
+    const ctx = rr["context"] as string | undefined
+    input.recentRace = {
+      distance: rr["distance"] as "5k" | "10k" | "half" | "full",
+      hours:    Number(rr["hours"]   ?? 0),
+      minutes:  Number(rr["minutes"] ?? 0),
+      seconds:  Number(rr["seconds"] ?? 0),
+      context:  ctx === "short-break" || ctx === "long-break" ? ctx : "active",
+    }
   }
 
   return input
@@ -79,6 +102,8 @@ export default function PlanPage() {
   const [status, setStatus] = useState<"generating" | "complete" | "error">("generating")
   const [generatingWeek, setGeneratingWeek] = useState(1)
   const [input, setInput] = useState<PlanGenerationInput | null>(null)
+
+  const [phases, setPhases] = useState<PhaseEntry[]>([])
 
   const [selectedKey, setSelectedKey] = useState<{ date: string; type: WorkoutType } | null>(null)
 
@@ -110,24 +135,33 @@ export default function PlanPage() {
       return
     }
 
-    sessionStorage.removeItem(PLAN_KEY)
-
+    // Discard snapshots older than 10 minutes (stale from a prior session)
+    const TEN_MINUTES = 10 * 60 * 1000
     let snapshot: SavedPlanSnapshot
     try {
       snapshot = JSON.parse(raw) as SavedPlanSnapshot
     } catch {
+      sessionStorage.removeItem(PLAN_KEY)
       return
     }
+    if (!snapshot.savedAt || Date.now() - snapshot.savedAt > TEN_MINUTES) {
+      sessionStorage.removeItem(PLAN_KEY)
+      return
+    }
+
+    sessionStorage.removeItem(PLAN_KEY)
 
     // Restore plan state from snapshot and trigger save.
     // Mark stream as started so the streaming effect doesn't fire a new generation.
     streamStartedRef.current = true
     setInput(snapshot.input)
+    setPhases(snapshot.phases ?? [])
     setPlan({
-      days: snapshot.days,
+      days:       snapshot.days,
       totalWeeks: snapshot.totalWeeks,
-      totalKm: snapshot.totalKm,
+      totalKm:    snapshot.totalKm,
       peakWeekKm: snapshot.peakWeekKm,
+      phases:     snapshot.phases ?? [],
     })
     setStatus("complete")
     totalWeeksRef.current = snapshot.totalWeeks
@@ -224,14 +258,20 @@ export default function PlanPage() {
             } else if (parsed["_meta"] === true) {
               const tw = Number(parsed["totalWeeks"] ?? 0)
               totalWeeksRef.current = tw
+              const metaPhases = Array.isArray(parsed["phases"])
+                ? (parsed["phases"] as PhaseEntry[])
+                : []
+              setPhases(metaPhases)
               setPlan((p) => ({
                 ...p,
                 totalWeeks: tw,
-                totalKm: Number(parsed["totalKm"] ?? 0),
+                totalKm:    Number(parsed["totalKm"]    ?? 0),
                 peakWeekKm: Number(parsed["peakWeekKm"] ?? 0),
+                phases:     metaPhases,
               }))
             } else {
               const day = parsed as unknown as WorkoutDay
+              if (typeof day.date !== "string" || !VALID_WORKOUT_TYPES.has(day.type)) continue
               dayCountRef.current += 1
               if (!startDateRef.current) startDateRef.current = day.date
               const weekNum =
@@ -295,10 +335,12 @@ export default function PlanPage() {
     if (!input) return
     const snapshot: SavedPlanSnapshot = {
       input,
-      days: current.days ?? [],
+      days:       current.days       ?? [],
       totalWeeks: current.totalWeeks ?? 0,
-      totalKm: current.totalKm ?? 0,
+      totalKm:    current.totalKm    ?? 0,
       peakWeekKm: current.peakWeekKm ?? 0,
+      phases:     current.phases     ?? [],
+      savedAt:    Date.now(),
     }
     sessionStorage.setItem(PLAN_KEY, JSON.stringify(snapshot))
   }
@@ -346,6 +388,7 @@ export default function PlanPage() {
           units={input.units}
           totalWeeks={plan.totalWeeks ?? 0}
           raceDistance={input.race?.distance}
+          phases={phases}
           selectedKey={selectedKey}
           onSelectedKeyChange={setSelectedKey}
         />
@@ -358,6 +401,7 @@ export default function PlanPage() {
           units={input.units}
           totalWeeks={plan.totalWeeks ?? 0}
           raceDistance={input.race?.distance}
+          phases={phases}
           selectedKey={selectedKey}
           onSelectedKeyChange={setSelectedKey}
         />

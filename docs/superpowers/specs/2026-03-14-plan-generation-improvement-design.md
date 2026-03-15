@@ -33,10 +33,31 @@ Stored as `weeklyMileageRange: "under-40" | "40-60" | "60-80" | "80-plus"` on `O
 
 User can enter a recent race result: distance (5K / 10K / Half / Full) and finishing time (hours, minutes, seconds). A "Skip" button is available.
 
-- If provided: used as the basis for pace zone calculation (actual fitness)
+- If provided: used as the basis for pace zone calculation, adjusted by current fitness context (see below)
 - If skipped: goal time used with a 5% conservative buffer (aspirational → realistic)
 
-Stored as `recentRace?: { distance: "5k"|"10k"|"half"|"full"; hours: number; minutes: number; seconds: number }`.
+After entering the race result, the step shows a follow-up question inline: **"How is your training going right now?"** with three options:
+
+| Option | Label | Pace multiplier |
+|---|---|---|
+| `active` | "Actively training" | ×1.00 — no adjustment |
+| `short-break` | "Took a short break (< 2 months)" | ×1.05 — slightly slower zones |
+| `long-break` | "Been off for a while (2+ months)" | ×1.12 — significantly more conservative |
+
+The multiplier is applied to all computed pace zones after the Riegel formula runs. A runner who raced well 8 months ago and hasn't trained since gets 12% slower zones, making week 1 achievable rather than demoralising.
+
+Stored as:
+```ts
+recentRace?: {
+  distance: "5k" | "10k" | "half" | "full"
+  hours: number
+  minutes: number
+  seconds: number
+  context: "active" | "short-break" | "long-break"
+}
+```
+
+`context` defaults to `"active"` if somehow absent.
 
 ---
 
@@ -52,6 +73,7 @@ interface PaceInput {
   minutes: number
   seconds: number
   distance: "5k" | "10k" | "half" | "full"
+  context?: "active" | "short-break" | "long-break"  // only present for recent-race source
 }
 
 interface PaceZones {
@@ -70,7 +92,11 @@ interface PaceZones {
 1. Convert race time + distance to a per-km pace
 2. If using goal time, apply a 5% conservative buffer (multiply by 1.05)
 3. Normalise to equivalent **5K pace** using the Riegel formula: `T_5k = T_input × (5 / D_km)^1.06`
-4. Apply zone multipliers relative to the 5K reference pace (higher % = slower):
+4. If source is `recent-race`, apply the fitness context multiplier to the 5K pace:
+   - `active` → ×1.00
+   - `short-break` → ×1.05
+   - `long-break` → ×1.12
+5. Apply zone multipliers relative to the adjusted 5K reference pace (higher % = slower):
 
 | Zone | Multiplier (% of 5K pace) | Description |
 |---|---|---|
@@ -83,8 +109,8 @@ interface PaceZones {
 
 All zones use **5K equivalent pace** as the single reference. The ordering threshold < mp < medium-long < long < easy must always hold (lower multiplier = faster pace). Never overlap these ranges.
 
-5. Format each zone as `"M:SS–M:SS/km"` string
-6. Return `PaceZones` with `source` field
+6. Format each zone as `"M:SS–M:SS/km"` string
+7. Return `PaceZones` with `source` field
 
 The function is pure — no side effects, fully testable. Called once in `buildPrompt()` before constructing the user message.
 
@@ -270,12 +296,12 @@ Week 1 [2026-03-16 – 2026-03-22]: ...
 **`packages/ai/src/types.ts`**
 - Add `"medium-long"` and `"mp"` to `WorkoutType`
 - Add `weeklyMileageRange: "under-40" | "40-60" | "60-80" | "80-plus"` to `PlanGenerationInput` (required; `mapToInput` applies the `"40-60"` default if the field is absent, so `PlanGenerationInput` always receives a value)
-- Add `recentRace?: { distance: "5k"|"10k"|"half"|"full"; hours: number; minutes: number; seconds: number }` to `PlanGenerationInput`
+- Add `recentRace?: { distance: "5k"|"10k"|"half"|"full"; hours: number; minutes: number; seconds: number; context: "active"|"short-break"|"long-break" }` to `PlanGenerationInput`
 - Add `phases?: Array<{ name: string; startWeek: number; endWeek: number }>` to `TrainingPlan` (used to pass phase schedule from server to client via `_meta` line)
 
 **`apps/web/components/onboarding/types.ts`**
 - Add `weeklyMileageRange?: "under-40" | "40-60" | "60-80" | "80-plus"` to `OnboardingData`
-- Add `recentRace?: { distance: "5k" | "10k" | "half" | "full"; hours: number; minutes: number; seconds: number }` to `OnboardingData` — uses the 4 supported distances directly, not the `Distance` alias (which includes `"ultra"` that the Riegel calculator does not support)
+- Add `recentRace?: { distance: "5k" | "10k" | "half" | "full"; hours: number; minutes: number; seconds: number; context: "active" | "short-break" | "long-break" }` to `OnboardingData` — uses the 4 supported distances directly, not the `Distance` alias (which includes `"ultra"` that the Riegel calculator does not support)
 - Update `getSteps()` to return: `["findRace", "goalTime", "whichDays", "strengthTraining", "strengthDays", "weeklyMileage", "recentRace"]`
 
 ### Files created
@@ -312,11 +338,13 @@ if (raw["weeklyMileageRange"]) {
 // recentRace — passthrough with numeric coercion
 if (raw["recentRace"]) {
   const rr = raw["recentRace"] as Record<string, unknown>
+  const ctx = rr["context"] as string | undefined
   input.recentRace = {
     distance: rr["distance"] as "5k" | "10k" | "half" | "full",
     hours: Number(rr["hours"] ?? 0),
     minutes: Number(rr["minutes"] ?? 0),
     seconds: Number(rr["seconds"] ?? 0),
+    context: (ctx === "short-break" || ctx === "long-break") ? ctx : "active",
   }
 }
 ```

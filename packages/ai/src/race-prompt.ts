@@ -203,9 +203,10 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
 
   if (input.goalTime) {
     const { hours, minutes } = input.goalTime
-    lines.push(`Time goal: ${hours}h${minutes.toString().padStart(2, "0")}m`)
+    const goalTimeStr = `${hours}h${minutes.toString().padStart(2, "0")}m`
+    lines.push(`Time goal: ${goalTimeStr} — every decision in this plan (paces, volume, workout types, phase structure) must serve the single objective of getting this athlete to the start line ready to run ${goalTimeStr} at ${name}.`)
   } else {
-    lines.push("Time goal: finish (no specific time target)")
+    lines.push("Time goal: finish — build fitness and endurance to complete the race comfortably.")
   }
 
   lines.push("")

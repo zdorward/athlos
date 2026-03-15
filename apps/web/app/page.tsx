@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { Suspense, useEffect, useRef, useState } from "react"
 import { Wordmark } from "@/components/wordmark"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Search, Loader2, CalendarIcon } from "lucide-react"
@@ -71,6 +71,14 @@ const MOCK_WEEKS = [
 // ── Page ───────────────────────────────────────────────────────────────────
 
 export default function Page() {
+  return (
+    <Suspense>
+      <PageContent />
+    </Suspense>
+  )
+}
+
+function PageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isNewPlan = searchParams.get("new") === "1"

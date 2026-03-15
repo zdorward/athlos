@@ -253,7 +253,16 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
 
   if (input.strengthTraining && input.strengthDays?.length) {
     const strengthDayNames = input.strengthDays.map(d => DAY_NAMES[d] ?? d).join(", ")
+    const runDaySet = new Set(input.selectedDays)
+    const bothDays = input.strengthDays.filter(d => runDaySet.has(d)).map(d => DAY_NAMES[d] ?? d)
+    const strengthOnlyDays = input.strengthDays.filter(d => !runDaySet.has(d)).map(d => DAY_NAMES[d] ?? d)
     lines.push(`Strength training days: ${strengthDayNames}`)
+    if (bothDays.length > 0) {
+      lines.push(`  → Days with BOTH a run AND strength: ${bothDays.join(", ")} — emit TWO JSON lines for each of these dates every week (run first, strength second)`)
+    }
+    if (strengthOnlyDays.length > 0) {
+      lines.push(`  → Strength-only days (no run): ${strengthOnlyDays.join(", ")} — emit ONE strength JSON line for each of these dates`)
+    }
   } else {
     lines.push("Strength training: none")
   }

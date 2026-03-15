@@ -164,7 +164,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
     throw new Error(`Race date too soon: only ${totalWeeks} week(s) of training available. Minimum 4 weeks required.`)
   }
 
-  const { name, date, distance, city } = input.race
+  const { name, distance, city } = input.race
   const raceKm = DISTANCE_KM_MAP[distance] ?? 42.2
 
   // ── Pace zones ──────────────────────────────────────────────────────────

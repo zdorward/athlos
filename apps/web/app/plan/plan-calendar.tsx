@@ -2,7 +2,7 @@
 
 import { format, parseISO } from "date-fns"
 import { Star, Check } from "lucide-react"
-import type { WorkoutDay, WorkoutType } from "@workspace/ai"
+import type { WorkoutDay, WorkoutType, PhaseEntry } from "@workspace/ai"
 import { PlanDayDetail } from "./plan-day-detail"
 import {
   groupDaysByWeek,
@@ -16,6 +16,30 @@ import {
 } from "./workout-utils"
 
 const DAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+function getTodayISO(): string {
+  return new Date().toLocaleDateString("en-CA")
+}
+
+/** Returns the ISO date of the Monday of the week containing `isoDate`. */
+function getMondayOfWeek(isoDate: string): string {
+  const d = new Date(isoDate + "T00:00:00")
+  const day = d.getDay()
+  const diff = day === 0 ? -6 : 1 - day
+  d.setDate(d.getDate() + diff)
+  return d.toLocaleDateString("en-CA")
+}
+
+/** Returns ISO dates for all 7 days of the week starting from `mondayISO`. */
+function getWeekDates(mondayISO: string): string[] {
+  const dates: string[] = []
+  const d = new Date(mondayISO + "T00:00:00")
+  for (let i = 0; i < 7; i++) {
+    dates.push(d.toLocaleDateString("en-CA"))
+    d.setDate(d.getDate() + 1)
+  }
+  return dates
+}
 
 interface PlanCalendarProps {
   days: WorkoutDay[]
@@ -36,9 +60,10 @@ interface PlanCalendarProps {
   ) => void
   selectedKey: { date: string; type: WorkoutType } | null
   onSelectedKeyChange: (key: { date: string; type: WorkoutType } | null) => void
+  phases?: PhaseEntry[]
 }
 
-export function PlanCalendar({ days, units, totalWeeks, raceDistance, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange }: PlanCalendarProps) {
+export function PlanCalendar({ days, units, totalWeeks, raceDistance, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange, phases }: PlanCalendarProps) {
   // Derive the live WorkoutDay from the days prop so the detail panel always reflects current state
   const selectedDay = selectedKey
     ? (days.find((d) => d.date === selectedKey.date && d.type === selectedKey.type) ?? null)
@@ -46,6 +71,11 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, onToggleCo
   const weeks = groupDaysByWeek(days)
   const taperWeeks = getTaperWeeks(raceDistance)
   const unit = distanceUnit(units)
+  const todayISO = getTodayISO()
+  const currentWeekMonday = getMondayOfWeek(todayISO)
+  const planFirstMonday = days[0]?.date ?? null
+  const showPrePlanWeek = planFirstMonday !== null && currentWeekMonday < planFirstMonday
+  const prePlanDates = showPrePlanWeek ? getWeekDates(currentWeekMonday) : []
 
   if (weeks.length === 0) {
     return (
@@ -65,7 +95,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, onToggleCo
           {DAY_ORDER.map((d) => (
             <div
               key={d}
-              className="text-center text-[10px] font-semibold uppercase tracking-[0.1em] text-subtle-foreground"
+              className="text-center text-[10px] font-semibold uppercase tracking-widest text-subtle-foreground"
             >
               {d}
             </div>
@@ -74,12 +104,44 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, onToggleCo
 
         {/* Weeks */}
         <div className="px-4 pb-4">
+        {/* Pre-plan current week — shown when plan hasn't started yet */}
+        {showPrePlanWeek && (
+          <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1">
+            <div className="flex flex-col justify-center pr-2">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-subtle-foreground opacity-40">
+                Now
+              </p>
+            </div>
+            {prePlanDates.map((dateISO) => {
+              const isToday = dateISO === todayISO
+              const isPast = dateISO < todayISO
+              return (
+                <div
+                  key={dateISO}
+                  className={[
+                    "min-h-[88px] rounded-md border p-2",
+                    isPast
+                      ? "bg-muted/10 border-border/20 opacity-25"
+                      : "bg-muted/30 border-border/40",
+                  ].join(" ")}
+                >
+                  <p className={`text-[10px] font-medium ${isToday ? "text-primary" : "text-subtle-foreground"}`}>
+                    {format(parseISO(dateISO), "d")}
+                  </p>
+                  {isToday && (
+                    <div className="w-1 h-1 rounded-full bg-primary mt-1" />
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
         {weeks.map((weekDays, weekIdx) => {
           if (!weekDays) return null
           const weekNum = weekIdx + 1
-          const phase = totalWeeks > 0 ? getPhaseLabel(weekNum, totalWeeks, taperWeeks) : ""
+          const phase = totalWeeks > 0 ? getPhaseLabel(weekNum, totalWeeks, taperWeeks, phases) : ""
           const prevPhase = totalWeeks > 0 && weekIdx > 0
-            ? getPhaseLabel(weekIdx, totalWeeks, taperWeeks)
+            ? getPhaseLabel(weekIdx, totalWeeks, taperWeeks, phases)
             : null
           const showPhaseHeader = phase && phase !== prevPhase
 
@@ -109,11 +171,16 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, onToggleCo
             <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1">
               {/* Week label column */}
               <div className="flex flex-col justify-center pr-2">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-subtle-foreground">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-subtle-foreground">
                   W{weekNum}
                 </p>
+                {weekDays[0] && (
+                  <p className="text-[10px] text-subtle-foreground/60 tabular-nums mt-0.5">
+                    {format(parseISO(weekDays[0].date), "MMM d")}
+                  </p>
+                )}
                 {weeklyKm > 0 && (
-                  <p className="text-[10px] font-semibold tabular-nums text-muted-foreground">
+                  <p className="text-[10px] font-semibold tabular-nums text-muted-foreground mt-0.5">
                     {formatDistance(weeklyKm, units)}{unit}
                   </p>
                 )}
@@ -127,13 +194,13 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, onToggleCo
                   return (
                     <div
                       key={dow}
-                      className="min-h-[72px] rounded-md border border-border bg-card opacity-20"
+                      className="min-h-[88px] rounded-md border border-border bg-card opacity-20"
                     />
                   )
                 }
 
                 // Primary entry for selection: prefer run types over strength/rest
-                const RUN_TYPES = new Set(["easy", "long", "tempo", "intervals", "race"])
+                const RUN_TYPES = new Set(["easy", "long", "medium-long", "mp", "tempo", "intervals", "race"])
                 const primary = entries.find((d) => RUN_TYPES.has(d.type)) ?? entries[0]!
                 const isRace = entries.some((d) => d.type === "race")
                 const isRest = entries.every((d) => d.type === "rest")
@@ -145,7 +212,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, onToggleCo
                     key={dow}
                     onClick={() => onSelectedKeyChange(isSelected ? null : { date: primary.date, type: primary.type })}
                     className={[
-                      "min-h-[72px] rounded-md border p-2 text-left transition-colors cursor-pointer",
+                      "min-h-[88px] rounded-md border p-2 text-left transition-colors cursor-pointer",
                       isRace
                         ? "bg-primary/12 border-primary"
                         : isFullyComplete && isSelected
@@ -207,7 +274,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, onToggleCo
       </div>
 
       {/* Detail side panel */}
-      <div className="w-72 border-l border-border bg-card overflow-y-auto flex-shrink-0">
+      <div className="w-72 border-l border-border bg-card overflow-y-auto shrink-0">
         <PlanDayDetail day={selectedDay} units={units} onToggleComplete={onToggleComplete} onSaveEdit={onSaveEdit} />
       </div>
     </div>

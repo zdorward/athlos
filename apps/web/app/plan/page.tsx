@@ -46,7 +46,9 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
     },
     selectedDays,
     longRunDay,
-    units: "km",
+    // To add a units setting: add a "units" step to onboarding and store the value in
+    // sessionStorage under SESSION_KEY. This line will pick it up automatically.
+    units: (raw["units"] === "miles" ? "miles" : "km") as "km" | "miles",
     strengthTraining: Array.isArray(strengthDays) && strengthDays.length > 0,
     strengthDays,
     weeklyMileageRange: "40-60",  // default; overwritten below

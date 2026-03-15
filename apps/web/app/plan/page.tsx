@@ -166,6 +166,8 @@ export default function PlanPage() {
     setStatus("complete")
     totalWeeksRef.current = snapshot.totalWeeks
 
+    // Note: phases are not persisted server-side yet (SavePlanBody has no phases field).
+    // When the DB schema and API are updated to store phases, pass snapshot.phases here.
     void savePlanToServer(snapshot.input, snapshot.days, snapshot.totalWeeks, snapshot.totalKm, snapshot.peakWeekKm)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionData?.session?.id])

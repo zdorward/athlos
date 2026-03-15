@@ -147,7 +147,12 @@ export async function PATCH(
       }
     } else {
       if (body.completed !== undefined) entry.completed = body.completed
-      if (body.effort !== undefined) entry.effort = body.effort
+      if (body.effort !== undefined) {
+        if (!["hard", "good", "easy"].includes(body.effort)) {
+          return Response.json({ error: "Bad request" }, { status: 400 })
+        }
+        entry.effort = body.effort
+      }
     }
 
     await db

@@ -81,9 +81,10 @@ Follow the phase schedule provided in the user message. Apply the rules below pe
 
 ## Hard Constraints
 
-- Only schedule runs on the athlete's available running days — all other days must be type "rest"
+- Only schedule runs on the athlete's available running days — days that are neither running days nor strength days must be type "rest"
 - Long run MUST be on the designated long run day every single week, no exceptions
-- When a strength day and a running day fall on the same date: emit TWO separate JSON lines for that date (one run, one strength)
+- Strength training NEVER replaces a run. If a day appears in both the running days list AND the strength days list, emit TWO lines for that date: the run workout first, then a strength line. The run is determined by the training plan as normal; strength is always additive.
+- If a strength day is NOT a running day, emit a single "strength" type line for that date (no run, no distanceKm)
 - Follow the 10% weekly mileage increase rule; include a recovery week (30% mileage reduction) every 4th week
 - Always output distances in kilometres
 - Descriptions must be specific (e.g. "2 km warm-up, 5 × 1000 m at vo2max zone with 90 sec jog, 2 km cool-down") not vague (e.g. "do intervals")`

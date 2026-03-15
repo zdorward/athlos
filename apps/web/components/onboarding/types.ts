@@ -39,13 +39,6 @@ export interface OnboardingData {
   strengthTraining?: boolean
   strengthDays?: Day[]
   weeklyMileageRange?: "under-40" | "40-60" | "60-80" | "80-plus"
-  recentRace?: {
-    distance: "5k" | "10k" | "half" | "full"
-    hours: number
-    minutes: number
-    seconds: number
-    context: "active" | "short-break" | "long-break"
-  }
 }
 
 export interface StepProps {
@@ -61,6 +54,5 @@ export function getSteps(): readonly string[] {
     "strengthTraining",
     "strengthDays",
     "weeklyMileage",
-    "recentRace",
   ]
 }

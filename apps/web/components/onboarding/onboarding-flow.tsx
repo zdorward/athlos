@@ -13,7 +13,6 @@ import { StepStrengthTraining } from "./steps/step-strength-training"
 import { StepStrengthDays } from "./steps/step-strength-days"
 import { StepGoalTime } from "./steps/step-goal-time"
 import { StepWeeklyMileage } from "./steps/step-weekly-mileage"
-import { StepRecentRace } from "./steps/step-recent-race"
 import { getSteps, type OnboardingData, type RaceData } from "./types"
 
 const slideVariants = {
@@ -39,7 +38,6 @@ const STEP_LABELS: Record<string, string> = {
   strengthTraining: "Strength training",
   strengthDays: "Lifting days",
   weeklyMileage: "Weekly mileage",
-  recentRace: "Recent race",
 }
 
 interface OnboardingFlowProps {
@@ -316,7 +314,6 @@ export function OnboardingFlow({ onExit, initialData }: OnboardingFlowProps) {
       case "strengthTraining":  return <StepStrengthTraining {...stepProps} />
       case "strengthDays":      return <StepStrengthDays {...stepProps} />
       case "weeklyMileage":     return <StepWeeklyMileage {...stepProps} />
-      case "recentRace":        return <StepRecentRace {...stepProps} />
       default:             return null
     }
   }

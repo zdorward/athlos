@@ -67,19 +67,6 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
     ? (rawRange as PlanGenerationInput["weeklyMileageRange"])
     : "40-60"
 
-  // recentRace — passthrough with numeric coercion
-  if (raw["recentRace"]) {
-    const rr = raw["recentRace"] as Record<string, unknown>
-    const ctx = rr["context"] as string | undefined
-    input.recentRace = {
-      distance: rr["distance"] as "5k" | "10k" | "half" | "full",
-      hours:    Number(rr["hours"]   ?? 0),
-      minutes:  Number(rr["minutes"] ?? 0),
-      seconds:  Number(rr["seconds"] ?? 0),
-      context:  ctx === "short-break" || ctx === "long-break" ? ctx : "active",
-    }
-  }
-
   return input
 }
 

@@ -12,19 +12,28 @@ export default function SettingsPage() {
 
   // Cast to include the additional `units` field from Better Auth additionalFields config
   const currentUnits = (user as { units?: "km" | "miles" } | undefined)?.units ?? "km"
-  const [units, setUnits] = useState<"km" | "miles">(currentUnits)
+  const [pendingUnits, setPendingUnits] = useState<"km" | "miles" | null>(null)
   const [saving, setSaving] = useState(false)
 
+  // The toggle always shows: in-flight value or session value
+  const displayedUnits = pendingUnits ?? currentUnits
+
   async function handleUnitsChange(value: "km" | "miles") {
-    if (value === units) return
-    setUnits(value)
+    if (value === displayedUnits) return
+    setPendingUnits(value)
     setSaving(true)
     try {
-      await fetch("/api/user", {
+      const res = await fetch("/api/user", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ units: value }),
       })
+      if (!res.ok) throw new Error("Save failed")
+      // On success: pendingUnits stays set; next useSession refetch will update currentUnits
+      // and pendingUnits will be cleared after navigation (no explicit clear needed for UX)
+    } catch {
+      // Revert on error
+      setPendingUnits(null)
     } finally {
       setSaving(false)
     }
@@ -58,7 +67,7 @@ export default function SettingsPage() {
                 key={value}
                 onClick={() => void handleUnitsChange(value)}
                 className={`px-4 py-1.5 text-sm font-medium transition-colors ${
-                  units === value
+                  displayedUnits === value
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                 }`}

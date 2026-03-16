@@ -27,18 +27,15 @@ interface PageProps {
 export default function PlanViewPage({ params }: PageProps) {
   const { id } = use(params)
   const router = useRouter()
-  const { data: sessionData, isPending: sessionPending } = authClient.useSession()
+  const { data: sessionData } = authClient.useSession()
 
   const [plan, setPlan] = useState<Plan | null | "not-found">(null)
   const [days, setDays] = useState<WorkoutDay[]>([])
   const [selectedKey, setSelectedKey] = useState<{ date: string; type: WorkoutType } | null>(null)
   const [fetching, setFetching] = useState(false)
 
-  // Fetch plan once session confirmed
+  // Fetch plan on mount — layout already redirects unauthenticated users server-side
   useEffect(() => {
-    if (!sessionPending && !sessionData?.session) return
-    if (sessionPending) return
-
     setFetching(true)
     fetch(`/api/plans/${id}`)
       .then(async (res) => {
@@ -56,7 +53,7 @@ export default function PlanViewPage({ params }: PageProps) {
       })
       .catch(() => setPlan("not-found"))
       .finally(() => setFetching(false))
-  }, [id, sessionPending, sessionData?.session])
+  }, [id])
 
   // Show spinner only on initial load — don't flash on background session re-validation
   if (plan === null) {
@@ -82,7 +79,9 @@ export default function PlanViewPage({ params }: PageProps) {
     )
   }
 
-  const units = plan.input.units
+  const units = (sessionData?.user as { units?: "km" | "miles" } | undefined)?.units
+    ?? plan.input.units
+    ?? "km"
   const raceDistance = plan.input.race?.distance
 
   async function handleStartNewPlan() {

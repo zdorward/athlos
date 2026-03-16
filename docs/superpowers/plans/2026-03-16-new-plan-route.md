@@ -295,3 +295,15 @@ No automated test can cover the authenticated exit flow without a pre-seeded ses
   1. Sign in
   2. Navigate to `/`
   3. **Expected:** redirect to `/dashboard` immediately (no `?new=1` required to suppress this)
+
+- [ ] **Stale draft is cleared on entry to `/new-plan`**
+  1. Open an incognito window, go to `/`, search a race, click it
+  2. Fill in a few onboarding steps (this writes `athlos_onboarding_draft` to sessionStorage)
+  3. Abandon the flow and sign in as an authenticated user
+  4. Navigate to `/new-plan`
+  5. **Expected:** onboarding starts at step 1 with a blank state — not pre-populated with the abandoned draft
+
+- [ ] **Back button after exit goes to `/dashboard`, not back to `/new-plan`**
+  1. Complete scenario "Authenticated user: New plan → exit → dashboard" above
+  2. Once on `/dashboard`, press the browser back button
+  3. **Expected:** stays on `/dashboard` (because `router.replace` was used, not `push`)

@@ -51,8 +51,7 @@ export function getSteps(): readonly string[] {
     "goalTime",
     "trainingAge",
     "whichDays",
-    "strengthTraining",
-    "strengthDays",
     "weeklyMileage",
+    "strength",
   ]
 }

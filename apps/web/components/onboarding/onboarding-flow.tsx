@@ -9,8 +9,7 @@ import { OnboardingProgress } from "./onboarding-progress"
 import { FinalScreen } from "./final-screen"
 import { StepFindRace } from "./steps/step-find-race"
 import { StepWhichDays } from "./steps/step-which-days"
-import { StepStrengthTraining } from "./steps/step-strength-training"
-import { StepStrengthDays } from "./steps/step-strength-days"
+import { StepStrength } from "./steps/step-strength"
 import { StepGoalTime } from "./steps/step-goal-time"
 import { StepWeeklyMileage } from "./steps/step-weekly-mileage"
 import { StepTrainingAge } from "./steps/step-training-age"
@@ -31,9 +30,8 @@ const STEP_LABELS: Record<string, string> = {
   goalTime: "Goal time",
   trainingAge: "Experience",
   whichDays: "Running days",
-  strengthTraining: "Strength training",
-  strengthDays: "Lifting days",
   weeklyMileage: "Weekly mileage",
+  strength: "Strength training",
 }
 
 interface OnboardingFlowProps {
@@ -278,14 +276,9 @@ export function OnboardingFlow({ onExit, initialData }: OnboardingFlowProps) {
   const steps = getSteps()
   const isComplete = currentStep >= steps.length
 
-  function advance(merged: OnboardingData) {
+  function advance() {
     setDirection(1)
-    setCurrentStep((s) => {
-      // Skip strengthDays if user opted out of strength training
-      const next = steps[s + 1]
-      if (next === "strengthDays" && merged.strengthTraining === false) return s + 2
-      return s + 1
-    })
+    setCurrentStep((s) => s + 1)
   }
 
   function goBack() {
@@ -294,18 +287,13 @@ export function OnboardingFlow({ onExit, initialData }: OnboardingFlowProps) {
       return
     }
     setDirection(-1)
-    setCurrentStep((s) => {
-      // Skip back over strengthDays if user opted out of strength training
-      const prev = steps[s - 1]
-      if (prev === "strengthDays" && formData.strengthTraining === false) return s - 2
-      return s - 1
-    })
+    setCurrentStep((s) => s - 1)
   }
 
   function handleNext(data: Partial<OnboardingData>) {
     const merged = { ...formData, ...data }
     setFormData(merged)
-    advance(merged)
+    advance()
   }
 
   const stepKey = isComplete ? "final" : steps[currentStep]
@@ -319,9 +307,8 @@ export function OnboardingFlow({ onExit, initialData }: OnboardingFlowProps) {
       case "goalTime":           return <StepGoalTime {...stepProps} />
       case "trainingAge":        return <StepTrainingAge {...stepProps} />
       case "whichDays":          return <StepWhichDays {...stepProps} />
-      case "strengthTraining":   return <StepStrengthTraining {...stepProps} />
-      case "strengthDays":       return <StepStrengthDays {...stepProps} />
       case "weeklyMileage":      return <StepWeeklyMileage {...stepProps} />
+      case "strength":           return <StepStrength {...stepProps} />
       default:             return null
     }
   }

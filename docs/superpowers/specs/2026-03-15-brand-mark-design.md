@@ -59,13 +59,29 @@ Mark + wordmark are composed at the usage site (nav, onboarding header) by placi
 
 ## Files
 
-### Created (3)
+### Created (2)
 
 | File | Purpose |
 |------|---------|
 | `apps/web/app/icon.svg` | Primary mark SVG. Next.js auto-discovers this and serves it as the site icon for all modern browsers. Replaces all PNGs and the ICO file. |
-| `apps/web/app/apple-icon.png` | 180×180 PNG for iOS homescreen (Apple touch icon). Generated from the SVG mark at implementation time using a canvas or sharp script — not hand-crafted. |
-| `apps/web/public/site.webmanifest` | Replaces the existing empty manifest. Sets `name`, `short_name`, background color (`#0D1421`), theme color (`#06b6d4`). References only the apple-icon.png for PWA icon (no additional PNG sizes needed). |
+| `apps/web/app/apple-icon.png` | 180×180 PNG for iOS homescreen (Apple touch icon). Generated from the SVG mark at implementation time — not hand-crafted. |
+
+### Modified (1)
+
+| File | Change |
+|------|--------|
+| `apps/web/public/site.webmanifest` | Replace contents with the following exact JSON: |
+
+```json
+{
+  "name": "Athlos",
+  "short_name": "Athlos",
+  "icons": [{ "src": "/apple-icon.png", "sizes": "180x180", "type": "image/png" }],
+  "theme_color": "#06b6d4",
+  "background_color": "#0D1421",
+  "display": "standalone"
+}
+```
 
 ### Deleted (9)
 
@@ -96,10 +112,16 @@ Mark + wordmark are composed at the usage site (nav, onboarding header) by placi
 
 ## apple-icon.png Generation
 
-At implementation time, generate the 180×180 PNG by running a Node script using the `sharp` package (already available in the monorepo or installable as a one-time dev tool):
+Generate the 180×180 PNG once using `sharp`. Install it explicitly before running the script:
+
+```bash
+pnpm add -D sharp --filter @workspace/web
+```
+
+Then run:
 
 ```js
-// scripts/generate-apple-icon.mjs
+// scripts/generate-apple-icon.mjs  (delete after use)
 import sharp from "sharp"
 import { readFileSync } from "fs"
 
@@ -107,11 +129,15 @@ const svg = readFileSync("apps/web/app/icon.svg")
 await sharp(svg).resize(180, 180).png().toFile("apps/web/app/apple-icon.png")
 ```
 
-Run once, commit the PNG, delete the script. The PNG does not need to be regenerated unless the mark changes.
+```bash
+node scripts/generate-apple-icon.mjs
+```
+
+Commit the PNG, remove the script, remove the `sharp` devDependency. The PNG does not need to be regenerated unless the mark SVG changes.
 
 ## Out of Scope
 
-- Dark/light variant of the mark SVG (the SVG is dark-background only; the light-background version is composed in code at the usage site using Tailwind classes or CSS variables — this is a UI concern, not a brand asset file)
+- **Light-background mark variant:** All current usage sites (`app-nav.tsx`, `onboarding-flow.tsx`) render on dark backgrounds — the cyan-fill SVG works as-is. No light-variant file is needed. If a future usage site requires the mark on a light surface, a separate ticket will define the implementation pattern at that time.
 - OG image (`og-image.png`) — separate ticket
 - Favicon for Safari pinned tabs (`safari-pinned-tab.svg`) — not needed
-- Any additional PWA icon sizes beyond apple-icon.png
+- Any additional PWA icon sizes beyond `apple-icon.png`

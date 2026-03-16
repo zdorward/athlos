@@ -288,8 +288,9 @@ export function OnboardingFlow({ onExit, initialData }: OnboardingFlowProps) {
     setCurrentStep((s) => s - 1)
   }
 
-  function goalTimeChanged(prev: OnboardingData, next: Partial<OnboardingData>): boolean {
+  function goalTimeSelectionChanged(prev: OnboardingData, next: Partial<OnboardingData>): boolean {
     if (prev.timeGoal !== next.timeGoal) return true
+    // Assumes StepGoalTime always emits goalTime when timeGoal === true
     if (next.timeGoal === true) {
       return (
         prev.goalTime?.hours !== next.goalTime?.hours ||
@@ -301,7 +302,7 @@ export function OnboardingFlow({ onExit, initialData }: OnboardingFlowProps) {
 
   function handleNext(data: Partial<OnboardingData>) {
     let merged: OnboardingData = { ...formData, ...data }
-    if (steps[currentStep] === "goalTime" && goalTimeChanged(formData, data)) {
+    if (steps[currentStep] === "goalTime" && goalTimeSelectionChanged(formData, data)) {
       merged = { ...merged, selectedDays: undefined, longRunDay: undefined }
     }
     setFormData(merged)

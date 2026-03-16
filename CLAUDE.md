@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Athlos is an adaptive training system for hybrid athletes (running + lifting). The goal is to build a platform that intelligently adjusts training programs based on athlete performance, recovery, and goals. Currently building out the web app with plans to implement mobile later. Business model will be freemium.
+Athlos is an adaptive marathon training platform for serious runners with a real goal time. The core differentiator is intelligent plan adaptation based on athlete performance, recovery, and goals — not just static plan generation. Target audience: runners chasing a qualifying time (BQ as the implied benchmark). Strength training is supported as a scheduling feature. Currently building out the web app with plans to implement mobile later. Business model is subscription + time-limited trial (not freemium).
 
 ## General Principles
 

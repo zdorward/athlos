@@ -47,4 +47,8 @@ export const auth = new Proxy({} as ReturnType<typeof createAuth>, {
     const val = (a as any)[prop]
     return typeof val === "function" ? (val as (...args: unknown[]) => unknown).bind(a) : val
   },
+  has(_t, prop) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return prop in (getAuth() as any)
+  },
 })

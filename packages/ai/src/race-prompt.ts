@@ -42,23 +42,10 @@ Every workout except rest MUST have a targetPace matching the zone label exactly
 - Maximum 2 quality sessions per week (tempo, intervals, mp)
 - If athlete has only 3 running days: max 1 quality session per week
 
-## Athlete Training Age
-
-Apply the following constraints based on the training age in the user message.
-When constraints conflict, apply the most restrictive rule (e.g. a 3-or-more year athlete
-with only 3 available running days is still capped at 1 quality session/week by the
-running-days rule — training age does not override it).
-
-- under-1 year: max 8% weekly volume increase; max 1 quality session/week in all phases;
-  no VO2max intervals until the Build phase; emphasise easy aerobic development
-- 1-3 years: standard 10% rule; standard quality session limits per existing rules
-- 3-or-more years: may increase up to 12% in strong weeks; up to 2 quality sessions from
-  mid-Build phase onward (subject to running-days cap)
-
 ## Weekly Structure Rules
 
 - Never schedule two quality sessions on consecutive days
-- The day after the long run must be rest, an easy recovery run (≤ the day-after-long-run max from the user message), or a medium-long run for athletes with 1–3 or 3-or-more years of running — never a quality session
+- The day after the long run must be rest, an easy recovery run (≤ the day-after-long-run max from the user message), or a medium-long run — never a quality session
 - At least one easy or rest day before any quality session
 - Long run MUST fall on the designated long run day every single week — no exceptions
 
@@ -290,7 +277,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
     if (startingVolume >= peakMileage.low) {
       lines.push(`  Current weekly volume already meets the target peak range (~${peakMileage.low}–${peakMileage.high} km/week). Prioritise maintaining volume and increasing workout quality rather than further mileage buildup.`)
     } else {
-      lines.push(`  Target peak volume (soft — scale back if timeline is short, athlete is a first-timer, or training age is under-1): ~${peakMileage.low}–${peakMileage.high} km/week`)
+      lines.push(`  Target peak volume (soft — scale back if timeline is short or athlete is a first-timer): ~${peakMileage.low}–${peakMileage.high} km/week`)
     }
   }
 

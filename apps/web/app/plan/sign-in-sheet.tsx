@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { authClient } from "@/lib/auth-client"
 
 interface SignInSheetProps {
@@ -100,7 +100,7 @@ export function SignInSheet({ onBeforeSignIn, onClose, callbackURL = "/plan" }: 
               onClick={() => void handleMagicLink()}
               disabled={!email || loading}
             >
-              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              {loading && <Spinner size="sm" />}
               Send link
             </Button>
           </>

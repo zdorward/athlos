@@ -374,7 +374,7 @@ export function OnboardingFlow({ onExit, initialData }: OnboardingFlowProps) {
         )}
 
         {/* Content — vertically centered on desktop */}
-        <div className="flex-1 flex items-start md:items-center justify-center px-6 md:px-16 lg:px-24 pb-10 md:pb-0">
+        <div className="flex-1 flex items-center justify-center px-6 md:px-16 lg:px-24 pb-10 md:pb-0">
           <div className="w-full max-w-sm md:max-w-md">
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div

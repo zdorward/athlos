@@ -31,11 +31,10 @@ No markdown, no explanation, no code fences. Output valid JSON only. No trailing
 - mp          — standalone race-pace run; use mp zone
 - tempo       — sustained threshold effort 20–40 min; use threshold zone
 - intervals   — short repetitions 600m–1600m with recovery; use vo2max zone
-- strength    — no distanceKm
 - rest        — full rest, no distanceKm
 - race        — race day
 
-Every workout except rest and strength MUST have a targetPace matching the zone label exactly as given in the user message.
+Every workout except rest MUST have a targetPace matching the zone label exactly as given in the user message.
 
 ## Intensity Distribution (80/20 Rule)
 
@@ -353,7 +352,12 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
 
   if (input.strengthTraining && input.strengthDays?.length) {
     const strengthDayNames = input.strengthDays.map(d => DAY_NAMES[d] ?? d).join(", ")
-    lines.push(`Strength training days: ${strengthDayNames} — treat these as heavy days; do not schedule quality running sessions (tempo, intervals, race pace) on these days. The strength schedule is already defined and will be merged into the final output separately — do not emit any strength type lines.`)
+    const peakDay = peakStrengthDay(input.strengthDays!, input.longRunDay)
+    const peakDayName = peakDay ? (DAY_NAMES[peakDay] ?? peakDay) : "none"
+    lines.push(`Strength training (managed externally — do not emit strength type lines):`)
+    lines.push(`  General Fitness, Base, Build: ${strengthDayNames} — heavy days; no quality sessions (tempo, intervals, mp) on these days`)
+    lines.push(`  Peak: ${peakDayName} only — heavy day; no quality sessions on this day`)
+    lines.push(`  Taper: no strength training — all days available for quality sessions`)
   } else {
     lines.push("Strength training: none")
   }

@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest"
 import { calculatePaceZones, computePhases, computeGoalPeakMileage, calculateRawGoalPace } from "./pace-calculator"
 
+function loSec(zone: string): number {
+  const [m, s] = zone.split("–")[0]!.split(":").map(Number)
+  return m! * 60 + s!
+}
+
 // ─── calculatePaceZones ────────────────────────────────────────────────────
 
 describe("calculatePaceZones — recent race, active", () => {
@@ -300,10 +305,6 @@ describe("calculateRawGoalPace", () => {
   it("3:30 marathon raw goal pace is faster than goal-time calculatePaceZones mp (which has 5% buffer)", () => {
     const buffered = calculatePaceZones({ hours: 3, minutes: 30, seconds: 0, distance: "full" }, "goal-time")!
     const raw = calculateRawGoalPace({ hours: 3, minutes: 30, seconds: 0, distance: "full" })!
-    function loSec(zone: string): number {
-      const [m, s] = zone.split("–")[0]!.split(":").map(Number)
-      return m! * 60 + s!
-    }
     expect(loSec(raw)).toBeLessThan(loSec(buffered.mp))
   })
 
@@ -321,10 +322,11 @@ describe("calculateRawGoalPace", () => {
     expect(result).toMatch(/^\d+:\d{2}–\d+:\d{2}\/km$/)
   })
 
-  it("seconds parameter affects output", () => {
-    const withoutSec = calculateRawGoalPace({ hours: 3, minutes: 30, seconds: 0, distance: "full" })
-    const withSec    = calculateRawGoalPace({ hours: 3, minutes: 29, seconds: 30, distance: "full" })
-    expect(withoutSec).not.toBe(withSec)
+  it("seconds parameter affects output — faster goal time produces faster pace", () => {
+    const slower = calculateRawGoalPace({ hours: 3, minutes: 30, seconds: 0, distance: "full" })!
+    const faster = calculateRawGoalPace({ hours: 3, minutes: 29, seconds: 30, distance: "full" })!
+    // 3:29:30 is faster than 3:30:00, so raw pace lower bound should be fewer seconds
+    expect(loSec(faster)).toBeLessThan(loSec(slower))
   })
 })
 

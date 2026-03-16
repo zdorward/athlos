@@ -170,7 +170,7 @@ export function computePhases(totalWeeks: number, distance: string): PhaseEntry[
  * Bucket boundaries are lower-bound inclusive, upper-bound exclusive.
  */
 export function computeGoalPeakMileage(
-  distance: string,
+  distance: "5k" | "10k" | "half" | "full" | "ultra",
   goalTotalMinutes: number,
 ): { low: number; high: number } | null {
   if (goalTotalMinutes <= 0) return null

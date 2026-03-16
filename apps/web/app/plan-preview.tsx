@@ -9,7 +9,7 @@ type WorkoutType = "easy" | "tempo" | "long" | "strength" | "rest" | "medium-lon
 type WorkoutStyle = { color: string; bg?: string; border?: string }
 
 const WORKOUT_STYLES: Record<WorkoutType, WorkoutStyle | null> = {
-  easy:           { color: "rgba(255,255,255,0.55)" },
+  easy:           { color: "rgba(255,255,255,0.80)" },
   tempo:          { color: "oklch(0.78 0.15 80 / 0.9)" },
   long:           { color: "rgba(147,197,253,0.85)", bg: "rgba(80,130,255,0.07)", border: "rgba(100,160,255,0.2)" },
   strength:       { color: "oklch(0.65 0.15 300 / 0.85)" },
@@ -260,11 +260,11 @@ export function PlanPreview() {
                   key={d}
                   style={{
                     textAlign: "center",
-                    fontSize: 8,
+                    fontSize: 10,
                     fontWeight: 600,
                     textTransform: "uppercase" as const,
                     letterSpacing: "0.1em",
-                    color: "rgba(255,255,255,0.25)",
+                    color: "rgba(255,255,255,0.45)",
                   }}
                 >
                   {d}
@@ -288,11 +288,11 @@ export function PlanPreview() {
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span
                         style={{
-                          fontSize: 7,
+                          fontSize: 9,
                           fontWeight: 700,
                           textTransform: "uppercase" as const,
                           letterSpacing: "0.12em",
-                          color: "rgba(255,255,255,0.25)",
+                          color: "rgba(255,255,255,0.45)",
                           whiteSpace: "nowrap" as const,
                         }}
                       >
@@ -321,13 +321,13 @@ export function PlanPreview() {
                       paddingRight: 4,
                     }}
                   >
-                    <p style={{ fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.35)", margin: 0 }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.55)", margin: 0 }}>
                       {week.label}
                     </p>
-                    <p style={{ fontSize: 7, color: "rgba(255,255,255,0.2)", margin: "1px 0 0" }}>
+                    <p style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", margin: "1px 0 0" }}>
                       {week.dateLabel}
                     </p>
-                    <p style={{ fontSize: 7, fontWeight: 600, color: "rgba(255,255,255,0.35)", margin: "1px 0 0" }}>
+                    <p style={{ fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.50)", margin: "1px 0 0" }}>
                       {week.km}
                     </p>
                   </div>
@@ -348,21 +348,21 @@ export function PlanPreview() {
                           opacity: isRest ? 0.4 : 1,
                         }}
                       >
-                        <p style={{ fontSize: 7, color: "rgba(255,255,255,0.22)", margin: "0 0 2px" }}>
+                        <p style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", margin: "0 0 2px" }}>
                           {d.date}
                         </p>
                         <p
                           style={{
-                            fontSize: 7,
+                            fontSize: 9,
                             fontWeight: 600,
-                            color: s?.color ?? "rgba(255,255,255,0.35)",
+                            color: s?.color ?? "rgba(255,255,255,0.55)",
                             margin: 0,
                           }}
                         >
                           {d.title}
                         </p>
                         {d.km && (
-                          <p style={{ fontSize: 6, color: "rgba(255,255,255,0.25)", margin: "1px 0 0" }}>
+                          <p style={{ fontSize: 8, color: "rgba(255,255,255,0.40)", margin: "1px 0 0" }}>
                             {d.km}
                           </p>
                         )}
@@ -385,7 +385,7 @@ export function PlanPreview() {
                 paddingBottom: 4,
               }}
             >
-              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.15)" }}>16 weeks total</span>
+              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.30)" }}>16 weeks total</span>
             </div>
           </div>
 

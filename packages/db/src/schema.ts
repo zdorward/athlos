@@ -21,6 +21,8 @@ export const user = pgTable("user", {
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
   units: text("units").notNull().default("km"),
+  stripeCustomerId: text("stripe_customer_id"),
+  plan: text("plan").notNull().default("free"),
 })
 
 export const session = pgTable("session", {

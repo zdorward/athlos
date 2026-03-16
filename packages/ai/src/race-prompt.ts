@@ -5,7 +5,7 @@ import { STARTING_VOLUME_KM } from "./constants"
 function buildSystemPrompt(units: "km" | "miles"): string {
   const unitLabel = units === "km" ? "kilometres" : "miles"
   const u = units === "km" ? "km" : "mi"
-  return `You are an expert running coach building a personalised race training plan. Your output is a complete, week-by-week schedule in NDJSON format.
+  return `You are a running coach building a performance-focused race training plan using Pfitzinger & Douglas methodology (Advanced Marathoning). The athlete is an experienced runner training toward a specific goal time. Every decision — volume, workout selection, pace targets, phase structure — is optimised for performance. Your output is a complete, week-by-week schedule in NDJSON format.
 
 ## Output Format
 
@@ -253,15 +253,11 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
     lines.push(`Primary objective: Run ${name} in ${goalTimeStr}. Every decision in this plan — volume, workout selection, pace targets, phase structure — exists to serve this single goal.`)
   } else {
     lines.push(`Goal: Race — ${name} in ${city} on ${toISO(endDate)} (${raceKm} ${u} / ${distance})`)
-    lines.push("Objective: finish — build fitness and endurance to complete the race comfortably.")
+    lines.push("Objective: peak performance — build fitness and endurance for optimal race performance.")
   }
   lines.push(`Race day: ${toISO(endDate)} (${DAY_OF_WEEK[endDate.getUTCDay()]}) — output this date as type "race".`)
 
-  // 2. Athlete profile
-  lines.push("")
-  lines.push("Athlete profile:")
-
-  // 3. Current fitness
+  // 2. Current fitness
   lines.push("")
   lines.push("Current fitness:")
   lines.push(`  Current weekly mileage (starting point only — does not cap peak volume): ${rangeLabel} ${u}/week`)
@@ -277,7 +273,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
     if (startingVolume >= peakMileage.low) {
       lines.push(`  Current weekly volume already meets the target peak range (~${peakMileage.low}–${peakMileage.high} km/week). Prioritise maintaining volume and increasing workout quality rather than further mileage buildup.`)
     } else {
-      lines.push(`  Target peak volume (soft — scale back if timeline is short or athlete is a first-timer): ~${peakMileage.low}–${peakMileage.high} km/week`)
+      lines.push(`  Target peak volume (soft — scale back if timeline is short): ~${peakMileage.low}–${peakMileage.high} km/week`)
     }
   }
 

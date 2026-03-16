@@ -78,6 +78,6 @@ No section heading needed — the quote stands alone.
 ## Implementation Notes
 
 - All changes are in `apps/web/app/page.tsx`
-- The mock data (`MOCK_WEEKS`) will need to be updated to use realistic dates and include phase information
-- Color values should be taken directly from `apps/web/app/plan/workout-utils.ts` (`getWorkoutColor`, `WORKOUT_TEXT_CLASS`) to stay in sync with the real app
-- The `TYPE_STYLES` record in `page.tsx` should be replaced with values matching the real app's color system
+- The `MOCK_WEEKS` data structure shape is unchanged, but the values (dates, labels) will be updated to use realistic dates (e.g. starting Mar 16) and a phase label will be added alongside each week
+- The `TYPE_STYLES` record in `page.tsx` should be replaced with color values taken directly from `apps/web/app/plan/workout-utils.ts` (`getWorkoutColor`, `WORKOUT_TEXT_CLASS`) to stay in sync with the real app
+- The phase label used in the mock should match what `getPhaseLabel()` in `apps/web/app/plan/workout-utils.ts` would produce (e.g. "Base" for early weeks)

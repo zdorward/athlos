@@ -40,6 +40,7 @@ export interface OnboardingData {
   strengthTraining?: boolean
   strengthDays?: Day[]
   weeklyMileageRange?: "under-40" | "40-60" | "60-80" | "80-plus"
+  units?: "km" | "miles"
 }
 
 export interface StepProps {

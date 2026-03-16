@@ -308,3 +308,56 @@ export function computeTrainingStructure(
 
   return { runDaysPerWeek: run, restDaysPerWeek: rest, maxQualityPerWeek: quality }
 }
+
+// ─── Long run targets ────────────────────────────────────────────────────────
+
+/**
+ * Derive Pfitzinger-based long run targets from race distance and peak weekly
+ * volume. Used to inject hard constraints into the LLM prompt.
+ *
+ * peakWeeklyKm is the output of computeGoalPeakMileage (already called in
+ * buildPrompt). When null (no goal time), falls back to the mid-range row for
+ * each distance. recoveryRunMaxKm is NOT modified by training age.
+ */
+export function computeLongRunTargets(
+  distance: string,
+  peakWeeklyKm: { low: number; high: number } | null,
+  trainingAge: string | undefined,
+): { peakLongRunKm: number; recoveryRunMaxKm: number } {
+  let peakLongRunKm: number
+  let recoveryRunMaxKm: number
+
+  const high = peakWeeklyKm?.high ?? null
+
+  if (distance === "full") {
+    if (high === null)    { peakLongRunKm = 35; recoveryRunMaxKm = 13 }
+    else if (high < 65)  { peakLongRunKm = 29; recoveryRunMaxKm = 11 }
+    else if (high < 90)  { peakLongRunKm = 35; recoveryRunMaxKm = 13 }
+    // spec has two rows here (< 116 and >= 116) but both share the same targets —
+    // the Pfitz 18/70 ceiling (38 km / 16 km) applies at all volumes above 90 km/week
+    else                 { peakLongRunKm = 38; recoveryRunMaxKm = 16 }
+  } else if (distance === "half") {
+    if (high === null)    { peakLongRunKm = 22; recoveryRunMaxKm = 11 }
+    else if (high < 50)  { peakLongRunKm = 19; recoveryRunMaxKm = 9  }
+    else if (high < 75)  { peakLongRunKm = 22; recoveryRunMaxKm = 11 }
+    else                 { peakLongRunKm = 26; recoveryRunMaxKm = 13 }
+  } else if (distance === "5k" || distance === "10k") {
+    if (high === null)    { peakLongRunKm = 13; recoveryRunMaxKm = 8  }
+    else if (high < 45)  { peakLongRunKm = 11; recoveryRunMaxKm = 7  }
+    else if (high < 65)  { peakLongRunKm = 13; recoveryRunMaxKm = 8  }
+    else                 { peakLongRunKm = 16; recoveryRunMaxKm = 10 }
+  } else if (distance === "ultra") {
+    peakLongRunKm = 32; recoveryRunMaxKm = 14
+  } else {
+    // Unknown distance: mid-range full marathon defaults
+    peakLongRunKm = 29; recoveryRunMaxKm = 11
+  }
+
+  // Training age modifier — applied after distance lookup, before returning.
+  // Only "under-1" gets a modifier; recoveryRunMaxKm is intentionally unchanged.
+  if (trainingAge === "under-1") {
+    peakLongRunKm = Math.max(13, peakLongRunKm - 3)
+  }
+
+  return { peakLongRunKm, recoveryRunMaxKm }
+}

@@ -23,7 +23,7 @@ export function StepStrengthDays({ formData, onNext }: Pick<StepProps, "formData
 
       <div className="space-y-3">
         <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Lifting days</p>
-        <div className="flex w-full justify-between">
+        <div className="flex w-full justify-center gap-2">
           {ORDERED_DAYS.map((day) => (
             <DayToggle
               key={day}

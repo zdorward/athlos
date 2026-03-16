@@ -248,7 +248,6 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   const trainingStructure = computeTrainingStructure(
     goalMinutes,
     distance,
-    input.trainingAge,
     input.selectedDays.length,
     input.weeklyMileageRange,
   )
@@ -257,7 +256,6 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   const longRunTargets = computeLongRunTargets(
     distance,
     peakMileage,
-    input.trainingAge,
   )
 
   // ── User message ─────────────────────────────────────────────────────────
@@ -275,12 +273,6 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   // 2. Athlete profile
   lines.push("")
   lines.push("Athlete profile:")
-  const trainingAgeLabel: Record<string, string> = {
-    "under-1": "under 1 year of consistent running",
-    "1-3": "1–3 years of consistent running",
-    "3-or-more": "3 or more years of consistent running",
-  }
-  lines.push(`  Training age: ${trainingAgeLabel[input.trainingAge ?? "1-3"] ?? "1–3 years of consistent running"}`)
 
   // 3. Current fitness
   lines.push("")

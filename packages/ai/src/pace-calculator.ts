@@ -247,7 +247,6 @@ export function calculateRawGoalPace(input: PaceInput): string | null {
 export function computeTrainingStructure(
   goalMinutes: number | null,
   distance: string,
-  trainingAge: string | undefined,
   selectedDaysCount: number,
   weeklyMileageRange: string,
 ): { runDaysPerWeek: number; restDaysPerWeek: number; maxQualityPerWeek: number } {
@@ -297,12 +296,6 @@ export function computeTrainingStructure(
     else                                        { run = 5; rest = 2; quality = 1 }
   }
 
-  // Training age modifier — only "under-1" gets a modifier
-  if (trainingAge === "under-1") {
-    quality = Math.max(1, quality - 1)
-    if (run > 6) { run = 6; rest += 1 }
-  }
-  // "1-3", "3-or-more", undefined: no modifier
 
   // selectedDaysCount clamp — restDaysPerWeek is NOT adjusted
   run = Math.min(run, selectedDaysCount)
@@ -324,7 +317,6 @@ export function computeTrainingStructure(
 export function computeLongRunTargets(
   distance: string,
   peakWeeklyKm: { low: number; high: number } | null,
-  trainingAge: string | undefined,
 ): { peakLongRunKm: number; recoveryRunMaxKm: number } {
   let peakLongRunKm: number
   let recoveryRunMaxKm: number
@@ -355,11 +347,6 @@ export function computeLongRunTargets(
     peakLongRunKm = 29; recoveryRunMaxKm = 11
   }
 
-  // Training age modifier — applied after distance lookup, before returning.
-  // Only "under-1" gets a modifier; recoveryRunMaxKm is intentionally unchanged.
-  if (trainingAge === "under-1") {
-    peakLongRunKm = Math.max(13, peakLongRunKm - 3)
-  }
 
   return { peakLongRunKm, recoveryRunMaxKm }
 }

@@ -58,5 +58,4 @@ export interface PlanGenerationInput {
   strengthDays?: string[]
   startDate?: string
   weeklyMileageRange: "under-40" | "40-60" | "60-80" | "80-plus"
-  trainingAge?: "under-1" | "1-3" | "3-or-more"
 }

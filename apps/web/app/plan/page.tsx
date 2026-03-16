@@ -11,6 +11,7 @@ import { SignInSheet } from "./sign-in-sheet"
 
 const SESSION_KEY = "athlos_onboarding"
 const PLAN_KEY = "athlos_plan"
+const PLAN_SAVED_KEY = "athlos_plan_saved"
 
 const VALID_WORKOUT_TYPES = new Set([
   "easy", "long", "medium-long", "mp", "tempo", "intervals", "rest", "race", "strength",
@@ -111,16 +112,15 @@ export default function PlanPage() {
   // Keep planRef in sync with plan state for use in callbacks
   useEffect(() => { planRef.current = plan }, [plan])
 
-  // ── Auto-save after OAuth redirect ────────────────────────────────────────
+  // ── Auto-save after OAuth/magic-link redirect ─────────────────────────────
   useEffect(() => {
     if (!sessionData?.session) return
-    const raw = sessionStorage.getItem(PLAN_KEY)
+    const raw = localStorage.getItem(PLAN_KEY)
     if (!raw) return
 
-    // Guard: don't restore stale sessionStorage from a previous visit
-    // if a stream is already in progress (totalWeeksRef.current > 0)
+    // Guard: don't restore a stale snapshot if a stream is already in progress
     if (totalWeeksRef.current > 0) {
-      sessionStorage.removeItem(PLAN_KEY)
+      localStorage.removeItem(PLAN_KEY)
       return
     }
 
@@ -130,15 +130,15 @@ export default function PlanPage() {
     try {
       snapshot = JSON.parse(raw) as SavedPlanSnapshot
     } catch {
-      sessionStorage.removeItem(PLAN_KEY)
+      localStorage.removeItem(PLAN_KEY)
       return
     }
     if (!snapshot.savedAt || Date.now() - snapshot.savedAt > TEN_MINUTES) {
-      sessionStorage.removeItem(PLAN_KEY)
+      localStorage.removeItem(PLAN_KEY)
       return
     }
 
-    sessionStorage.removeItem(PLAN_KEY)
+    localStorage.removeItem(PLAN_KEY)
 
     // Restore plan state from snapshot and trigger save.
     // Mark stream as started so the streaming effect doesn't fire a new generation.
@@ -157,14 +157,41 @@ export default function PlanPage() {
 
     // Note: phases are not persisted server-side yet (SavePlanBody has no phases field).
     // When the DB schema and API are updated to store phases, pass snapshot.phases here.
-    void savePlanToServer(snapshot.input, snapshot.days, snapshot.totalWeeks, snapshot.totalKm, snapshot.peakWeekKm)
+    savePlanToServer(snapshot.input, snapshot.days, snapshot.totalWeeks, snapshot.totalKm, snapshot.peakWeekKm)
+      .then((saved) => {
+        if (saved) {
+          localStorage.setItem(PLAN_SAVED_KEY, String(Date.now()))
+          router.push("/dashboard")
+        }
+      })
+      .catch(() => { /* setSaveError already called inside savePlanToServer */ })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionData?.session?.id])
 
   // ── Streaming ─────────────────────────────────────────────────────────────
   useEffect(() => {
     const raw = sessionStorage.getItem(SESSION_KEY)
-    if (!raw) { router.replace("/"); return }
+    if (!raw) {
+      // No onboarding data in this tab. Check if we're returning from a magic
+      // link click (which opens in a new tab, so sessionStorage is empty).
+      // If a fresh plan snapshot exists in localStorage, don't redirect —
+      // the auto-save effect will handle saving once the session resolves.
+      const planRaw = localStorage.getItem(PLAN_KEY)
+      if (planRaw) {
+        try {
+          const snap = JSON.parse(planRaw) as SavedPlanSnapshot
+          const TEN_MINUTES = 10 * 60 * 1000
+          if (snap.savedAt && Date.now() - snap.savedAt <= TEN_MINUTES) {
+            streamStartedRef.current = true
+            setInput(snap.input) // render the plan while auto-save fires
+            return
+          }
+        } catch {}
+        localStorage.removeItem(PLAN_KEY)
+      }
+      router.replace("/")
+      return
+    }
 
     let parsed: Record<string, unknown>
     try {
@@ -181,14 +208,13 @@ export default function PlanPage() {
     // Prevent double-execution when sessionPending changes
     if (streamStartedRef.current) return
 
-    // If athlos_plan exists in sessionStorage, we may be returning from OAuth.
+    // If athlos_plan exists in localStorage, we may be returning from OAuth.
     // Wait until session state is resolved before deciding.
-    if (sessionStorage.getItem(PLAN_KEY)) {
+    if (localStorage.getItem(PLAN_KEY)) {
       if (sessionPending) return // wait — re-effect runs when sessionPending changes
       if (sessionData?.session) return // session confirmed, auto-save effect handles it
-      // Session resolved to null (e.g., magic link opened in different browser).
-      // Clear stale PLAN_KEY and fall through to stream normally.
-      sessionStorage.removeItem(PLAN_KEY)
+      // Session resolved to null — clear stale snapshot and stream normally.
+      localStorage.removeItem(PLAN_KEY)
     }
 
     streamStartedRef.current = true
@@ -299,7 +325,7 @@ export default function PlanPage() {
     totalWeeks: number,
     totalKm: number,
     peakWeekKm: number,
-  ) {
+  ): Promise<boolean> {
     setIsSaving(true)
     setSaveError(false)
     try {
@@ -310,12 +336,13 @@ export default function PlanPage() {
       })
       if (res.status === 401) {
         setShowSignInSheet(true)
-        return
+        return false
       }
       if (!res.ok) throw new Error("Save failed")
-      router.push("/dashboard")
+      return true
     } catch {
       setSaveError(true)
+      return false
     } finally {
       setIsSaving(false)
     }
@@ -333,7 +360,7 @@ export default function PlanPage() {
       phases:     current.phases     ?? [],
       savedAt:    Date.now(),
     }
-    sessionStorage.setItem(PLAN_KEY, JSON.stringify(snapshot))
+    localStorage.setItem(PLAN_KEY, JSON.stringify(snapshot))
   }
 
   function handleSave() {
@@ -350,7 +377,9 @@ export default function PlanPage() {
       current.totalWeeks ?? 0,
       current.totalKm ?? 0,
       current.peakWeekKm ?? 0,
-    )
+    ).then((saved) => {
+      if (saved) router.push("/dashboard")
+    })
   }
 
   // ── Render ────────────────────────────────────────────────────────────────

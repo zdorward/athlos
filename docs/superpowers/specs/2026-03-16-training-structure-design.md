@@ -120,6 +120,76 @@ To:
 
 This removes the conflict where "available = must fill with a run."
 
+## Strength Days: Remove from LLM Output, Merge in Code
+
+Currently the LLM emits `type: "strength"` lines for each strength day. This is unnecessary — the user already defined the strength schedule explicitly, so the LLM is just repeating it back, introducing a source of potential errors (skipped days, wrong placement).
+
+### Change
+
+**Remove strength day output from the LLM entirely.** The LLM still receives the strength schedule as input (so it can avoid placing quality sessions on heavy strength days), but it no longer outputs `type: "strength"` lines.
+
+**Post-generation merge in code** (in the plan save/parse logic): after streaming the LLM response, inject `type: "strength"` entries for each strength day in each week. The strength day entries have no `distanceKm` and a fixed description of "Strength training".
+
+For days that are both a running day and a strength day, the run entry comes from the LLM as normal — the strength entry is appended by the merge step.
+
+### Files affected
+
+**`packages/ai/src/race-prompt.ts` — two changes:**
+
+1. **System prompt:** Remove lines 103–104 entirely. Current text (from `packages/ai/src/race-prompt.ts`):
+   ```
+   - Strength training NEVER replaces a run. If a day appears in both the running days list AND the strength days list, emit TWO lines for that date: the run workout first, then a strength line. The run is determined by the training plan as normal; strength is always additive.
+   - If a strength day is NOT a running day, emit a single "strength" type line for that date (no run, no distanceKm)
+   ```
+   Delete both lines entirely — no replacement text. The LLM simply no longer emits strength entries.
+
+2. **User message:** The current strength schedule block (lines 306–317) reads:
+   ```
+   Strength training days: Monday, Wednesday
+     → Days with BOTH a run AND strength: Wednesday — emit TWO JSON lines...
+     → Strength-only days (no run): Monday — emit ONE strength JSON line...
+   ```
+   Replace with:
+   ```
+   Strength training days: Monday, Wednesday — treat these as heavy days; do not schedule quality running sessions (tempo, intervals, race pace) on these days. The strength schedule is already defined and will be merged into the final output separately — do not emit any strength type lines.
+   ```
+   This retains quality-session-placement context while removing the output instruction.
+
+**`apps/web/app/plan/page.tsx` — one new function:**
+
+Add `mergeStrengthDays(days: WorkoutDay[], strengthDays: string[], startDate: Date, endDate: Date): WorkoutDay[]` as a module-level pure function (non-async, returns a new array — does not mutate `days`). If `strengthDays` is empty, return `days` unchanged.
+
+**Call site:** Inside the `stream()` function's `done` block (around line 278), after `buildBridgeRuns` is applied and before `setStatus("complete")`. At that point `localDays` is the final set of LLM days (merged with any bridge runs). Call:
+
+```ts
+const finalDays = mergeStrengthDays(
+  mergedDays,  // or localDays if no bridge runs
+  planInput.strengthDays ?? [],
+  new Date(localDays[0]!.date + "T00:00:00"),
+  new Date(localDays[localDays.length - 1]!.date + "T00:00:00"),
+)
+```
+
+`localDays` is accumulated in chronological order so `localDays[0].date` is the start and `localDays[localDays.length-1].date` is the end. Both `localDays[0].date` and the last element's `.date` are ISO strings (e.g. "2026-06-16"); append `T00:00:00` to force local-time parsing. Pass `finalDays` to both `setPlan` (replacing the days field) and `savePlanToServer` (as the `days` argument).
+
+**`strengthDays` format:** Each element is a 3-letter lowercase day key ("mon", "tue", "wed", "thu", "fri", "sat", "sun") — this is the existing format used throughout the codebase (see `PlanGenerationInput.strengthDays` in `packages/ai/src/types.ts` and the `DAY_NAMES` map in `race-prompt.ts`). No normalization needed inside `mergeStrengthDays`.
+
+**Date iteration algorithm:** Use a `for` loop with a local `Date` variable (do not mutate the `startDate` parameter): `const d = new Date(startDate.getTime())`. Increment with `d.setDate(d.getDate() + 1)` each iteration until `d > endDate`. For each date, map `d.getDay()` (0–6) to a key using `["sun","mon","tue","wed","thu","fri","sat"][d.getDay()]`. If the key is in `strengthDays`, inject a strength entry for that date. Format the ISO date string with `d.toLocaleDateString("en-CA")` (same pattern used throughout the codebase). Invalid or unrecognized keys in `strengthDays` are silently skipped.
+
+**Strength day + long run day collision:** If a strength day coincides with the long run day, both entries exist in the output (run first, strength second). This is acceptable — the long run remains the primary workout; strength is supplemental. No special handling needed.
+
+### Strength entry format
+
+```ts
+{
+  date: "YYYY-MM-DD",   // ISO date string
+  type: "strength",
+  description: "Strength training"
+  // distanceKm, targetPace, targetHR are optional in WorkoutDay and are omitted here
+  // (confirmed: WorkoutDay in packages/ai/src/types.ts marks these fields as optional with ?)
+}
+```
+
 ## What Does Not Change
 
 - `selectedDays` collection in onboarding — no UI changes

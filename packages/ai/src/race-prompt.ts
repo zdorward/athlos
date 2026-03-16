@@ -208,7 +208,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
 
   // ── Goal time string ─────────────────────────────────────────────────────
   const goalTimeStr = input.goalTime
-    ? `${input.goalTime.hours}h${input.goalTime.minutes.toString().padStart(2, "0")}m`
+    ? `${input.goalTime.hours}h${input.goalTime.minutes.toString().padStart(2, "0")}m${(input.goalTime.seconds ?? 0) > 0 ? (input.goalTime.seconds!).toString().padStart(2, "0") + "s" : ""}`
     : null
 
   // ── Pace zones (dual source) ─────────────────────────────────────────────
@@ -275,7 +275,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
     const raceTimeStr = `${rh}h${rm.toString().padStart(2, "0")}m${rs > 0 ? rs.toString().padStart(2, "0") + "s" : ""}`
     const weeksAgoLabel: Record<string, string> = {
       "under-8": "< 8 weeks ago",
-      "8-16": "8–15 weeks ago",
+      "8-16": "8–16 weeks ago",
       "16-24": "16–23 weeks ago",
     }
     lines.push(`  Recent race: ${rd.toUpperCase()} in ${raceTimeStr} (${weeksAgoLabel[weeksAgo] ?? weeksAgo}) — used to calibrate training paces`)
@@ -311,17 +311,15 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   }
   lines.push("")
   if (rawGoalPace) {
+    const mpLoSec = (zone: string): number => {
+      const [m, s] = zone.split("–")[0]!.split(":").map(Number)
+      return m! * 60 + s!
+    }
     lines.push("Goal race pace (target — use for mp workouts and race-pace segments only):")
     lines.push(`  Race pace:    ${rawGoalPace}`)
     // Only emit the note when training zones are genuinely faster than goal pace
-    if (trainingZones) {
-      function mpLoSec(zone: string): number {
-        const [m, s] = zone.split("–")[0]!.split(":").map(Number)
-        return m! * 60 + s!
-      }
-      if (mpLoSec(trainingZones.mp) < mpLoSec(rawGoalPace)) {
-        lines.push("  Note: training zones reflect current fitness — they may be faster than goal race pace for athletes whose fitness already exceeds their race target.")
-      }
+    if (trainingZones && mpLoSec(trainingZones.mp) < mpLoSec(rawGoalPace)) {
+      lines.push("  Note: training zones reflect current fitness — they may be faster than goal race pace for athletes whose fitness already exceeds their race target.")
     }
   } else {
     lines.push("Goal race pace: not specified — use mp zone from training zones above for race-pace work.")

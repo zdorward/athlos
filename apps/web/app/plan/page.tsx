@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { buildBridgeRuns, peakStrengthDay } from "@workspace/ai"
+import { buildBridgeRuns, peakStrengthDay, firstMondayOnOrAfter } from "@workspace/ai"
 import type { PlanGenerationInput, TrainingPlan, WorkoutDay, WorkoutType, PhaseEntry } from "@workspace/ai"
 import { authClient } from "@/lib/auth-client"
 import { PlanHeader } from "./plan-header"
@@ -366,6 +366,24 @@ export default function PlanPage() {
                 : []
               setPhases(metaPhases)
               localPhases = metaPhases
+              // Pre-populate strength days immediately so they appear during streaming
+              if (planInput.strengthDays?.length) {
+                const planStart = planInput.startDate
+                  ? new Date(planInput.startDate + "T00:00:00Z")
+                  : firstMondayOnOrAfter(new Date())
+                const planEnd = new Date(planInput.race.date + "T00:00:00Z")
+                const earlyStrengthDays = mergeStrengthDays(
+                  [],
+                  planInput.strengthDays,
+                  planInput.longRunDay,
+                  planStart,
+                  planEnd,
+                  metaPhases,
+                )
+                if (earlyStrengthDays.length > 0) {
+                  setPlan((p) => ({ ...p, days: [...(p.days ?? []), ...earlyStrengthDays] }))
+                }
+              }
               setPlan((p) => ({
                 ...p,
                 totalWeeks: tw,

@@ -270,6 +270,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
     lines.push(`Goal: Race — ${name} in ${city} on ${toISO(endDate)} (${raceKm} ${u} / ${distance})`)
     lines.push("Objective: finish — build fitness and endurance to complete the race comfortably.")
   }
+  lines.push(`Race day: ${toISO(endDate)} (${DAY_OF_WEEK[endDate.getUTCDay()]}) — output this date as type "race".`)
 
   // 2. Athlete profile
   lines.push("")

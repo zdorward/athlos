@@ -1,6 +1,6 @@
 "use client"
 
-import { Loader2, BookmarkPlus } from "lucide-react"
+import { Loader2, BookmarkPlus, CheckCircle2 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 
 export interface SaveProps {
@@ -8,6 +8,7 @@ export interface SaveProps {
   isSaving: boolean
   saveError: boolean
   onSave: () => void
+  saved: boolean
 }
 
 interface SavePlanButtonProps extends SaveProps {
@@ -19,9 +20,21 @@ export function SavePlanButton({
   isSaving,
   saveError,
   onSave,
+  saved,
   className,
 }: SavePlanButtonProps) {
   if (status !== "complete") return null
+
+  if (saved) {
+    return (
+      <Button asChild variant="outline" className={`gap-2 ${className ?? ""}`}>
+        <a href="/dashboard">
+          <CheckCircle2 className="h-4 w-4" />
+          Plan saved — View dashboard →
+        </a>
+      </Button>
+    )
+  }
 
   if (isSaving) {
     return (

@@ -40,3 +40,6 @@ npm-debug.log*
 # Git worktrees
 .worktrees/
 .superpowers/
+
+# Private business docs
+private/

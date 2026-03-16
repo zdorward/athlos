@@ -6,17 +6,10 @@ import { useRouter } from "next/navigation"
 import { Button } from "@workspace/ui/components/button"
 import { type Distance, type OnboardingData, DAY_LABELS, ORDERED_DAYS } from "./types"
 import { cn } from "@workspace/ui/lib/utils"
+import { formatRaceDistance } from "@/lib/units"
 
 const SESSION_KEY = "athlos_onboarding"
 const DRAFT_KEY = "athlos_onboarding_draft"
-
-const DISTANCE_KM: Record<Distance, string> = {
-  "5k":   "5 km",
-  "10k":  "10 km",
-  "half": "21.1 km",
-  "full": "42.2 km",
-  "ultra": "Ultra",
-}
 
 interface FinalScreenProps {
   formData: OnboardingData
@@ -63,7 +56,7 @@ export function FinalScreen({ formData }: FinalScreenProps) {
   }
 
   const isRace = goal === "race" && race
-  const distanceLabel = isRace ? DISTANCE_KM[race.distance] : null
+  const distanceLabel = isRace ? formatRaceDistance(race.distance, formData.units ?? "km") : null
   const weeks = isRace ? Math.max(0, differenceInWeeks(race.date, new Date())) : null
   const tooSoon = weeks !== null && weeks < 2
   const goalTimeLabel = goalTime

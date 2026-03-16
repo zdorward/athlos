@@ -360,6 +360,8 @@ export default function PlanPage() {
         return false
       }
       if (!res.ok) throw new Error("Save failed")
+      // Sync units preference to DB so all pages reflect the correct unit on session read
+      await authClient.updateUser({ units: planInput.units })
       return true
     } catch {
       setSaveError(true)

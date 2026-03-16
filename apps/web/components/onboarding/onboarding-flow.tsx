@@ -15,6 +15,8 @@ import { StepGoalTime } from "./steps/step-goal-time"
 import { StepWeeklyMileage } from "./steps/step-weekly-mileage"
 import { StepTrainingAge } from "./steps/step-training-age"
 import { getSteps, type OnboardingData, type RaceData } from "./types"
+import { authClient } from "@/lib/auth-client"
+import { detectUnits, formatRaceDistance } from "@/lib/units"
 
 const slideVariants = {
   enter: (direction: number) => ({ x: direction > 0 ? 60 : -60, opacity: 0 }),
@@ -23,14 +25,6 @@ const slideVariants = {
 }
 
 const DRAFT_KEY = "athlos_onboarding_draft"
-
-const DISTANCE_KM: Record<string, string> = {
-  "5k":   "5 km",
-  "10k":  "10 km",
-  "half": "21.1 km",
-  "full": "42.2 km",
-  "ultra": "Ultra",
-}
 
 const STEP_LABELS: Record<string, string> = {
   findRace: "Your race",
@@ -52,11 +46,13 @@ function LeftPanel({
   steps,
   currentStep,
   isComplete,
+  units,
 }: {
   race?: RaceData
   steps: readonly string[]
   currentStep: number
   isComplete: boolean
+  units: "km" | "miles"
 }) {
   return (
     <div
@@ -123,7 +119,7 @@ function LeftPanel({
                 marginBottom: 8,
               }}
             >
-              {DISTANCE_KM[race.distance]}
+              {formatRaceDistance(race.distance, units)}
             </div>
             <h2
               style={{
@@ -266,6 +262,15 @@ export function OnboardingFlow({ onExit, initialData }: OnboardingFlowProps) {
   })
   const [showExitConfirm, setShowExitConfirm] = useState(false)
 
+  const { data: sessionData, isPending: sessionPending } = authClient.useSession()
+
+  useEffect(() => {
+    if (formData.units) return        // already set in restored draft — skip
+    if (sessionPending) return        // wait for session to resolve
+    const sessionUnits = (sessionData?.user as { units?: "km" | "miles" } | undefined)?.units
+    setFormData((prev) => ({ ...prev, units: sessionUnits ?? detectUnits() }))
+  }, [sessionData, sessionPending, formData.units])
+
   useEffect(() => {
     sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ formData, currentStep }))
   }, [formData, currentStep])
@@ -328,6 +333,7 @@ export function OnboardingFlow({ onExit, initialData }: OnboardingFlowProps) {
         steps={steps}
         currentStep={currentStep}
         isComplete={isComplete}
+        units={formData.units ?? "km"}
       />
 
       {/* Right panel */}

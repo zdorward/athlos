@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { magicLink } from "better-auth/plugins"
+import { dash } from "@better-auth/infra"
 import { Resend } from "resend"
 import { db } from "@workspace/db"
 import * as schema from "@workspace/db/schema"
@@ -30,6 +31,7 @@ function createAuth() {
         },
       },
       plugins: [
+        dash(),
         magicLink({
           sendMagicLink: async ({ email, url }) => {
             await new Resend(process.env.RESEND_API_KEY).emails.send({

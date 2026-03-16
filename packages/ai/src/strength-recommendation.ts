@@ -30,12 +30,14 @@ export function recommendStrengthCount(
 }
 
 /**
- * Recommend which days to lift, ranked by circular distance from the long run day.
+ * Recommend which days to lift, ranked by circular distance from the long run day,
+ * with no two recommended days on consecutive days of the week.
  *
  * Algorithm:
  * 1. Compute circular distance for each day: min(|idx - longIdx|, 7 - |idx - longIdx|)
  * 2. Sort descending by distance; break ties by ascending DAY_INDEX (Sun=0 wins over Mon=1, etc.)
- * 3. Return the first `count` days.
+ * 3. Walk the sorted list greedily; skip any candidate circularly adjacent (distance = 1)
+ *    to an already-selected day. Return up to `count` days.
  */
 export function recommendStrengthDays(longRunDay: Day, count: number): Day[] {
   if (count <= 0) return []
@@ -48,10 +50,21 @@ export function recommendStrengthDays(longRunDay: Day, count: number): Day[] {
     return DAY_INDEX[a] - DAY_INDEX[b]    // ascending index tiebreak
   })
 
-  return sorted.slice(0, count)
+  const selected: Day[] = []
+  for (const candidate of sorted) {
+    if (selected.every(s => !areAdjacent(s, candidate))) {
+      selected.push(candidate)
+      if (selected.length === count) break
+    }
+  }
+  return selected
 }
 
 function circularDist(a: number, b: number): number {
   const diff = Math.abs(a - b)
   return Math.min(diff, 7 - diff)
+}
+
+function areAdjacent(a: Day, b: Day): boolean {
+  return circularDist(DAY_INDEX[a], DAY_INDEX[b]) === 1
 }

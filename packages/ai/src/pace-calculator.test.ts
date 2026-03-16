@@ -450,6 +450,13 @@ describe("computeTrainingStructure — ultra (goalMinutes ignored, uses mileage 
   it("maxQualityPerWeek: 2", () => { expect(result.maxQualityPerWeek).toBe(2) })
 })
 
+describe("computeTrainingStructure — full marathon, 4:30+ (360 min / 6h), 7 days — 4-day tier", () => {
+  const result = computeTrainingStructure(360, "full", 7, "40-60")
+  it("runDaysPerWeek: 4", () => { expect(result.runDaysPerWeek).toBe(4) })
+  it("restDaysPerWeek: 3", () => { expect(result.restDaysPerWeek).toBe(3) })
+  it("maxQualityPerWeek: 1", () => { expect(result.maxQualityPerWeek).toBe(1) })
+})
+
 describe("computeTrainingStructure — no goal time, full marathon, uses mileage fallback", () => {
   // goalMinutes=null triggers mileage fallback regardless of distance
   const result = computeTrainingStructure(null, "full", 7, "under-40")

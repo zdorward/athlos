@@ -266,7 +266,7 @@ export function computeTrainingStructure(
     else if (goalMinutes < 190) { run = 6; rest = 1; quality = 2 }
     else if (goalMinutes < 225) { run = 6; rest = 1; quality = 2 }
     else if (goalMinutes < 270) { run = 5; rest = 2; quality = 1 }
-    else                        { run = 5; rest = 2; quality = 1 }
+    else                        { run = 4; rest = 3; quality = 1 }
   } else if (!useMileageFallback && distance === "half") {
     if (goalMinutes < 75)       { run = 7; rest = 0; quality = 3 }
     else if (goalMinutes < 82)  { run = 7; rest = 0; quality = 2 }

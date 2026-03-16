@@ -42,6 +42,8 @@ export function StepWhichDays({ formData, onNext }: Pick<StepProps, "formData" |
       const next = prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
       // Clear long run day if it's no longer in the selected days
       if (longRunDay && !next.includes(longRunDay)) setLongRunDay(undefined)
+      // Keep preset indicator in sync with actual day count
+      setPreset(detectPreset(next))
       return next
     })
   }

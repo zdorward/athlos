@@ -11,6 +11,7 @@ export {
   type PlanGenerationInput,
   type PhaseEntry,
 } from "./types"
+export { buildBridgeRuns } from "./bridge-runs"
 
 function createProvider(): AIProvider {
   const { provider, model } = loadConfig()

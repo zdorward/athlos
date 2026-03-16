@@ -1,5 +1,6 @@
 import type { PlanGenerationInput } from "./types"
 import { calculatePaceZones, computePhases, computeGoalPeakMileage, calculateRawGoalPace } from "./pace-calculator"
+import { STARTING_VOLUME_KM } from "./constants"
 
 function buildSystemPrompt(units: "km" | "miles"): string {
   const unitLabel = units === "km" ? "kilometres" : "miles"
@@ -124,18 +125,11 @@ const RANGE_LABEL: Record<string, string> = {
   "80-plus": "80+",
 }
 
-const STARTING_VOLUME_KM: Record<string, number> = {
-  "under-40": 30,
-  "40-60": 50,
-  "60-80": 70,
-  "80-plus": 90,
-}
-
 function toISO(date: Date): string {
   return date.toISOString().split("T")[0]!
 }
 
-function firstMondayOnOrAfter(date: Date): Date {
+export function firstMondayOnOrAfter(date: Date): Date {
   const d = new Date(date)
   d.setUTCHours(0, 0, 0, 0)
   const day = d.getUTCDay()

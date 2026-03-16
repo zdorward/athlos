@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
+import { buildBridgeRuns } from "@workspace/ai"
 import type { PlanGenerationInput, TrainingPlan, WorkoutDay, WorkoutType, PhaseEntry } from "@workspace/ai"
 import { authClient } from "@/lib/auth-client"
 import { PlanHeader } from "./plan-header"
@@ -224,6 +225,7 @@ export default function PlanPage() {
 
     const mapped = mapToInput(parsed)
     if (!mapped) { router.replace("/"); return }
+    const planInput: PlanGenerationInput = mapped
     setInput(mapped)
 
     // Prevent double-execution when sessionPending changes
@@ -246,7 +248,7 @@ export default function PlanPage() {
         response = await fetch("/api/generate-plan", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(mapped),
+          body: JSON.stringify(planInput),
         })
       } catch {
         setStatus("error")
@@ -261,6 +263,7 @@ export default function PlanPage() {
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
       let buffer = ""
+      const localDays: WorkoutDay[] = []
 
       while (true) {
         let done: boolean
@@ -276,6 +279,15 @@ export default function PlanPage() {
           if (totalWeeksRef.current === 0 || dayCountRef.current === 0) {
             setStatus("error")
           } else {
+            const bridgeDays = buildBridgeRuns(planInput, localDays, new Date())
+            if (bridgeDays.length > 0) {
+              const mergedDays = [...bridgeDays, ...localDays].sort(
+                (a, b) => a.date.localeCompare(b.date),
+              )
+              // Recompute totalKm from scratch — replaces the running total from streaming
+              const newTotalKm = mergedDays.reduce((sum, d) => sum + (d.distanceKm ?? 0), 0)
+              setPlan((p) => ({ ...p, days: mergedDays, totalKm: newTotalKm }))
+            }
             setStatus("complete")
           }
           break
@@ -310,6 +322,8 @@ export default function PlanPage() {
             } else {
               const day = parsed as unknown as WorkoutDay
               if (typeof day.date !== "string" || !VALID_WORKOUT_TYPES.has(day.type)) continue
+              const localIdx = localDays.findIndex((d) => d.date === day.date && d.type === day.type)
+              if (localIdx >= 0) { localDays[localIdx] = day } else { localDays.push(day) }
               dayCountRef.current += 1
               if (!startDateRef.current) startDateRef.current = day.date
               const weekNum =

@@ -26,11 +26,15 @@ Add `<Analytics />` and `<SpeedInsights />` to `apps/web/app/layout.tsx` inside 
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
-// inside <body>:
-<ThemeProvider>{children}</ThemeProvider>
-<Analytics />
-<SpeedInsights />
+// <body> in RootLayout:
+<body>
+  <ThemeProvider>{children}</ThemeProvider>
+  <Analytics />
+  <SpeedInsights />
+</body>
 ```
+
+Both components ship their own `"use client"` directive internally, so no client boundary wrapper is needed in the Server Component layout.
 
 ## Notes
 

@@ -3,12 +3,15 @@ import { Geist, Geist_Mono } from "next/font/google"
 
 import "@workspace/ui/globals.css"
 
+import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
+import { ThemeProvider } from "@/components/theme-provider"
+import { cn } from "@workspace/ui/lib/utils"
+
 export const metadata: Metadata = {
   title: "Athlos",
   description: "Adaptive training system for hybrid athletes",
 }
-import { ThemeProvider } from "@/components/theme-provider"
-import { cn } from "@workspace/ui/lib/utils";
 
 const fontSans = Geist({
   subsets: ["latin"],
@@ -33,6 +36,8 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>{children}</ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )

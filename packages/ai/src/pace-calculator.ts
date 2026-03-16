@@ -240,6 +240,7 @@ export function calculateRawGoalPace(input: PaceInput): string | null {
  *
  * The weeklyMileageRange fallback is used when goalMinutes is null (no goal
  * time provided) or when distance is "ultra".
+ * Unknown distance values (not full/half/5k/10k/ultra) fall through to the mileage range fallback.
  */
 export function computeTrainingStructure(
   goalMinutes: number | null,
@@ -260,6 +261,7 @@ export function computeTrainingStructure(
   if (!useMileageFallback && distance === "full") {
     if (goalMinutes < 150)      { run = 7; rest = 0; quality = 3 }
     else if (goalMinutes < 165) { run = 7; rest = 0; quality = 2 }
+    // buckets match spec rows — values may diverge in future tuning
     else if (goalMinutes < 190) { run = 6; rest = 1; quality = 2 }
     else if (goalMinutes < 225) { run = 6; rest = 1; quality = 2 }
     else if (goalMinutes < 270) { run = 5; rest = 2; quality = 1 }
@@ -267,18 +269,20 @@ export function computeTrainingStructure(
   } else if (!useMileageFallback && distance === "half") {
     if (goalMinutes < 75)       { run = 7; rest = 0; quality = 3 }
     else if (goalMinutes < 82)  { run = 7; rest = 0; quality = 2 }
+    // buckets match spec rows — values may diverge in future tuning
     else if (goalMinutes < 95)  { run = 6; rest = 1; quality = 2 }
     else if (goalMinutes < 112) { run = 6; rest = 1; quality = 2 }
     else if (goalMinutes < 135) { run = 5; rest = 2; quality = 1 }
     else                        { run = 5; rest = 2; quality = 1 }
   } else if (!useMileageFallback && (distance === "5k" || distance === "10k")) {
+    const gm = goalMinutes as number
     // Use full marathon table as base
-    if (goalMinutes! < 150)      { run = 7; rest = 0; quality = 3 }
-    else if (goalMinutes! < 165) { run = 7; rest = 0; quality = 2 }
-    else if (goalMinutes! < 190) { run = 6; rest = 1; quality = 2 }
-    else if (goalMinutes! < 225) { run = 6; rest = 1; quality = 2 }
-    else if (goalMinutes! < 270) { run = 5; rest = 2; quality = 1 }
-    else                         { run = 5; rest = 2; quality = 1 }
+    if (gm < 150)      { run = 7; rest = 0; quality = 3 }
+    else if (gm < 165) { run = 7; rest = 0; quality = 2 }
+    else if (gm < 190) { run = 6; rest = 1; quality = 2 }
+    else if (gm < 225) { run = 6; rest = 1; quality = 2 }
+    else if (gm < 270) { run = 5; rest = 2; quality = 1 }
+    else               { run = 5; rest = 2; quality = 1 }
     // 5k/10k modifier: +1 quality, cap run days at 6
     quality += 1
     if (run > 6) { run = 6; rest += 1 }
@@ -300,6 +304,7 @@ export function computeTrainingStructure(
 
   // selectedDaysCount clamp — restDaysPerWeek is NOT adjusted
   run = Math.min(run, selectedDaysCount)
+  // restDaysPerWeek is intentionally not adjusted: rest placement is the LLM's responsibility given the available day count
 
   return { runDaysPerWeek: run, restDaysPerWeek: rest, maxQualityPerWeek: quality }
 }

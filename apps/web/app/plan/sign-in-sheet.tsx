@@ -10,11 +10,12 @@ interface SignInSheetProps {
   onBeforeSignIn: () => void
   onClose: () => void
   callbackURL?: string
+  title?: string
 }
 
 type SheetState = "options" | "email" | "sent" | "error"
 
-export function SignInSheet({ onBeforeSignIn, onClose, callbackURL = "/plan" }: SignInSheetProps) {
+export function SignInSheet({ onBeforeSignIn, onClose, callbackURL = "/plan", title = "Save your plan" }: SignInSheetProps) {
   const [sheetState, setSheetState] = useState<SheetState>("options")
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
@@ -55,7 +56,7 @@ export function SignInSheet({ onBeforeSignIn, onClose, callbackURL = "/plan" }: 
         {sheetState === "options" && (
           <>
             <div className="space-y-1">
-              <h2 className="text-lg font-semibold">Save your plan</h2>
+              <h2 className="text-lg font-semibold">{title}</h2>
               <p className="text-sm text-muted-foreground">
                 Sign in to save and access your plan anytime.
               </p>

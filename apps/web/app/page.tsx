@@ -1041,6 +1041,7 @@ function PageContent() {
           onBeforeSignIn={() => {}}
           onClose={() => setShowSignIn(false)}
           callbackURL="/dashboard"
+          title="Sign in to Athlos"
         />
       )}
 

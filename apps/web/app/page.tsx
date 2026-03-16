@@ -964,7 +964,7 @@ function PageContent() {
               {
                 icon: "📋",
                 title: "Get your plan",
-                body: "A personalized week-by-week plan built around your goal time.",
+                body: "A week-by-week plan built on Pfitzinger's methodology — structured by your goal time, adapted by AI.",
               },
             ].map((f) => (
               <div

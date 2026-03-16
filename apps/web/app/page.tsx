@@ -53,7 +53,7 @@ type MockDay = {
   extra?: string
 }
 
-const MOCK_WEEKS = [
+const MOCK_WEEKS: Array<{ label: string; date: string; km: string; phase: string | null; days: MockDay[] }> = [
   {
     label: "W1", date: "Mar 16", km: "54 km", phase: "Base",
     days: [
@@ -364,7 +364,7 @@ function PageContent() {
                             <>
                               <p style={{ fontSize: 8, fontWeight: 600, color: s.color, margin: 0 }}>{d.title}</p>
                               {d.sub && <p style={{ fontSize: 7, color: "rgba(255,255,255,0.25)", margin: "1px 0 0" }}>{d.sub}</p>}
-                              {"extra" in d && d.extra === "strength" && (
+                              {d.extra === "strength" && (
                                 <p style={{ fontSize: 7, color: "oklch(0.65 0.15 300 / 0.65)", margin: "2px 0 0" }}>+ Strength</p>
                               )}
                             </>

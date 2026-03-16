@@ -443,7 +443,7 @@ function PageContent() {
                 letterSpacing: "0.01em",
               }}
             >
-              Adaptive race training for runners who lift.
+              Adaptive marathon training for runners with a real goal.
             </p>
 
             {/* Search widget */}
@@ -614,8 +614,8 @@ function PageContent() {
                 marginRight: "auto",
               }}
             >
-              Runs and lifts scheduled together — strength days placed where
-              they won&apos;t wreck your key sessions.
+              Runs and strength sessions scheduled together — each placed where
+              they won&apos;t wreck your key workouts.
             </p>
           </div>
 
@@ -977,7 +977,7 @@ function PageContent() {
               {
                 icon: "📋",
                 title: "Get your plan",
-                body: "A personalized week-by-week run + lift plan.",
+                body: "A personalized week-by-week plan built around your goal time.",
               },
             ].map((f) => (
               <div
@@ -1015,43 +1015,6 @@ function PageContent() {
           </div>
         </section>
 
-        {/* ── Founder note ─────────────────────────────────────────────── */}
-        <section
-          style={{ padding: "0 24px 96px", maxWidth: 540, margin: "0 auto" }}
-        >
-          <div
-            style={{
-              borderRadius: 14,
-              border: "1px solid rgba(255,255,255,0.07)",
-              background: "rgba(255,255,255,0.02)",
-              padding: "36px 32px",
-            }}
-          >
-            <p
-              style={{
-                fontSize: 15,
-                color: "rgba(255,255,255,0.58)",
-                lineHeight: 1.75,
-                fontStyle: "italic",
-                margin: "0 0 16px",
-              }}
-            >
-              &ldquo;I was training for the Victoria Marathon and chasing a PR.
-              I didn&apos;t want to pay for Runna, so I ended up duct-taping
-              ChatGPT and Google Sheets together. It kind of worked, but I also
-              lift, so I just built something that handled both.&rdquo;
-            </p>
-            <p
-              style={{
-                fontSize: 12,
-                color: "rgba(255,255,255,0.28)",
-                margin: 0,
-              }}
-            >
-              &mdash; Zack, builder &amp; runner
-            </p>
-          </div>
-        </section>
 
         {/* ── Bottom CTA ────────────────────────────────────────────────── */}
         <section style={{ padding: "0 24px 120px", textAlign: "center" }}>

@@ -30,6 +30,8 @@ Two mobile UX issues in the onboarding flow on iPhone/iOS Safari:
 
 **Visual impact:** Negligible on desktop. On mobile, search input text is 2px larger — acceptable and improves readability.
 
+**Manual race form inputs exempt:** `ManualRaceForm` in `step-find-race.tsx` uses the shadcn `<Input>` component, which applies `text-base` (16px) on mobile and `md:text-sm` on desktop. No zoom issue — no change needed.
+
 ---
 
 ## Fix 2: Day Toggle — Spacing
@@ -56,9 +58,11 @@ Two mobile UX issues in the onboarding flow on iPhone/iOS Safari:
 
 | File | Location | Change |
 |------|----------|--------|
-| `apps/web/components/onboarding/day-toggle.tsx` | Button className | Add `active:scale-90 duration-100` |
+| `apps/web/components/onboarding/day-toggle.tsx` | Button className | Add `active:scale-90 active:duration-100` |
 
 **Effect:** On tap, the circle compresses to 90% scale immediately, giving a physical "press" feel. On release it springs back. The existing color transition handles the selected state change.
+
+**Duration scoping:** `active:duration-100` is scoped to the active pseudo-class, so it only shortens the transition during the press state. The existing `transition-all` default duration (150ms) is preserved for the selected-state color change.
 
 **Why not a "pop on select" animation:** Adding per-toggle state to trigger a `scale-110` overshoot adds meaningful complexity (extra useState, setTimeout cleanup, potential for stuck states) for marginal UX gain. The press animation alone is the highest-impact, lowest-complexity improvement and aligns with standard iOS interaction patterns.
 

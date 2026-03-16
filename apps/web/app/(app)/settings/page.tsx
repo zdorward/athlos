@@ -72,16 +72,8 @@ export default function SettingsPage() {
     setPendingUnits(value)
     setSaving(true)
     try {
-      const res = await fetch("/api/user", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ units: value }),
-      })
-      if (!res.ok) throw new Error("Save failed")
-      // On success: pendingUnits stays set; next useSession refetch will update currentUnits
-      // and pendingUnits will be cleared after navigation (no explicit clear needed for UX)
+      await authClient.updateUser({ units: value })
     } catch {
-      // Revert on error
       setPendingUnits(null)
     } finally {
       setSaving(false)

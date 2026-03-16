@@ -10,6 +10,8 @@ export {
 export { buildBridgeRuns } from "./bridge-runs"
 export * from "./adaptation"
 export { peakStrengthDay, firstMondayOnOrAfter } from "./race-prompt"
+export { recommendStrengthCount, recommendStrengthDays } from "./strength-recommendation"
+export { computeGoalPeakMileage } from "./pace-calculator"
 
 let _provider: import("./provider").AIProvider | undefined
 

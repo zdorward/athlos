@@ -46,16 +46,25 @@ export interface PlanGenerationInput {
   goal: "race"
   race: {
     name: string
-    date: string  // ISO string
+    date: string
     distance: "5k" | "10k" | "half" | "full" | "ultra"
     city: string
   }
-  goalTime?: { hours: number; minutes: number }
+  goalTime?: { hours: number; minutes: number; seconds?: number }
   selectedDays: string[]
   longRunDay: string
   units: "km" | "miles"
   strengthTraining: boolean
   strengthDays?: string[]
-  startDate?: string  // ISO "YYYY-MM-DD" — first day of training
+  startDate?: string
   weeklyMileageRange: "under-40" | "40-60" | "60-80" | "80-plus"
+  recentRace?: {
+    distance: "5k" | "10k" | "half" | "full"
+    hours: number
+    minutes: number
+    seconds: number
+    weeksAgo: "under-8" | "8-16" | "16-24"
+  }
+  firstTimeDistance?: boolean
+  trainingAge?: "under-1" | "1-3" | "3-or-more"
 }

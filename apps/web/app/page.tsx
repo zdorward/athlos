@@ -533,9 +533,9 @@ function PageContent() {
               )}
             </div>
 
-          <p style={{ fontSize: 12, margin: 0, color: "rgba(255,255,255,0.22)", letterSpacing: "0.02em" }}>
-            Adaptive · Hybrid-athlete ready · Built for BQ
-          </p>
+            <p style={{ fontSize: 12, margin: 0, color: "rgba(255,255,255,0.22)", letterSpacing: "0.02em" }}>
+              Adaptive · Hybrid-athlete ready · Built for BQ
+            </p>
 
           </div>
 

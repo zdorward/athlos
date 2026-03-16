@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2 } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow"
 
 export default function NewPlanPage() {
@@ -26,7 +26,7 @@ export default function NewPlanPage() {
   if (isPending || !sessionData?.session) {
     return (
       <main className="flex min-h-svh items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Spinner />
       </main>
     )
   }

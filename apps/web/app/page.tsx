@@ -225,7 +225,7 @@ function PageContent() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onFocus={() => setDropdownOpen(true)}
-                  style={{ flex: 1, background: "none", border: "none", outline: "none", fontSize: 15, color: "rgba(255,255,255,0.85)", fontFamily: "inherit", letterSpacing: "0.01em" }}
+                  style={{ flex: 1, background: "none", border: "none", outline: "none", fontSize: 16, color: "rgba(255,255,255,0.85)", fontFamily: "inherit", letterSpacing: "0.01em" }}
                 />
               </div>
 

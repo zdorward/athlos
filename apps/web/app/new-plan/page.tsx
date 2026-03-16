@@ -14,7 +14,9 @@ export default function NewPlanPage() {
   // OnboardingFlow reads sessionStorage in its useState initializers, so this
   // must happen before it renders — a useEffect would be too late.
   useState(() => {
-    sessionStorage.removeItem("athlos_onboarding_draft")
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("athlos_onboarding_draft")
+    }
   })
 
   useEffect(() => {

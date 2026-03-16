@@ -189,7 +189,7 @@ Note: `goalTime` seconds defaults to `0` when calling `calculateRawGoalPace` if 
 - `packages/ai/src/pace-calculator.ts` — add `computeGoalPeakMileage()` and `calculateRawGoalPace()` functions; export both
 - `packages/ai/src/pace-calculator.test.ts` — add tests for `computeGoalPeakMileage` and `calculateRawGoalPace`
 - `packages/ai/src/race-prompt.ts` — restructure user message, add dual pace zones, add peak mileage target, add athlete profile block, update system prompt with training age guidance, remove `fitnessSource` line
-- Onboarding UI — add recent race, first-time distance, and training age questions (separate ticket)
+- Onboarding UI — add recent race, first-time distance, and training age questions (separate ticket); add units selection step with locale-based default (`/^en-US/i.test(navigator.language)` → miles, everything else → km); user can override; stored in `sessionStorage` under existing `SESSION_KEY` which `plan/page.tsx` already reads
 
 ## Out of Scope
 

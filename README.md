@@ -1,6 +1,19 @@
 # Athlos
 
-An adaptive training system for hybrid athletes. The platform intelligently adjusts training programs based on athlete performance, recovery, and goals across multiple disciplines.
+Adaptive marathon training for runners with a real goal time. Athlos generates personalized week-by-week plans and adapts them based on performance and recovery. Supports running-only or running + strength scheduling.
+
+**Tech stack:** pnpm monorepo · Next.js 16 (App Router) · React 19 · Tailwind CSS v4 · shadcn/ui · Neon (Postgres)
+
+## Dev setup
+
+Run all commands from the repo root:
+
+```bash
+pnpm dev          # Start Next.js dev server with Turbopack
+pnpm build        # Build all packages and apps
+pnpm lint         # Run ESLint across all packages
+pnpm typecheck    # TypeScript type checking
+```
 
 ## Adding Components
 

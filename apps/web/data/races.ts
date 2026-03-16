@@ -86,12 +86,12 @@ export const RACES: Race[] = [
   },
   {
     id: "toronto-yonge-10k-2026",
-    name: "Toronto Yonge Street 10K",
+    name: "Sporting Life 10K",
     city: "Toronto",
     province: "ON",
-    date: "2026-04-19",
+    date: "2026-05-10",
     distance: "10k",
-    url: "https://www.sl10k.ca/",
+    url: "https://sportinglife10k.ca/",
   },
   {
     id: "goodlife-toronto-half-2026",
@@ -242,21 +242,21 @@ export const RACES: Race[] = [
   },
   {
     id: "quebec-city-full-2026",
-    name: "Quebec City Marathon",
+    name: "Beneva Quebec City Marathon presented by Brunet",
     city: "Quebec City",
     province: "QC",
-    date: "2026-08-23",
+    date: "2026-10-04",
     distance: "full",
-    url: "https://www.marathondequebec.com/",
+    url: "https://www.jecoursqc.com/en/beneva-quebec-city-marathon-presented-by-montellier/race-day/",
   },
   {
     id: "quebec-city-half-2026",
-    name: "Quebec City Half Marathon",
+    name: "Beneva Quebec City Half Marathon presented by Brunet",
     city: "Quebec City",
     province: "QC",
-    date: "2026-08-23",
+    date: "2026-10-04",
     distance: "half",
-    url: "https://www.marathondequebec.com/",
+    url: "https://www.jecoursqc.com/en/beneva-quebec-city-marathon-presented-by-montellier/race-day/",
   },
   // Manitoba
   {

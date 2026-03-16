@@ -163,6 +163,54 @@ distance: distance
 
 ---
 
+### `apps/web/app/plan/page.tsx`
+
+Line 71 — narrow the inline type cast in `mapToInput` from the full union to `"half" | "full"`.
+
+Old:
+```ts
+distance: race["distance"] as "5k" | "10k" | "half" | "full" | "ultra",
+```
+
+New:
+```ts
+distance: race["distance"] as "half" | "full",
+```
+
+---
+
+### `apps/web/app/plan/plan-calendar.tsx`
+
+Line 48 — narrow the `raceDistance` prop type in `PlanCalendarProps`.
+
+Old:
+```ts
+raceDistance?: "5k" | "10k" | "half" | "full" | "ultra"
+```
+
+New:
+```ts
+raceDistance?: "half" | "full"
+```
+
+---
+
+### `apps/web/app/plan/plan-feed.tsx`
+
+Line 22 — narrow the `raceDistance` prop type in `PlanFeedProps`.
+
+Old:
+```ts
+raceDistance?: "5k" | "10k" | "half" | "full" | "ultra"
+```
+
+New:
+```ts
+raceDistance?: "half" | "full"
+```
+
+---
+
 ## Downstream effects (no code changes required)
 
 - **Manual entry dropdown** (`step-find-race.tsx`): uses `Object.entries(DISTANCE_LABELS)` — automatically reflects the narrowed type
@@ -173,7 +221,9 @@ distance: distance
 
 ## Intentionally left broad
 
-**`packages/ai/src/pace-calculator.ts`** — `PaceInput.distance` retains `"5k" | "10k" | "half" | "full"`. The pace calculator is a pure math utility (Riegel formula) not tied to the product's `Distance` type. Its tests use 10K as a convenient reference input. The narrowing at `PlanGenerationInput.race.distance` in `packages/ai/src/types.ts` is the correct enforcement point — no 5K/10K race data can reach the pace calculator from user input after that change.
+**`packages/ai/src/pace-calculator.ts`** — `PaceInput.distance` retains `"5k" | "10k" | "half" | "full"`. The pace calculator is a pure math utility (Riegel formula) not tied to the product's `Distance` type. The narrowing at `PlanGenerationInput.race.distance` in `packages/ai/src/types.ts` is the correct enforcement point — no 5K/10K race data can reach the pace calculator from user input after that change.
+
+**`packages/ai/src/pace-calculator.test.ts`** — Tests that call `calculatePaceZones` and related functions with `"5k"`, `"10k"`, and `"ultra"` arguments are intentionally preserved. They test the math layer directly, which remains broad by design. Do not modify these tests.
 
 ---
 
@@ -183,6 +233,9 @@ distance: distance
 - Modify: `apps/web/data/races.ts`
 - Modify: `apps/web/lib/units.ts`
 - Modify: `apps/web/app/plan/workout-utils.ts`
+- Modify: `apps/web/app/plan/page.tsx`
+- Modify: `apps/web/app/plan/plan-calendar.tsx`
+- Modify: `apps/web/app/plan/plan-feed.tsx`
 - Modify: `packages/ai/src/types.ts`
 - Modify: `packages/ai/src/race-prompt.ts`
 

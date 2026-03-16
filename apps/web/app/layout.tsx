@@ -10,7 +10,7 @@ import { cn } from "@workspace/ui/lib/utils"
 
 export const metadata: Metadata = {
   title: "Athlos",
-  description: "Adaptive training system for hybrid athletes",
+  description: "Adaptive marathon training for runners with a real goal time.",
 }
 
 const fontSans = Geist({

@@ -1,7 +1,7 @@
 {
   "name": "Athlos",
   "short_name": "Athlos",
-  "description": "Adaptive training system for hybrid athletes",
+  "description": "Adaptive marathon training for runners with a real goal time.",
   "start_url": "/",
   "icons": [
     { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },

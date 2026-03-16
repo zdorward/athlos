@@ -107,7 +107,7 @@ export function StepGoalTime({ formData, onNext }: Pick<StepProps, "formData" | 
             onClick={handleJustFinish}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
           >
-            I just want to finish
+            I don&apos;t have a goal time
           </button>
         </div>
       </div>

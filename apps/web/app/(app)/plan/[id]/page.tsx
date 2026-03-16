@@ -2,13 +2,14 @@
 
 import { use, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, ChevronLeft } from "lucide-react"
+import { ChevronLeft } from "lucide-react"
 import Link from "next/link"
 import { authClient } from "@/lib/auth-client"
 import type { WorkoutDay, WorkoutType, PlanGenerationInput } from "@workspace/ai"
 import { PlanHeader } from "@/app/plan/plan-header"
 import { PlanCalendar } from "@/app/plan/plan-calendar"
 import { PlanFeed } from "@/app/plan/plan-feed"
+import { Spinner } from "@workspace/ui/components/spinner"
 
 interface Plan {
   id: string
@@ -59,7 +60,7 @@ export default function PlanViewPage({ params }: PageProps) {
   if (plan === null) {
     return (
       <main className="flex min-h-svh items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Spinner />
       </main>
     )
   }

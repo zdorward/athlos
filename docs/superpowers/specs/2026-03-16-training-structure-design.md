@@ -26,16 +26,19 @@ Add a `computeTrainingStructure()` function that derives optimal weekly structur
 export function computeTrainingStructure(
   goalMinutes: number | null,
   distance: string,
-  trainingAge: string
+  trainingAge: string | undefined,
+  selectedDaysCount: number
 ): { runDaysPerWeek: number; restDaysPerWeek: number; maxQualityPerWeek: number }
 ```
+
+`trainingAge` may be `undefined` — treat as `"1-3"` (consistent with how `buildPrompt()` already defaults it).
 
 ### Full Marathon Goal-Time Table
 
 | Goal time | Run days/wk | Rest days/wk | Max quality/wk |
 |-----------|-------------|--------------|----------------|
 | Sub-2:30  | 7 | 0 | 3 |
-| 2:30–2:45 | 7 | 1 | 2 |
+| 2:30–2:45 | 7 | 0 | 2 |
 | 2:45–3:10 | 6 | 1 | 2 |
 | 3:10–3:45 | 6 | 1 | 2 |
 | 3:45–4:30 | 5 | 2 | 1 |
@@ -43,12 +46,10 @@ export function computeTrainingStructure(
 
 ### Half Marathon
 
-Same table with goal times scaled ~50% (e.g. sub-1:15 maps to the sub-2:30 full row).
-
 | Goal time | Run days/wk | Rest days/wk | Max quality/wk |
 |-----------|-------------|--------------|----------------|
 | Sub-1:15  | 7 | 0 | 3 |
-| 1:15–1:22 | 7 | 1 | 2 |
+| 1:15–1:22 | 7 | 0 | 2 |
 | 1:22–1:35 | 6 | 1 | 2 |
 | 1:35–1:52 | 6 | 1 | 2 |
 | 1:52–2:15 | 5 | 2 | 1 |
@@ -56,41 +57,56 @@ Same table with goal times scaled ~50% (e.g. sub-1:15 maps to the sub-2:30 full 
 
 ### 5K / 10K
 
-Same structure as full marathon by goal time bucket, but `maxQualityPerWeek` +1 (speed events require more intensity work), `runDaysPerWeek` capped at 6.
+Use the full marathon goal-time table as a base, then apply:
+- `maxQualityPerWeek` +1 (speed events require more intensity work)
+- `runDaysPerWeek` capped at 6; if the cap reduces `runDaysPerWeek`, increment `restDaysPerWeek` by 1
+
+### Ultra
+
+Fall through to the mileage-range fallback regardless of whether a goal time is present (consistent with `computeGoalPeakMileage()` returning null for ultra).
 
 ### Training Age Modifier
 
-Applied after the goal-time lookup:
-- `"under-1"`: subtract 1 from `maxQualityPerWeek` (min 1), cap `runDaysPerWeek` at 6
+Applied after the goal-time lookup, before the `selectedDaysCount` clamp:
+- `"under-1"` (or `undefined` treated as `"1-3"`): subtract 1 from `maxQualityPerWeek` (min 1), cap `runDaysPerWeek` at 6; if the cap reduces `runDaysPerWeek`, increment `restDaysPerWeek` by 1
 - `"1-3"` and `"3-or-more"`: no modifier
+
+### `selectedDaysCount` Clamp
+
+After all modifiers, clamp:
+```ts
+runDaysPerWeek = Math.min(runDaysPerWeek, selectedDaysCount)
+```
+
+This handles the case where the athlete selected fewer days than the structure prescribes. `restDaysPerWeek` is not adjusted — the LLM simply has fewer eligible days to work with and the structure constraints still apply as a ceiling.
 
 ### No Goal Time Fallback
 
-When goal time is not provided (finish-only objective), fall back to mileage range:
+When goal time is not provided and distance is not ultra, fall back to mileage range:
 
 | Weekly mileage | Run days/wk | Rest days/wk | Max quality/wk |
 |----------------|-------------|--------------|----------------|
 | under-40 km/wk | 5 | 2 | 1 |
 | 40–60 km/wk    | 6 | 1 | 1 |
 | 60–80 km/wk    | 6 | 1 | 2 |
-| 80+ km/wk      | 7 | 1 | 2 |
+| 80+ km/wk      | 7 | 0 | 2 |
 
 ## Integration into `buildPrompt()`
 
 **File:** `packages/ai/src/race-prompt.ts`
 
-### User message
+### User message injection point
 
-After the pace zones section, inject a new block:
+Inject the new block **between the pace zones section (section 5) and the `Available running days` line (section 6)**. This gives the LLM the structural constraints before it reads the eligible day list.
 
 ```
 Prescribed training structure (Pfitzinger-based — treat as hard constraints):
   Running days per week: <N>
-  Rest days per week: <N> (place on the day that best aids recovery — typically before a quality session or after the long run)
+  Rest days per week: <N> (place on the day that best aids recovery — typically before a quality session or after the long run; never designate the long run day as rest)
   Max quality sessions per week: <N>
 ```
 
-The existing `Available running days` line stays — it tells the LLM which days are eligible. The structure block tells it how many to actually use. If `runDaysPerWeek` is less than the number of `selectedDays`, the LLM designates the surplus days as rest, placed for optimal recovery.
+The existing `Available running days` line stays — it tells the LLM which days are eligible. The structure block tells it how many to actually use. If `runDaysPerWeek` is less than `selectedDaysCount`, the LLM designates surplus days as rest, placed for optimal recovery.
 
 ### System prompt change
 
@@ -100,7 +116,7 @@ Update the existing hard constraint (line 101) from:
 
 To:
 
-> "Only schedule runs on the athlete's available running days. Assign rest days to achieve the prescribed rest days per week — you may designate any available running day as rest if needed to hit this target. Days not in the available running days list (and not strength days) are always rest."
+> "Only schedule runs on the athlete's available running days. Assign rest days to achieve the prescribed rest days per week — you may designate any available running day as rest if needed to hit this target, except the long run day which must always remain a run day. Days not in the available running days list (and not strength days) are always rest."
 
 This removes the conflict where "available = must fill with a run."
 

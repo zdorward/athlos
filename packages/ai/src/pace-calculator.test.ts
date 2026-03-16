@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { calculatePaceZones, computePhases } from "./pace-calculator"
+import { calculatePaceZones, computePhases, computeGoalPeakMileage, calculateRawGoalPace } from "./pace-calculator"
 
 // ─── calculatePaceZones ────────────────────────────────────────────────────
 
@@ -224,6 +224,107 @@ describe("computePhases — exactly 20 weeks (last 4-phase case)", () => {
   it("taper is at least 3 weeks for half", () => {
     const taper = phases.find(p => p.name === "Taper")!
     expect(taper.endWeek - taper.startWeek + 1).toBeGreaterThanOrEqual(3)
+  })
+})
+
+// ─── computeGoalPeakMileage ──────────────────────────────────────────────────
+
+describe("computeGoalPeakMileage", () => {
+  it("marathon 3:30 (210 min) → 65–80 km/week", () => {
+    const result = computeGoalPeakMileage("full", 210)
+    expect(result).toEqual({ low: 65, high: 80 })
+  })
+
+  it("marathon 2:30 (150 min, sub-2:45) → 110–130 km/week", () => {
+    expect(computeGoalPeakMileage("full", 150)).toEqual({ low: 110, high: 130 })
+  })
+
+  it("marathon 2:45 exactly (165 min) → 95–115 km/week (lower bound inclusive)", () => {
+    expect(computeGoalPeakMileage("full", 165)).toEqual({ low: 95, high: 115 })
+  })
+
+  it("marathon 3:29 (209 min) → 80–100 km/week (just below 3:30 boundary)", () => {
+    expect(computeGoalPeakMileage("full", 209)).toEqual({ low: 80, high: 100 })
+  })
+
+  it("marathon 5:00 (300 min) → 45–60 km/week", () => {
+    expect(computeGoalPeakMileage("full", 300)).toEqual({ low: 45, high: 60 })
+  })
+
+  it("half 1:45 (105 min) → 55–70 km/week", () => {
+    expect(computeGoalPeakMileage("half", 105)).toEqual({ low: 55, high: 70 })
+  })
+
+  it("half 1:15 (75 min, sub-1:20) → 80–95 km/week", () => {
+    expect(computeGoalPeakMileage("half", 75)).toEqual({ low: 80, high: 95 })
+  })
+
+  it("10k 0:42 (42 min) → 40–55 km/week", () => {
+    expect(computeGoalPeakMileage("10k", 42)).toEqual({ low: 40, high: 55 })
+  })
+
+  it("10k 0:30 (30 min, sub-35) → 60–75 km/week", () => {
+    expect(computeGoalPeakMileage("10k", 30)).toEqual({ low: 60, high: 75 })
+  })
+
+  it("5k 0:20 (20 min) → 45–55 km/week", () => {
+    expect(computeGoalPeakMileage("5k", 20)).toEqual({ low: 45, high: 55 })
+  })
+
+  it("5k 0:15 (15 min, sub-18) → 55–65 km/week", () => {
+    expect(computeGoalPeakMileage("5k", 15)).toEqual({ low: 55, high: 65 })
+  })
+
+  it("ultra returns null", () => {
+    expect(computeGoalPeakMileage("ultra", 360)).toBeNull()
+  })
+
+  it("returns null for goalTotalMinutes <= 0", () => {
+    expect(computeGoalPeakMileage("full", 0)).toBeNull()
+    expect(computeGoalPeakMileage("full", -1)).toBeNull()
+  })
+})
+
+// ─── calculateRawGoalPace ────────────────────────────────────────────────────
+
+describe("calculateRawGoalPace", () => {
+  it("3:30 marathon — returns raw mp zone (no 5% buffer)", () => {
+    // total = 12600s, no buffer
+    // t5k = 12600 * (5/42.195)^1.06 = 12600 * 0.104263 = 1313.71s → ref = 262.74 s/km
+    // mp lower: round(262.74 * 1.13) = round(296.90) = 297 → 4:57
+    // mp upper: round(262.74 * 1.20) = round(315.29) = 315 → 5:15
+    const result = calculateRawGoalPace({ hours: 3, minutes: 30, seconds: 0, distance: "full" })
+    expect(result).toBe("4:57–5:15/km")
+  })
+
+  it("3:30 marathon raw goal pace is faster than goal-time calculatePaceZones mp (which has 5% buffer)", () => {
+    const buffered = calculatePaceZones({ hours: 3, minutes: 30, seconds: 0, distance: "full" }, "goal-time")!
+    const raw = calculateRawGoalPace({ hours: 3, minutes: 30, seconds: 0, distance: "full" })!
+    function loSec(zone: string): number {
+      const [m, s] = zone.split("–")[0]!.split(":").map(Number)
+      return m! * 60 + s!
+    }
+    expect(loSec(raw)).toBeLessThan(loSec(buffered.mp))
+  })
+
+  it("returns null for zero time", () => {
+    expect(calculateRawGoalPace({ hours: 0, minutes: 0, seconds: 0, distance: "full" })).toBeNull()
+  })
+
+  it("returns null for impossibly fast pace", () => {
+    expect(calculateRawGoalPace({ hours: 0, minutes: 10, seconds: 0, distance: "10k" })).toBeNull()
+  })
+
+  it("works for half marathon", () => {
+    const result = calculateRawGoalPace({ hours: 1, minutes: 45, seconds: 0, distance: "half" })
+    expect(result).not.toBeNull()
+    expect(result).toMatch(/^\d+:\d{2}–\d+:\d{2}\/km$/)
+  })
+
+  it("seconds parameter affects output", () => {
+    const withoutSec = calculateRawGoalPace({ hours: 3, minutes: 30, seconds: 0, distance: "full" })
+    const withSec    = calculateRawGoalPace({ hours: 3, minutes: 29, seconds: 30, distance: "full" })
+    expect(withoutSec).not.toBe(withSec)
   })
 })
 

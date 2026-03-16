@@ -159,3 +159,74 @@ export function computePhases(totalWeeks: number, distance: string): PhaseEntry[
   result.push({ name: "Taper", startWeek: w, endWeek: totalWeeks })
   return result
 }
+
+// ─── Goal-implied peak mileage ───────────────────────────────────────────────
+
+/**
+ * Return a soft target peak mileage range (km/week) for the given race distance
+ * and goal time. The LLM uses this as a guideline, not a hard cap.
+ *
+ * Returns null for ultra (too variable) and invalid input (goalTotalMinutes <= 0).
+ * Bucket boundaries are lower-bound inclusive, upper-bound exclusive.
+ */
+export function computeGoalPeakMileage(
+  distance: string,
+  goalTotalMinutes: number,
+): { low: number; high: number } | null {
+  if (goalTotalMinutes <= 0) return null
+
+  switch (distance) {
+    case "full":
+      if (goalTotalMinutes < 165) return { low: 110, high: 130 }
+      if (goalTotalMinutes < 180) return { low: 95,  high: 115 }
+      if (goalTotalMinutes < 210) return { low: 80,  high: 100 }
+      if (goalTotalMinutes < 240) return { low: 65,  high: 80  }
+      if (goalTotalMinutes < 270) return { low: 55,  high: 70  }
+      return { low: 45, high: 60 }
+
+    case "half":
+      if (goalTotalMinutes < 80)  return { low: 80, high: 95 }
+      if (goalTotalMinutes < 95)  return { low: 65, high: 80 }
+      if (goalTotalMinutes < 110) return { low: 55, high: 70 }
+      if (goalTotalMinutes < 130) return { low: 45, high: 60 }
+      return { low: 35, high: 50 }
+
+    case "10k":
+      if (goalTotalMinutes < 35) return { low: 60, high: 75 }
+      if (goalTotalMinutes < 40) return { low: 50, high: 65 }
+      if (goalTotalMinutes < 50) return { low: 40, high: 55 }
+      return { low: 30, high: 45 }
+
+    case "5k":
+      if (goalTotalMinutes < 18) return { low: 55, high: 65 }
+      if (goalTotalMinutes < 22) return { low: 45, high: 55 }
+      if (goalTotalMinutes < 28) return { low: 35, high: 45 }
+      return { low: 25, high: 35 }
+
+    default:
+      return null  // ultra and unknown distances
+  }
+}
+
+/**
+ * Calculate the raw goal race pace (mp zone only) from a goal time.
+ * Unlike calculatePaceZones, this does NOT apply the 5% training buffer —
+ * it returns the actual target race pace the athlete is training toward.
+ *
+ * Returns null if input is invalid (zero time or impossibly fast pace).
+ */
+export function calculateRawGoalPace(input: PaceInput): string | null {
+  const distKm = DISTANCE_KM[input.distance]
+  if (!distKm) return null
+
+  const totalSec = input.hours * 3600 + input.minutes * 60 + input.seconds
+  if (totalSec <= 0) return null
+
+  // Riegel formula — no buffer
+  const t5kSec = totalSec * Math.pow(5 / distKm, 1.06)
+  const ref = t5kSec / 5
+
+  if (ref < 120) return null
+
+  return formatZone(...ZONES.mp, ref)
+}

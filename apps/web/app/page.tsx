@@ -974,7 +974,7 @@ function PageContent() {
               {
                 icon: "⚙️",
                 title: "Tell us about yourself",
-                body: "Your goal time, weekly mileage, and prefered workout days.",
+                body: "Your goal time, weekly mileage, and preferred workout days.",
               },
               {
                 icon: "📋",

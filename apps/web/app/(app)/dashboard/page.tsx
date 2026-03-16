@@ -1,4 +1,4 @@
-// apps/web/app/dashboard/page.tsx
+// apps/web/app/(app)/dashboard/page.tsx
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
@@ -8,7 +8,6 @@ import { Loader2 } from "lucide-react"
 import Link from "next/link"
 import { authClient } from "@/lib/auth-client"
 import type { WorkoutDay, PlanGenerationInput } from "@workspace/ai"
-import { DashboardHeader } from "./dashboard-header"
 import { RaceBanner } from "./race-banner"
 import { TodayWorkoutCard } from "./today-workout-card"
 import { Button } from "@workspace/ui/components/button"
@@ -75,10 +74,6 @@ export default function DashboardPage() {
   }, [router])
 
   useEffect(() => {
-    if (!sessionPending && !sessionData?.session) router.replace("/")
-  }, [sessionPending, sessionData?.session, router])
-
-  useEffect(() => {
     if (!sessionPending && sessionData?.session) void fetchPlan()
   }, [sessionPending, sessionData?.session, fetchPlan])
 
@@ -90,12 +85,9 @@ export default function DashboardPage() {
     )
   }
 
-  const user = sessionData!.user
-
   if (plan === "error") {
     return (
       <main className="min-h-svh">
-        <DashboardHeader name={user.name} email={user.email} image={user.image} />
         <div className="mx-auto max-w-xl px-4 py-16 text-center space-y-4">
           <p className="text-muted-foreground">Unable to load your plan. Please try again.</p>
           <Button variant="outline" onClick={() => void fetchPlan()}>Retry</Button>
@@ -107,9 +99,8 @@ export default function DashboardPage() {
   if (plan === "empty") {
     return (
       <main className="min-h-svh">
-        <DashboardHeader name={user.name} email={user.email} image={user.image} />
         <div className="mx-auto max-w-xl px-4 py-16 text-center space-y-4">
-          <p className="text-muted-foreground">You don't have a saved plan yet.</p>
+          <p className="text-muted-foreground">You don&apos;t have a saved plan yet.</p>
           <Button asChild><Link href="/?new=1">Create a Plan</Link></Button>
         </div>
       </main>
@@ -158,7 +149,9 @@ export default function DashboardPage() {
   // ── Derived data ───────────────────────────────────────────────────────────
 
   const todayISO = getTodayISO()
-  const units = resolvedPlan.input.units
+  const units = (sessionData?.user as { units?: "km" | "miles" } | undefined)?.units
+    ?? resolvedPlan.input.units
+    ?? "km"
   const raceDateISO = resolvedPlan.input.race.date
 
   // Sort days once for stable first/last date lookups
@@ -187,8 +180,6 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-svh">
-      <DashboardHeader name={user.name} email={user.email} image={user.image} />
-
       <div className="mx-auto max-w-xl px-4 py-6 space-y-6">
 
         {/* Race banner — hidden after race date */}

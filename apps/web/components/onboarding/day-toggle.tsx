@@ -15,7 +15,7 @@ export function DayToggle({ label, selected, onClick, disabled }: DayToggleProps
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-sm font-medium border transition-all",
+        "flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-sm font-medium border transition-all active:scale-90 active:duration-100",
         selected
           ? "bg-primary text-primary-foreground border-primary"
           : disabled

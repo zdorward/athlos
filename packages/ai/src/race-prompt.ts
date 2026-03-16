@@ -110,6 +110,27 @@ const DAY_NAMES: Record<string, string> = {
   fri: "Friday", sat: "Saturday", sun: "Sunday",
 }
 
+const DAY_INDEX: Record<string, number> = {
+  sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6,
+}
+
+export function peakStrengthDay(strengthDays: string[], longRunDay: string): string | null {
+  if (strengthDays.length === 0) return null
+  if (strengthDays.length === 1) return strengthDays[0]!
+
+  const longIdx = DAY_INDEX[longRunDay] ?? 0
+
+  function circularDistance(day: string): number {
+    const idx = DAY_INDEX[day] ?? 0
+    const diff = Math.abs(idx - longIdx)
+    return Math.min(diff, 7 - diff)
+  }
+
+  return strengthDays.reduce((best, day) =>
+    circularDistance(day) >= circularDistance(best) ? day : best
+  )
+}
+
 const DAY_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
 const DISTANCE_KM_MAP: Record<string, number> = {

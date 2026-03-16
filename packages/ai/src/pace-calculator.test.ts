@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { calculatePaceZones, computePhases, computeGoalPeakMileage, calculateRawGoalPace, computeTrainingStructure } from "./pace-calculator"
+import { calculatePaceZones, computePhases, computeGoalPeakMileage, calculateRawGoalPace, computeTrainingStructure, computeLongRunTargets } from "./pace-calculator"
 
 function loSec(zone: string): number {
   const [m, s] = zone.split("–")[0]!.split(":").map(Number)
@@ -432,4 +432,137 @@ describe("computeTrainingStructure — undefined trainingAge treated as 1-3 (no 
   it("runDaysPerWeek matches 1-3", () => { expect(withUndefined.runDaysPerWeek).toBe(with1_3.runDaysPerWeek) })
   it("restDaysPerWeek matches 1-3", () => { expect(withUndefined.restDaysPerWeek).toBe(with1_3.restDaysPerWeek) })
   it("maxQualityPerWeek matches 1-3", () => { expect(withUndefined.maxQualityPerWeek).toBe(with1_3.maxQualityPerWeek) })
+})
+
+// ─── computeLongRunTargets ─────────────────────────────────────────────────
+
+describe("computeLongRunTargets — full marathon, null peakWeeklyKm (mid-range fallback)", () => {
+  const result = computeLongRunTargets("full", null, "1-3")
+  it("peakLongRunKm: 35", () => { expect(result.peakLongRunKm).toBe(35) })
+  it("recoveryRunMaxKm: 13", () => { expect(result.recoveryRunMaxKm).toBe(13) })
+})
+
+describe("computeLongRunTargets — full marathon, high=60 (< 65 bucket)", () => {
+  const result = computeLongRunTargets("full", { low: 45, high: 60 }, "1-3")
+  it("peakLongRunKm: 29", () => { expect(result.peakLongRunKm).toBe(29) })
+  it("recoveryRunMaxKm: 11", () => { expect(result.recoveryRunMaxKm).toBe(11) })
+})
+
+describe("computeLongRunTargets — full marathon, high=80 (< 90 bucket)", () => {
+  const result = computeLongRunTargets("full", { low: 65, high: 80 }, "1-3")
+  it("peakLongRunKm: 35", () => { expect(result.peakLongRunKm).toBe(35) })
+  it("recoveryRunMaxKm: 13", () => { expect(result.recoveryRunMaxKm).toBe(13) })
+})
+
+describe("computeLongRunTargets — full marathon, high=100 (< 116 bucket)", () => {
+  const result = computeLongRunTargets("full", { low: 80, high: 100 }, "1-3")
+  it("peakLongRunKm: 38", () => { expect(result.peakLongRunKm).toBe(38) })
+  it("recoveryRunMaxKm: 16", () => { expect(result.recoveryRunMaxKm).toBe(16) })
+})
+
+describe("computeLongRunTargets — full marathon, high=130 (>= 116 bucket)", () => {
+  const result = computeLongRunTargets("full", { low: 110, high: 130 }, "1-3")
+  it("peakLongRunKm: 38", () => { expect(result.peakLongRunKm).toBe(38) })
+  it("recoveryRunMaxKm: 16", () => { expect(result.recoveryRunMaxKm).toBe(16) })
+})
+
+describe("computeLongRunTargets — half marathon, null peakWeeklyKm (mid-range fallback)", () => {
+  const result = computeLongRunTargets("half", null, undefined)
+  it("peakLongRunKm: 22", () => { expect(result.peakLongRunKm).toBe(22) })
+  it("recoveryRunMaxKm: 11", () => { expect(result.recoveryRunMaxKm).toBe(11) })
+})
+
+describe("computeLongRunTargets — half marathon, high=45 (< 50 bucket)", () => {
+  const result = computeLongRunTargets("half", { low: 35, high: 45 }, "1-3")
+  it("peakLongRunKm: 19", () => { expect(result.peakLongRunKm).toBe(19) })
+  it("recoveryRunMaxKm: 9", () => { expect(result.recoveryRunMaxKm).toBe(9) })
+})
+
+describe("computeLongRunTargets — half marathon, high=65 (< 75 bucket)", () => {
+  const result = computeLongRunTargets("half", { low: 55, high: 65 }, "1-3")
+  it("peakLongRunKm: 22", () => { expect(result.peakLongRunKm).toBe(22) })
+  it("recoveryRunMaxKm: 11", () => { expect(result.recoveryRunMaxKm).toBe(11) })
+})
+
+describe("computeLongRunTargets — half marathon, high=80 (>= 75 bucket)", () => {
+  const result = computeLongRunTargets("half", { low: 65, high: 80 }, "1-3")
+  it("peakLongRunKm: 26", () => { expect(result.peakLongRunKm).toBe(26) })
+  it("recoveryRunMaxKm: 13", () => { expect(result.recoveryRunMaxKm).toBe(13) })
+})
+
+describe("computeLongRunTargets — 5k, null peakWeeklyKm (mid-range fallback)", () => {
+  const result = computeLongRunTargets("5k", null, "1-3")
+  it("peakLongRunKm: 13", () => { expect(result.peakLongRunKm).toBe(13) })
+  it("recoveryRunMaxKm: 8", () => { expect(result.recoveryRunMaxKm).toBe(8) })
+})
+
+describe("computeLongRunTargets — 5k, high=40 (< 45 bucket)", () => {
+  const result = computeLongRunTargets("5k", { low: 30, high: 40 }, "1-3")
+  it("peakLongRunKm: 11", () => { expect(result.peakLongRunKm).toBe(11) })
+  it("recoveryRunMaxKm: 7", () => { expect(result.recoveryRunMaxKm).toBe(7) })
+})
+
+describe("computeLongRunTargets — 5k, high=55 (< 65 bucket)", () => {
+  const result = computeLongRunTargets("5k", { low: 45, high: 55 }, "1-3")
+  it("peakLongRunKm: 13", () => { expect(result.peakLongRunKm).toBe(13) })
+  it("recoveryRunMaxKm: 8", () => { expect(result.recoveryRunMaxKm).toBe(8) })
+})
+
+describe("computeLongRunTargets — 10k, high=70 (>= 65 bucket)", () => {
+  const result = computeLongRunTargets("10k", { low: 60, high: 70 }, "1-3")
+  it("peakLongRunKm: 16", () => { expect(result.peakLongRunKm).toBe(16) })
+  it("recoveryRunMaxKm: 10", () => { expect(result.recoveryRunMaxKm).toBe(10) })
+})
+
+describe("computeLongRunTargets — ultra (fixed values, peakWeeklyKm ignored)", () => {
+  const result = computeLongRunTargets("ultra", { low: 50, high: 100 }, "1-3")
+  it("peakLongRunKm: 32", () => { expect(result.peakLongRunKm).toBe(32) })
+  it("recoveryRunMaxKm: 14", () => { expect(result.recoveryRunMaxKm).toBe(14) })
+})
+
+describe("computeLongRunTargets — ultra, null peakWeeklyKm", () => {
+  const result = computeLongRunTargets("ultra", null, "1-3")
+  it("peakLongRunKm: 32", () => { expect(result.peakLongRunKm).toBe(32) })
+  it("recoveryRunMaxKm: 14", () => { expect(result.recoveryRunMaxKm).toBe(14) })
+})
+
+describe("computeLongRunTargets — unknown distance, null peakWeeklyKm (unknown fallback)", () => {
+  const result = computeLongRunTargets("obstacle-course", null, undefined)
+  it("peakLongRunKm: 29", () => { expect(result.peakLongRunKm).toBe(29) })
+  it("recoveryRunMaxKm: 11", () => { expect(result.recoveryRunMaxKm).toBe(11) })
+})
+
+describe("computeLongRunTargets — under-1 training age reduces peakLongRunKm by 3", () => {
+  it("full, high=80: 35 - 3 = 32", () => {
+    const result = computeLongRunTargets("full", { low: 65, high: 80 }, "under-1")
+    expect(result.peakLongRunKm).toBe(32)
+    expect(result.recoveryRunMaxKm).toBe(13)  // recoveryRunMaxKm unchanged
+  })
+
+  it("full, high=60: 29 - 3 = 26", () => {
+    const result = computeLongRunTargets("full", { low: 45, high: 60 }, "under-1")
+    expect(result.peakLongRunKm).toBe(26)
+  })
+
+  it("5k, high=40: 11 - 3 = 8, but Math.max(13, 8) = 13", () => {
+    const result = computeLongRunTargets("5k", { low: 30, high: 40 }, "under-1")
+    expect(result.peakLongRunKm).toBe(13)
+    expect(result.recoveryRunMaxKm).toBe(7)  // recoveryRunMaxKm unchanged
+  })
+})
+
+describe("computeLongRunTargets — 3-or-more and undefined training age: no modifier", () => {
+  const base = computeLongRunTargets("full", { low: 65, high: 80 }, "1-3")
+
+  it("3-or-more matches 1-3", () => {
+    const result = computeLongRunTargets("full", { low: 65, high: 80 }, "3-or-more")
+    expect(result.peakLongRunKm).toBe(base.peakLongRunKm)
+    expect(result.recoveryRunMaxKm).toBe(base.recoveryRunMaxKm)
+  })
+
+  it("undefined matches 1-3", () => {
+    const result = computeLongRunTargets("full", { low: 65, high: 80 }, undefined)
+    expect(result.peakLongRunKm).toBe(base.peakLongRunKm)
+    expect(result.recoveryRunMaxKm).toBe(base.recoveryRunMaxKm)
+  })
 })

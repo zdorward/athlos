@@ -19,13 +19,13 @@ export function StepStrengthTraining({ formData, onNext }: Pick<StepProps, "form
           Would you like to include strength training?
         </h2>
         <p className="text-sm text-muted-foreground">
-          We&apos;ll schedule lifting days that don&apos;t interfere with your key runs.
+          We&apos;ll work strength sessions around your key runs.
         </p>
       </div>
       <div className="space-y-3">
         <OnboardingCard
           label="Yes"
-          description="We'll schedule lifting days around your runs"
+          description="Strength sessions scheduled around your runs"
           selected={selected === true}
           onClick={() => handleSelect(true)}
         />

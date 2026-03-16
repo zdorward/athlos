@@ -85,15 +85,6 @@ export const RACES: Race[] = [
     url: "https://chillyhalfmarathon.ca/",
   },
   {
-    id: "toronto-yonge-10k-2026",
-    name: "Sporting Life 10K",
-    city: "Toronto",
-    province: "ON",
-    date: "2026-05-10",
-    distance: "10k",
-    url: "https://sportinglife10k.ca/",
-  },
-  {
     id: "goodlife-toronto-half-2026",
     name: "GoodLife Fitness Toronto Half Marathon",
     city: "Toronto",
@@ -138,15 +129,6 @@ export const RACES: Race[] = [
     date: "2026-10-11",
     distance: "half",
     url: "https://www.runvictoriamarathon.com/",
-  },
-  {
-    id: "sun-run-10k-2026",
-    name: "Vancouver Sun Run",
-    city: "Vancouver",
-    province: "BC",
-    date: "2026-04-19",
-    distance: "10k",
-    url: "https://www.vancouversunrun.com/",
   },
   {
     id: "okanagan-full-2026",

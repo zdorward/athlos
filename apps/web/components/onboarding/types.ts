@@ -1,13 +1,10 @@
 export type Goal = "race"
 export type Day = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun"
-export type Distance = "5k" | "10k" | "half" | "full" | "ultra"
+export type Distance = "half" | "full"
 
 export const DISTANCE_LABELS: Record<Distance, string> = {
-  "5k":    "5K",
-  "10k":   "10K",
-  "half":  "Half Marathon",
-  "full":  "Full Marathon",
-  "ultra": "Ultra",
+  "half": "Half Marathon",
+  "full": "Full Marathon",
 }
 
 export const DAY_LABELS: Record<Day, { short: string; full: string }> = {

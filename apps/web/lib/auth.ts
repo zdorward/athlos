@@ -11,6 +11,7 @@ import * as schema from "@workspace/db/schema"
 function createAuth() {
   return betterAuth({
       secret: process.env.BETTER_AUTH_SECRET!,
+      trustedOrigins: ["https://www.athlos.run", "https://athlos.run"],
       database: drizzleAdapter(db, {
         provider: "pg",
         schema,

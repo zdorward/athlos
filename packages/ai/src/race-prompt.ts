@@ -59,7 +59,7 @@ running-days rule — training age does not override it).
 ## Weekly Structure Rules
 
 - Never schedule two quality sessions on consecutive days
-- The day after the long run must be rest or easy only
+- The day after the long run must be rest, an easy recovery run (≤ the day-after-long-run max from the user message), or a medium-long run for athletes with 1–3 or 3-or-more years of running — never a quality session
 - At least one easy or rest day before any quality session
 - Long run MUST fall on the designated long run day every single week — no exceptions
 
@@ -100,7 +100,7 @@ Follow the phase schedule provided in the user message. Apply the rules below pe
 
 - Only schedule runs on the athlete's available running days. Assign rest days to achieve the prescribed rest days per week — you may designate any available running day as rest if needed to hit this target, except the long run day which must always remain a run day. Days not in the available running days list (and not strength days) are always rest.
 - Long run MUST be on the designated long run day every single week, no exceptions
-- Follow the 10% weekly mileage increase rule; include a recovery week (30% mileage reduction) every 4th week
+- Follow the 10% weekly mileage increase rule; include a recovery week (30% mileage reduction) every 3rd week
 - Always output distances in ${unitLabel}
 - Descriptions must be specific (e.g. "2 ${u} warm-up, 5 × 1000 m at vo2max zone with 90 sec jog, 2 ${u} cool-down") not vague (e.g. "do intervals")`
 }

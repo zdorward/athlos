@@ -15,6 +15,7 @@ import type { WorkoutDay, WorkoutType } from "@workspace/ai"
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
+const VALID_WORKOUT_TYPES = new Set(["easy", "long", "medium-long", "mp", "tempo", "intervals", "rest", "race", "strength"])
 const VALID_ACTUAL_EFFORTS: ActualEffort[] = ["hard", "good", "easy"]
 const VALID_SORENESS: Soreness[] = ["none", "mild", "significant"]
 
@@ -48,9 +49,9 @@ export async function POST(
   const { workoutType, actualEffort, completed, soreness } = body
 
   if (
-    !workoutType ||
+    !workoutType || !VALID_WORKOUT_TYPES.has(workoutType) ||
     !actualEffort || !VALID_ACTUAL_EFFORTS.includes(actualEffort) ||
-    completed === undefined ||
+    completed === undefined || typeof completed !== "boolean" ||
     !soreness || !VALID_SORENESS.includes(soreness)
   ) {
     return Response.json({ error: "Bad request" }, { status: 400 })
@@ -104,7 +105,7 @@ export async function POST(
     await db
       .update(plans)
       .set({ days: updatedDays })
-      .where(eq(plans.id, id))
+      .where(and(eq(plans.id, id), eq(plans.userId, session.user.id)))
 
     // Run adaptation check if no pending suggestion exists
     const suggestion = await runAdaptationCheck(id, session.user.id, updatedDays)
@@ -120,6 +121,7 @@ async function runAdaptationCheck(
   userId: string,
   planDays: WorkoutDay[],
 ) {
+  try {
   // Skip if a pending suggestion already exists
   const [existing] = await db
     .select({ id: adaptationSuggestions.id })
@@ -135,7 +137,7 @@ async function runAdaptationCheck(
   if (existing) return null
 
   // Fetch logs from the last 8 days (one extra for timezone buffer)
-  const eightDaysAgo = subtractDays(new Date().toLocaleDateString("en-CA"), 8)
+  const eightDaysAgo = subtractDays(new Date().toISOString().slice(0, 10), 8)
   const recentLogs = await db
     .select()
     .from(workoutLogs)
@@ -159,7 +161,7 @@ async function runAdaptationCheck(
   if (!triggered || !reason) return null
 
   // Find next upcoming replaceable workout
-  const today = new Date().toLocaleDateString("en-CA")
+  const today = new Date().toISOString().slice(0, 10)
   const unreplaceableTypes = new Set(["easy", "race", "rest"])
   const nextTarget = planDays
     .filter(
@@ -188,6 +190,9 @@ async function runAdaptationCheck(
     .returning()
 
   return suggestion ?? null
+  } catch {
+    return null
+  }
 }
 
 function subtractDays(isoDate: string, n: number): string {

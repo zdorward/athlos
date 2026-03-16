@@ -533,17 +533,6 @@ function PageContent() {
               )}
             </div>
 
-            {/* Friction copy */}
-            <p
-              style={{
-                fontSize: 12,
-                margin: 0,
-                color: "rgba(255,255,255,0.22)",
-                letterSpacing: "0.02em",
-              }}
-            >
-              Free &middot; No account needed &middot; Ready in 2 minutes
-            </p>
           </div>
 
           {/* Scroll hint */}

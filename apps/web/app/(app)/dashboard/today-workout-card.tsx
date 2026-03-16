@@ -14,21 +14,12 @@ interface TodayWorkoutCardProps {
   entry: WorkoutDay
   units: "km" | "miles"
   onComplete: () => void
-  onLogEffort: (effort: "hard" | "good" | "easy") => void
   variant?: "today" | "preview"
 }
 
-const EFFORT_OPTIONS: { value: "hard" | "good" | "easy"; emoji: string; label: string }[] = [
-  { value: "hard", emoji: "😓", label: "Hard" },
-  { value: "good", emoji: "😊", label: "Good" },
-  { value: "easy", emoji: "⚡", label: "Easy" },
-]
-
-export function TodayWorkoutCard({ entry, units, onComplete, onLogEffort, variant = "today" }: TodayWorkoutCardProps) {
+export function TodayWorkoutCard({ entry, units, onComplete, variant = "today" }: TodayWorkoutCardProps) {
   const isPreview = variant === "preview"
   const isComplete = entry.completed === true
-  const hasEffort = entry.effort !== undefined
-  const showEffortPicker = isComplete && !hasEffort && !isPreview
 
   const color = getWorkoutColor(entry.type)
   const textClass = WORKOUT_TEXT_CLASS[entry.type]
@@ -53,35 +44,11 @@ export function TodayWorkoutCard({ entry, units, onComplete, onLogEffort, varian
             </p>
             {entry.effort && (
               <p className="text-xs text-green-600/60 dark:text-green-500/60 mt-0.5">
-                <span aria-hidden="true">{EFFORT_OPTIONS.find((o) => o.value === entry.effort)?.emoji}</span>{" "}
-                {EFFORT_OPTIONS.find((o) => o.value === entry.effort)?.label}
+                {entry.effort === "hard" ? "😓 Hard" : entry.effort === "good" ? "😊 Good" : "⚡ Easy"}
               </p>
             )}
           </div>
         </div>
-
-        {/* Inline effort picker — only shown if not yet logged */}
-        {showEffortPicker && (
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-green-700 dark:text-green-400">
-              How did it feel?
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              {EFFORT_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => onLogEffort(opt.value)}
-                  className="flex flex-col items-center gap-1 rounded-lg border border-green-500/20 bg-white/50 dark:bg-white/5 px-2 py-2 text-center hover:bg-green-500/10 transition-colors cursor-pointer"
-                >
-                  <span className="text-xl leading-none" aria-hidden="true">{opt.emoji}</span>
-                  <span className="text-[11px] font-semibold text-green-700 dark:text-green-400">
-                    {opt.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     )
   }

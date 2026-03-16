@@ -12,6 +12,7 @@ export {
   type PhaseEntry,
 } from "./types"
 export { buildBridgeRuns } from "./bridge-runs"
+export * from "./adaptation"
 
 function createProvider(): AIProvider {
   const { provider, model } = loadConfig()

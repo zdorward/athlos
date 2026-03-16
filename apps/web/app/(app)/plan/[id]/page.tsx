@@ -92,7 +92,7 @@ export default function PlanViewPage({ params }: PageProps) {
     } catch {
       // ignore
     }
-    router.push("/?new=1")
+    router.push("/new-plan")
   }
 
   function handleToggleComplete(date: string, type: WorkoutType, completed: boolean) {

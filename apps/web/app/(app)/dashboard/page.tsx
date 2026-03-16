@@ -11,6 +11,8 @@ import type { WorkoutDay, PlanGenerationInput } from "@workspace/ai"
 import { RaceBanner } from "./race-banner"
 import { TodayWorkoutCard } from "./today-workout-card"
 import { Button } from "@workspace/ui/components/button"
+import { WorkoutFeedbackSheet, type AdaptationSuggestion } from "./workout-feedback-sheet"
+import { AdaptationSuggestionCard } from "./adaptation-suggestion-card"
 
 interface Plan {
   id: string
@@ -60,6 +62,8 @@ export default function DashboardPage() {
   const { data: sessionData, isPending: sessionPending } = authClient.useSession()
 
   const [plan, setPlan] = useState<Plan | null | "empty" | "error">(null)
+  const [feedbackEntry, setFeedbackEntry] = useState<WorkoutDay | null>(null)
+  const [suggestion, setSuggestion] = useState<AdaptationSuggestion | null>(null)
 
   const searchParams = useSearchParams()
   const [showUpgradedBanner, setShowUpgradedBanner] = useState(false)
@@ -123,37 +127,49 @@ export default function DashboardPage() {
   const resolvedPlan = plan as Plan
 
   function handleComplete(entry: WorkoutDay) {
+    setFeedbackEntry(entry)
+  }
+
+  function handleFeedbackDismiss() {
+    if (!feedbackEntry) return
+    const entry = feedbackEntry
+    setFeedbackEntry(null)
+    // User dismissed the sheet — mark complete without logging
     const prevDays = resolvedPlan.days
     const updated = resolvedPlan.days.map((d: WorkoutDay) =>
       d.date === entry.date && d.type === entry.type ? { ...d, completed: true } : d
     )
-    setPlan((p) => (p === null || typeof p === "string" ? p : ({ ...p, days: updated } as Plan)))
+    setPlan((p) => (p === null || typeof p === "string" ? p : { ...p, days: updated } as Plan))
     fetch(`/api/plans/${resolvedPlan.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ date: entry.date, type: entry.type, completed: true }),
-    }).then((res) => {
-      if (!res.ok) throw new Error()
     }).catch(() => {
-      setPlan((p) => (p === null || typeof p === "string" ? p : ({ ...p, days: prevDays } as Plan)))
+      setPlan((p) => (p === null || typeof p === "string" ? p : { ...p, days: prevDays } as Plan))
     })
   }
 
-  function handleLogEffort(entry: WorkoutDay, effort: "hard" | "good" | "easy") {
-    const prevDays = resolvedPlan.days
+  function handleFeedbackLogged(newSuggestion: AdaptationSuggestion | null) {
+    if (!feedbackEntry) return
+    const entry = feedbackEntry
+    setFeedbackEntry(null)
+    // Optimistically mark complete; fetchPlan will sync the effort field from server
     const updated = resolvedPlan.days.map((d: WorkoutDay) =>
-      d.date === entry.date && d.type === entry.type ? { ...d, effort } : d
+      d.date === entry.date && d.type === entry.type ? { ...d, completed: true } : d
     )
-    setPlan((p) => (p === null || typeof p === "string" ? p : ({ ...p, days: updated } as Plan)))
-    fetch(`/api/plans/${resolvedPlan.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date: entry.date, type: entry.type, effort }),
-    }).then((res) => {
-      if (!res.ok) throw new Error()
-    }).catch(() => {
-      setPlan((p) => (p === null || typeof p === "string" ? p : ({ ...p, days: prevDays } as Plan)))
-    })
+    setPlan((p) => (p === null || typeof p === "string" ? p : { ...p, days: updated } as Plan))
+    if (newSuggestion) setSuggestion(newSuggestion)
+    // Sync from server to get the effort field written by the log endpoint
+    void fetchPlan()
+  }
+
+  function handleSuggestionAccepted(updatedDays: WorkoutDay[]) {
+    setPlan((p) => (p === null || typeof p === "string" ? p : { ...p, days: updatedDays } as Plan))
+    setSuggestion(null)
+  }
+
+  function handleSuggestionDismissed() {
+    setSuggestion(null)
   }
 
   // ── Derived data ───────────────────────────────────────────────────────────
@@ -220,6 +236,16 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
+            {/* Adaptation suggestion */}
+            {suggestion && (
+              <AdaptationSuggestionCard
+                suggestion={suggestion}
+                planId={resolvedPlan.id}
+                onAccepted={handleSuggestionAccepted}
+                onDismissed={handleSuggestionDismissed}
+              />
+            )}
+
             {/* Today's workouts */}
             <section className="space-y-2">
               <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -240,7 +266,6 @@ export default function DashboardPage() {
                     entry={entry}
                     units={units}
                     onComplete={() => handleComplete(entry)}
-                    onLogEffort={(effort) => handleLogEffort(entry, effort)}
                   />
                 ))
               )}
@@ -258,7 +283,6 @@ export default function DashboardPage() {
                     entry={entry}
                     units={units}
                     onComplete={() => {}}
-                    onLogEffort={() => {}}
                     variant="preview"
                   />
                 ))}
@@ -278,6 +302,14 @@ export default function DashboardPage() {
         </div>
 
       </div>
+
+      <WorkoutFeedbackSheet
+        open={feedbackEntry !== null}
+        entry={feedbackEntry}
+        planId={resolvedPlan.id}
+        onLogged={handleFeedbackLogged}
+        onDismiss={handleFeedbackDismiss}
+      />
     </main>
   )
 }

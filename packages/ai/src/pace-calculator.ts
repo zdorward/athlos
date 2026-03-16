@@ -230,3 +230,81 @@ export function calculateRawGoalPace(input: PaceInput): string | null {
 
   return formatZone(...ZONES.mp, ref)
 }
+
+// ─── Training structure ──────────────────────────────────────────────────────
+
+/**
+ * Derive the optimal weekly training structure from goal time, distance,
+ * training age, and availability. Used to inject Pfitzinger-based hard
+ * constraints into the LLM prompt.
+ *
+ * The weeklyMileageRange fallback is used when goalMinutes is null (no goal
+ * time provided) or when distance is "ultra".
+ * Unknown distance values (not full/half/5k/10k/ultra) fall through to the mileage range fallback.
+ */
+export function computeTrainingStructure(
+  goalMinutes: number | null,
+  distance: string,
+  trainingAge: string | undefined,
+  selectedDaysCount: number,
+  weeklyMileageRange: string,
+): { runDaysPerWeek: number; restDaysPerWeek: number; maxQualityPerWeek: number } {
+  let run: number
+  let rest: number
+  let quality: number
+
+  const useMileageFallback =
+    goalMinutes === null ||
+    distance === "ultra" ||
+    (distance !== "full" && distance !== "half" && distance !== "5k" && distance !== "10k")
+
+  if (!useMileageFallback && distance === "full") {
+    if (goalMinutes < 150)      { run = 7; rest = 0; quality = 3 }
+    else if (goalMinutes < 165) { run = 7; rest = 0; quality = 2 }
+    // buckets match spec rows — values may diverge in future tuning
+    else if (goalMinutes < 190) { run = 6; rest = 1; quality = 2 }
+    else if (goalMinutes < 225) { run = 6; rest = 1; quality = 2 }
+    else if (goalMinutes < 270) { run = 5; rest = 2; quality = 1 }
+    else                        { run = 5; rest = 2; quality = 1 }
+  } else if (!useMileageFallback && distance === "half") {
+    if (goalMinutes < 75)       { run = 7; rest = 0; quality = 3 }
+    else if (goalMinutes < 82)  { run = 7; rest = 0; quality = 2 }
+    // buckets match spec rows — values may diverge in future tuning
+    else if (goalMinutes < 95)  { run = 6; rest = 1; quality = 2 }
+    else if (goalMinutes < 112) { run = 6; rest = 1; quality = 2 }
+    else if (goalMinutes < 135) { run = 5; rest = 2; quality = 1 }
+    else                        { run = 5; rest = 2; quality = 1 }
+  } else if (!useMileageFallback && (distance === "5k" || distance === "10k")) {
+    const gm = goalMinutes as number
+    // Use full marathon table as base
+    if (gm < 150)      { run = 7; rest = 0; quality = 3 }
+    else if (gm < 165) { run = 7; rest = 0; quality = 2 }
+    else if (gm < 190) { run = 6; rest = 1; quality = 2 }
+    else if (gm < 225) { run = 6; rest = 1; quality = 2 }
+    else if (gm < 270) { run = 5; rest = 2; quality = 1 }
+    else               { run = 5; rest = 2; quality = 1 }
+    // 5k/10k modifier: +1 quality, cap run days at 6
+    quality += 1
+    if (run > 6) { run = 6; rest += 1 }
+  } else {
+    // Mileage fallback (ultra, no goal time, unknown distance)
+    if (weeklyMileageRange === "under-40")     { run = 5; rest = 2; quality = 1 }
+    else if (weeklyMileageRange === "40-60")   { run = 6; rest = 1; quality = 1 }
+    else if (weeklyMileageRange === "60-80")   { run = 6; rest = 1; quality = 2 }
+    else if (weeklyMileageRange === "80-plus") { run = 7; rest = 0; quality = 2 }
+    else                                        { run = 5; rest = 2; quality = 1 }
+  }
+
+  // Training age modifier — only "under-1" gets a modifier
+  if (trainingAge === "under-1") {
+    quality = Math.max(1, quality - 1)
+    if (run > 6) { run = 6; rest += 1 }
+  }
+  // "1-3", "3-or-more", undefined: no modifier
+
+  // selectedDaysCount clamp — restDaysPerWeek is NOT adjusted
+  run = Math.min(run, selectedDaysCount)
+  // restDaysPerWeek is intentionally not adjusted: rest placement is the LLM's responsibility given the available day count
+
+  return { runDaysPerWeek: run, restDaysPerWeek: rest, maxQualityPerWeek: quality }
+}

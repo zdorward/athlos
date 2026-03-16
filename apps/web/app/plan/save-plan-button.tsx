@@ -1,7 +1,8 @@
 "use client"
 
-import { Loader2, BookmarkPlus, CheckCircle2 } from "lucide-react"
+import { BookmarkPlus, CheckCircle2 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
+import { Spinner } from "@workspace/ui/components/spinner"
 
 export interface SaveProps {
   status: "generating" | "complete" | "error"
@@ -39,7 +40,7 @@ export function SavePlanButton({
   if (isSaving) {
     return (
       <Button disabled className={`gap-2 ${className ?? ""}`}>
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <Spinner size="sm" />
         Saving…
       </Button>
     )

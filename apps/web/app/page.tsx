@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react"
 import { Wordmark } from "@/components/wordmark"
 import { useRouter } from "next/navigation"
-import { Search, Loader2, CalendarIcon } from "lucide-react"
+import { Search, CalendarIcon } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { authClient } from "@/lib/auth-client"
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow"
@@ -13,6 +13,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Calendar } from "@workspace/ui/components/calendar"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Popover,
   PopoverContent,
@@ -229,10 +230,7 @@ function PageContent() {
           background: "#020208",
         }}
       >
-        <Loader2
-          className="h-6 w-6 animate-spin"
-          style={{ color: "rgba(255,255,255,0.3)" }}
-        />
+        <Spinner className="text-white/30" />
       </main>
     )
   }
@@ -535,17 +533,6 @@ function PageContent() {
               )}
             </div>
 
-            {/* Friction copy */}
-            <p
-              style={{
-                fontSize: 12,
-                margin: 0,
-                color: "rgba(255,255,255,0.22)",
-                letterSpacing: "0.02em",
-              }}
-            >
-              Free &middot; No account needed &middot; Ready in 2 minutes
-            </p>
           </div>
 
           {/* Scroll hint */}

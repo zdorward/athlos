@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { calculatePaceZones, computePhases, computeGoalPeakMileage, calculateRawGoalPace } from "./pace-calculator"
+import { calculatePaceZones, computePhases, computeGoalPeakMileage, calculateRawGoalPace, computeTrainingStructure } from "./pace-calculator"
 
 function loSec(zone: string): number {
   const [m, s] = zone.split("–")[0]!.split(":").map(Number)
@@ -356,4 +356,80 @@ describe("calculatePaceZones — slow runner (no zone overlap)", () => {
     }
     expect(toSec(easyLower)).toBeGreaterThanOrEqual(toSec(longRunUpper))
   })
+})
+
+// ─── computeTrainingStructure ─────────────────────────────────────────────
+
+describe("computeTrainingStructure — full marathon, 3:20 goal (200 min), 1-3, 7 days", () => {
+  const result = computeTrainingStructure(200, "full", "1-3", 7, "40-60")
+  it("runDaysPerWeek: 6", () => { expect(result.runDaysPerWeek).toBe(6) })
+  it("restDaysPerWeek: 1", () => { expect(result.restDaysPerWeek).toBe(1) })
+  it("maxQualityPerWeek: 2", () => { expect(result.maxQualityPerWeek).toBe(2) })
+})
+
+describe("computeTrainingStructure — full marathon, sub-2:30 (140 min), 3-or-more, 7 days", () => {
+  const result = computeTrainingStructure(140, "full", "3-or-more", 7, "80-plus")
+  it("runDaysPerWeek: 7", () => { expect(result.runDaysPerWeek).toBe(7) })
+  it("restDaysPerWeek: 0", () => { expect(result.restDaysPerWeek).toBe(0) })
+  it("maxQualityPerWeek: 3", () => { expect(result.maxQualityPerWeek).toBe(3) })
+})
+
+describe("computeTrainingStructure — full marathon, sub-2:30 (140 min), under-1, 7 days — training age caps run days", () => {
+  const result = computeTrainingStructure(140, "full", "under-1", 7, "80-plus")
+  it("runDaysPerWeek: 6 (capped by under-1)", () => { expect(result.runDaysPerWeek).toBe(6) })
+  it("restDaysPerWeek: 1 (incremented due to cap)", () => { expect(result.restDaysPerWeek).toBe(1) })
+  it("maxQualityPerWeek: 2 (reduced by under-1)", () => { expect(result.maxQualityPerWeek).toBe(2) })
+})
+
+describe("computeTrainingStructure — full marathon, 3:20 (200 min), 1-3, 5 selected days — selectedDaysCount clamp", () => {
+  const result = computeTrainingStructure(200, "full", "1-3", 5, "40-60")
+  it("runDaysPerWeek: 5 (clamped to selectedDaysCount)", () => { expect(result.runDaysPerWeek).toBe(5) })
+  it("restDaysPerWeek: 1 (not adjusted by clamp)", () => { expect(result.restDaysPerWeek).toBe(1) })
+  it("maxQualityPerWeek: 2", () => { expect(result.maxQualityPerWeek).toBe(2) })
+})
+
+describe("computeTrainingStructure — half marathon, sub-1:15 (70 min), 1-3, 7 days", () => {
+  const result = computeTrainingStructure(70, "half", "1-3", 7, "60-80")
+  it("runDaysPerWeek: 7", () => { expect(result.runDaysPerWeek).toBe(7) })
+  it("restDaysPerWeek: 0", () => { expect(result.restDaysPerWeek).toBe(0) })
+  it("maxQualityPerWeek: 3", () => { expect(result.maxQualityPerWeek).toBe(3) })
+})
+
+describe("computeTrainingStructure — 5k, 200 min, 1-3, 7 days — maxQuality+1, runDays cap", () => {
+  // Full marathon 200 min → 6 run, 1 rest, 2 quality. 5K: quality+1=3, runDays still 6 (no cap needed)
+  const result = computeTrainingStructure(200, "5k", "1-3", 7, "40-60")
+  it("runDaysPerWeek: 6", () => { expect(result.runDaysPerWeek).toBe(6) })
+  it("restDaysPerWeek: 1", () => { expect(result.restDaysPerWeek).toBe(1) })
+  it("maxQualityPerWeek: 3 (5k bonus)", () => { expect(result.maxQualityPerWeek).toBe(3) })
+})
+
+describe("computeTrainingStructure — 5k, 140 min, 1-3, 7 days — run days capped from 7 to 6", () => {
+  // Full marathon 140 min → 7 run, 0 rest, 3 quality. 5K: quality+1=4, runDays 7→6 → rest+1=1
+  const result = computeTrainingStructure(140, "5k", "1-3", 7, "80-plus")
+  it("runDaysPerWeek: 6 (capped from 7)", () => { expect(result.runDaysPerWeek).toBe(6) })
+  it("restDaysPerWeek: 1 (incremented due to cap)", () => { expect(result.restDaysPerWeek).toBe(1) })
+  it("maxQualityPerWeek: 4 (3+1 bonus)", () => { expect(result.maxQualityPerWeek).toBe(4) })
+})
+
+describe("computeTrainingStructure — ultra (goalMinutes ignored, uses mileage fallback)", () => {
+  const result = computeTrainingStructure(200, "ultra", "1-3", 7, "60-80")
+  it("runDaysPerWeek: 6", () => { expect(result.runDaysPerWeek).toBe(6) })
+  it("restDaysPerWeek: 1", () => { expect(result.restDaysPerWeek).toBe(1) })
+  it("maxQualityPerWeek: 2", () => { expect(result.maxQualityPerWeek).toBe(2) })
+})
+
+describe("computeTrainingStructure — no goal time, full marathon, uses mileage fallback", () => {
+  // goalMinutes=null triggers mileage fallback regardless of distance
+  const result = computeTrainingStructure(null, "full", "1-3", 7, "under-40")
+  it("runDaysPerWeek: 5", () => { expect(result.runDaysPerWeek).toBe(5) })
+  it("restDaysPerWeek: 2", () => { expect(result.restDaysPerWeek).toBe(2) })
+  it("maxQualityPerWeek: 1", () => { expect(result.maxQualityPerWeek).toBe(1) })
+})
+
+describe("computeTrainingStructure — undefined trainingAge treated as 1-3 (no modifier)", () => {
+  const withUndefined = computeTrainingStructure(200, "full", undefined, 7, "40-60")
+  const with1_3 = computeTrainingStructure(200, "full", "1-3", 7, "40-60")
+  it("runDaysPerWeek matches 1-3", () => { expect(withUndefined.runDaysPerWeek).toBe(with1_3.runDaysPerWeek) })
+  it("restDaysPerWeek matches 1-3", () => { expect(withUndefined.restDaysPerWeek).toBe(with1_3.restDaysPerWeek) })
+  it("maxQualityPerWeek matches 1-3", () => { expect(withUndefined.maxQualityPerWeek).toBe(with1_3.maxQualityPerWeek) })
 })

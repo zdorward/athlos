@@ -7,9 +7,10 @@ import { DayToggle } from "../day-toggle"
 import { cn } from "@workspace/ui/lib/utils"
 import { ORDERED_DAYS, DAY_LABELS, type Day, type StepProps } from "../types"
 
-type Preset = 5 | 6 | 7
+type Preset = 4 | 5 | 6 | 7
 
 const PRESET_DEFAULTS: Record<Preset, Day[]> = {
+  4: ["mon", "wed", "fri", "sun"],
   5: ["mon", "tue", "thu", "fri", "sun"],
   6: ["mon", "tue", "wed", "thu", "fri", "sun"],
   7: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
@@ -17,10 +18,12 @@ const PRESET_DEFAULTS: Record<Preset, Day[]> = {
 
 const LONG_RUN_DEFAULT: Day = "sun"
 
-function detectPreset(days: Day[]): Preset {
-  if (days.length <= 5) return 5
+function detectPreset(days: Day[]): Preset | null {
+  if (days.length === 7) return 7
   if (days.length === 6) return 6
-  return 7
+  if (days.length === 5) return 5
+  if (days.length === 4) return 4
+  return null
 }
 
 export function StepWhichDays({
@@ -28,7 +31,7 @@ export function StepWhichDays({
   onNext,
 }: Pick<StepProps, "formData" | "onNext">) {
   const initialDays = formData.selectedDays ?? PRESET_DEFAULTS[6]
-  const [preset, setPreset] = useState<Preset>(() => detectPreset(initialDays))
+  const [preset, setPreset] = useState<Preset | null>(() => detectPreset(initialDays))
   const [selectedDays, setSelectedDays] = useState<Day[]>(initialDays)
   const [longRunDay, setLongRunDay] = useState<Day | undefined>(
     formData.longRunDay ?? LONG_RUN_DEFAULT
@@ -69,7 +72,7 @@ export function StepWhichDays({
 
       {/* Preset tabs */}
       <div className="flex gap-2">
-        {([5, 6, 7] as Preset[]).map((p) => (
+        {([4, 5, 6, 7] as Preset[]).map((p) => (
           <button
             key={p}
             onClick={() => applyPreset(p)}
@@ -90,7 +93,7 @@ export function StepWhichDays({
           <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
             Running days
           </p>
-          <div className="flex w-full justify-center gap-2">
+          <div className="flex w-full justify-between gap-2">
             {ORDERED_DAYS.map((day) => (
               <DayToggle
                 key={day}
@@ -113,7 +116,7 @@ export function StepWhichDays({
           <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
             Long run day
           </p>
-          <div className="flex w-full justify-center gap-2">
+          <div className="flex w-full justify-between gap-2">
             {ORDERED_DAYS.map((day) => {
               const available = selectedDays.includes(day)
               return (

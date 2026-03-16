@@ -149,7 +149,25 @@ distance: "half" | "full"
 
 ### `packages/ai/src/race-prompt.ts`
 
-Remove the `ultra` guard in the two `calculatePaceZones` / `calculateRawGoalPace` call sites. After narrowing `PlanGenerationInput.race.distance`, `distance` is already `"half" | "full"` — the cast and guard are dead code.
+Two changes:
+
+**1. Remove dead entries from `DISTANCE_KM_MAP`.**
+
+Old:
+```ts
+const DISTANCE_KM_MAP: Record<string, number> = {
+  "5k": 5, "10k": 10, half: 21.1, full: 42.2, ultra: 80,
+}
+```
+
+New:
+```ts
+const DISTANCE_KM_MAP: Record<string, number> = {
+  half: 21.1, full: 42.2,
+}
+```
+
+**2. Remove the `ultra` guard in the two `calculatePaceZones` / `calculateRawGoalPace` call sites.** After narrowing `PlanGenerationInput.race.distance`, `distance` is already `"half" | "full"` — the cast and guard are dead code.
 
 Old (both occurrences):
 ```ts

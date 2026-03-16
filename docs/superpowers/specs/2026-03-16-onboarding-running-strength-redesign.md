@@ -54,11 +54,11 @@ Selecting a preset auto-populates the day toggles with a smart default for that 
 
 **6-day rationale:** Rest on Saturday preserves fresh legs before Sunday's long run — the standard Pfitzinger pattern.
 
-Users can toggle individual days after selecting a preset. Switching presets resets to that preset's smart default.
+Users can toggle individual days after selecting a preset. Switching presets resets both the day toggles **and the long run day** to that preset's smart default (Sunday).
 
 ### Long run default
 
-Sunday is pre-selected as the long run day. It remains selected unless the user deselects Sunday or explicitly taps a different day. Behavior of the long run picker is otherwise unchanged.
+Sunday is pre-selected as the long run day on every preset. If the user manually moves the long run to a different day and then switches presets, the long run resets to Sunday along with the day toggles.
 
 ### Copy changes
 
@@ -76,26 +76,68 @@ To:
 
 Replace the two-step yes/no + day picker with a single step that shows a Pfitzinger-based recommendation up front, pre-populates the day picker with smart defaults, and lets the user accept or adjust.
 
-### New helpers in `packages/ai/src`
+### New helpers in `packages/ai/src/strength-recommendation.ts`
 
-**`recommendStrengthCount(peakMileageHigh: number | null, weeklyMileageRange: string): 1 | 2`**
+These are training recommendation utilities, kept separate from `race-prompt.ts` to maintain single responsibility.
+
+---
+
+**`recommendStrengthCount`**
+
+```ts
+function recommendStrengthCount(
+  peakMileageHigh: number | null,
+  weeklyMileageRange: "under-40" | "40-60" | "60-80" | "80-plus",
+): 1 | 2
+```
 
 Maps implied peak weekly volume to a recommended Base/Build lifting frequency:
 
 | Condition | Recommendation |
 |-----------|---------------|
-| `peakMileageHigh >= 95` | 1 day |
-| `peakMileageHigh < 95` | 2 days |
-| `peakMileageHigh` is null, `weeklyMileageRange === "80-plus"` | 1 day |
-| `peakMileageHigh` is null, all other ranges | 2 days |
+| `peakMileageHigh !== null && peakMileageHigh >= 95` | 1 day |
+| `peakMileageHigh !== null && peakMileageHigh < 95` | 2 days |
+| `peakMileageHigh === null && weeklyMileageRange === "80-plus"` | 1 day |
+| `peakMileageHigh === null`, all other ranges | 2 days |
 
-`peakMileageHigh` is derived from `computeGoalPeakMileage(distance, goalMinutes)?.high ?? null`.
+**Caller derivation:** `peakMileageHigh` is obtained as:
+```ts
+const goalMinutes = goalTime ? goalTime.hours * 60 + goalTime.minutes : null
+const peakMileageHigh = goalMinutes !== null
+  ? (computeGoalPeakMileage(race.distance, goalMinutes)?.high ?? null)
+  : null
+```
 
-**`recommendStrengthDays(longRunDay: Day, count: number): Day[]`**
+---
 
-Returns `count` days maximally far from the long run day using circular distance (extending the logic in `peakStrengthDay`). Days are also spread apart from each other: after picking the first (farthest from long run), subsequent days are picked to maximise distance from both the long run day and already-selected days.
+**`recommendStrengthDays`**
 
-Example — Sunday long run, count 2: returns `["wed", "thu"]` (both 3 days from Sunday).
+```ts
+function recommendStrengthDays(longRunDay: Day, count: number): Day[]
+```
+
+Returns `count` days from the full 7-day week, ranked by circular distance from `longRunDay`, descending. Ties broken by `DAY_INDEX` value (Sun=0, Mon=1 … Sat=6 — lower index wins).
+
+**Algorithm:**
+1. Compute circular distance for each of the 7 days: `min(|idx - longIdx|, 7 - |idx - longIdx|)`.
+2. Sort all days descending by circular distance; break ties by ascending day index.
+3. Return the first `count` days from the sorted list.
+
+**Example — Sunday long run (`longIdx = 0` per `DAY_INDEX`), count 2:**
+
+| Day | DAY_INDEX | Circular distance from Sun (idx=0) |
+|-----|-----------|-----------------------------------|
+| Thu | 4 | 3 |
+| Wed | 3 | 3 |
+| Tue | 2 | 2 |
+| Fri | 5 | 2 |
+| Mon | 1 | 1 |
+| Sat | 6 | 1 |
+| Sun | 0 | 0 |
+
+Top 2 by distance desc, tiebreak by `DAY_INDEX` asc: **Wed (idx=3, dist=3), Thu (idx=4, dist=3)** → returns `["wed", "thu"]`.
+
+---
 
 ### UI structure
 
@@ -112,9 +154,10 @@ This drops to 1 day in Peak and stops in Taper automatically.
 [Skip strength training →]
 ```
 
-- The recommendation line references the specific count derived from `recommendStrengthCount`.
+- The recommendation line references the specific count from `recommendStrengthCount`.
 - The day picker is pre-populated using `recommendStrengthDays`.
-- User can toggle any day freely. Minimum 1 day to enable Continue (0 days → use Skip instead).
+- User can toggle any day freely.
+- **Continue button** is disabled (greyed out, no tooltip needed) when 0 days are selected. Helper text below the picker reads: *"Select at least one day, or skip strength training below."* — visible only when 0 days are selected.
 - **Continue** → `onNext({ strengthTraining: true, strengthDays: selected })`
 - **Skip** → `onNext({ strengthTraining: false, strengthDays: [] })`
 
@@ -127,9 +170,9 @@ This drops to 1 day in Peak and stops in Taper automatically.
 
 ---
 
-## `onboarding-flow.tsx` Changes
+## `types.ts` Changes
 
-### `getSteps()` (in `types.ts`)
+### `getSteps()`
 
 ```ts
 // Before
@@ -138,6 +181,8 @@ This drops to 1 day in Peak and stops in Taper automatically.
 // After
 ["findRace", "goalTime", "trainingAge", "whichDays", "weeklyMileage", "strength"]
 ```
+
+## `onboarding-flow.tsx` Changes
 
 ### `STEP_LABELS`
 
@@ -168,10 +213,10 @@ case "strength": return <StepStrength {...stepProps} />
 | File | Change |
 |------|--------|
 | `apps/web/components/onboarding/types.ts` | Update `getSteps()` |
-| `apps/web/components/onboarding/onboarding-flow.tsx` | Update labels, step render, remove skip logic |
+| `apps/web/components/onboarding/onboarding-flow.tsx` | Update `STEP_LABELS`, step render, remove skip logic |
 | `apps/web/components/onboarding/steps/step-which-days.tsx` | Add preset tabs, update defaults and copy |
 | `apps/web/components/onboarding/steps/step-strength-training.tsx` | Delete |
 | `apps/web/components/onboarding/steps/step-strength-days.tsx` | Delete (replaced by StepStrength) |
 | `apps/web/components/onboarding/steps/step-strength.tsx` | New file |
-| `packages/ai/src/race-prompt.ts` | Add `recommendStrengthCount` and `recommendStrengthDays` |
+| `packages/ai/src/strength-recommendation.ts` | New file — `recommendStrengthCount` and `recommendStrengthDays` |
 | `apps/web/e2e/onboarding.spec.ts` | Update E2E test to reflect new step order and merged strength step |

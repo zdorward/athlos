@@ -18,6 +18,32 @@ const VALID_WORKOUT_TYPES = new Set([
   "easy", "long", "medium-long", "mp", "tempo", "intervals", "rest", "race", "strength",
 ])
 
+const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const
+
+function mergeStrengthDays(
+  days: WorkoutDay[],
+  strengthDays: string[],
+  startDate: Date,
+  endDate: Date,
+): WorkoutDay[] {
+  if (strengthDays.length === 0) return days
+  const strengthSet = new Set(strengthDays)
+  const result = [...days]
+  const d = new Date(startDate.getTime())
+  while (d <= endDate) {
+    const key = DAY_KEYS[d.getDay()]
+    if (key && strengthSet.has(key)) {
+      result.push({
+        date: d.toLocaleDateString("en-CA"),
+        type: "strength",
+        description: "Strength training",
+      })
+    }
+    d.setDate(d.getDate() + 1)
+  }
+  return result
+}
+
 interface SavedPlanSnapshot {
   input: PlanGenerationInput
   days: WorkoutDay[]
@@ -280,14 +306,22 @@ export default function PlanPage() {
             setStatus("error")
           } else {
             const bridgeDays = buildBridgeRuns(planInput, localDays, new Date())
-            if (bridgeDays.length > 0) {
-              const mergedDays = [...bridgeDays, ...localDays].sort(
-                (a, b) => a.date.localeCompare(b.date),
+            let finalDays: WorkoutDay[] = bridgeDays.length > 0
+              ? [...bridgeDays, ...localDays].sort((a, b) => a.date.localeCompare(b.date))
+              : localDays
+
+            // Inject strength days — LLM no longer outputs them
+            if (planInput.strengthDays?.length && finalDays.length > 0) {
+              finalDays = mergeStrengthDays(
+                finalDays,
+                planInput.strengthDays,
+                new Date(finalDays[0]!.date + "T00:00:00"),
+                new Date(finalDays[finalDays.length - 1]!.date + "T00:00:00"),
               )
-              // Recompute totalKm from scratch — replaces the running total from streaming
-              const newTotalKm = mergedDays.reduce((sum, d) => sum + (d.distanceKm ?? 0), 0)
-              setPlan((p) => ({ ...p, days: mergedDays, totalKm: newTotalKm }))
             }
+
+            const newTotalKm = finalDays.reduce((sum, d) => sum + (d.distanceKm ?? 0), 0)
+            setPlan((p) => ({ ...p, days: finalDays, totalKm: newTotalKm }))
             setStatus("complete")
           }
           break

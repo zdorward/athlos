@@ -1,7 +1,3 @@
-import { ClaudeProvider } from "./providers/claude"
-import { loadConfig } from "./config"
-import type { AIProvider } from "./provider"
-
 export { type AIProvider } from "./provider"
 export {
   type WorkoutDay,
@@ -14,14 +10,18 @@ export {
 export { buildBridgeRuns } from "./bridge-runs"
 export * from "./adaptation"
 
-function createProvider(): AIProvider {
-  const { provider, model } = loadConfig()
-  if (provider === "claude") return new ClaudeProvider(model)
-  throw new Error(`Unhandled provider: ${provider}`)
-}
+let _provider: import("./provider").AIProvider | undefined
 
-const _provider: AIProvider = createProvider()
-
-export function getProvider(): AIProvider {
+export function getProvider(): import("./provider").AIProvider {
+  if (!_provider) {
+    const { ClaudeProvider } = require("./providers/claude") as { ClaudeProvider: typeof import("./providers/claude").ClaudeProvider }
+    const { loadConfig } = require("./config") as { loadConfig: typeof import("./config").loadConfig }
+    const { provider, model } = loadConfig()
+    if (provider === "claude") {
+      _provider = new ClaudeProvider(model)
+    } else {
+      throw new Error(`Unhandled provider: ${provider}`)
+    }
+  }
   return _provider
 }

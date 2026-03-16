@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import {
   Sheet,
   SheetContent,
@@ -56,13 +56,17 @@ export function WorkoutFeedbackSheet({
   const [soreness, setSoreness] = useState<Soreness | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState(false)
+  const didSubmit = useRef(false)
 
   function handleOpenChange(isOpen: boolean) {
     if (!isOpen) {
       setEffort(null)
       setSoreness(null)
       setSubmitError(false)
-      onDismiss()
+      if (!didSubmit.current) {
+        onDismiss()
+      }
+      didSubmit.current = false
     }
   }
 
@@ -88,6 +92,7 @@ export function WorkoutFeedbackSheet({
         const data = (await res.json()) as { suggestion: AdaptationSuggestion | null }
         setEffort(null)
         setSoreness(null)
+        didSubmit.current = true
         onLogged(data.suggestion)
       } else {
         setSubmitError(true)

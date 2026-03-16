@@ -83,7 +83,7 @@ export function StepFindRace({ formData, onNext }: Pick<StepProps, "formData" | 
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => setDropdownOpen(true)}
             onBlur={() => setTimeout(() => setDropdownOpen(false), 150)}
-            className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground"
+            className="flex-1 bg-transparent outline-none text-base placeholder:text-muted-foreground"
           />
         </div>
 

@@ -6,8 +6,11 @@ import { DayToggle } from "../day-toggle"
 import { ORDERED_DAYS, DAY_LABELS, type Day, type StepProps } from "../types"
 
 export function StepWhichDays({ formData, onNext }: Pick<StepProps, "formData" | "onNext">) {
-  const [selectedDays, setSelectedDays] = useState<Day[]>(formData.selectedDays ?? [])
-  const [longRunDay, setLongRunDay] = useState<Day | undefined>(formData.longRunDay)
+  const resolvedDays = formData.selectedDays ?? (["mon", "tue", "thu", "fri", "sun"] as Day[])
+  const [selectedDays, setSelectedDays] = useState<Day[]>(resolvedDays)
+  const [longRunDay, setLongRunDay] = useState<Day | undefined>(
+    formData.longRunDay ?? (resolvedDays.includes("sun") ? "sun" : undefined)
+  )
 
   function toggleDay(day: Day) {
     setSelectedDays((prev) => {

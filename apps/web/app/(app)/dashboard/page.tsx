@@ -2,7 +2,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { format, parseISO } from "date-fns"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
@@ -60,6 +60,16 @@ export default function DashboardPage() {
   const { data: sessionData, isPending: sessionPending } = authClient.useSession()
 
   const [plan, setPlan] = useState<Plan | null | "empty" | "error">(null)
+
+  const searchParams = useSearchParams()
+  const [showUpgradedBanner, setShowUpgradedBanner] = useState(false)
+
+  useEffect(() => {
+    if (searchParams.get("upgraded") === "true") {
+      setShowUpgradedBanner(true)
+      router.replace("/dashboard")
+    }
+  }, [searchParams, router])
 
   const fetchPlan = useCallback(async () => {
     try {
@@ -182,6 +192,11 @@ export default function DashboardPage() {
     <main className="min-h-svh">
       <div className="mx-auto max-w-xl px-4 py-6 space-y-6">
 
+        {showUpgradedBanner && (
+          <div className="bg-primary/10 border border-primary/20 rounded-lg px-4 py-3 text-sm text-primary font-medium">
+            Welcome to Athlos Pro!
+          </div>
+        )}
         {/* Race banner — hidden after race date */}
         {!isAfterRace && (
           <RaceBanner

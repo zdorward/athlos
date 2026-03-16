@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { authClient } from "@/lib/auth-client"
 import { Button } from "@workspace/ui/components/button"
 import { useRouter } from "next/navigation"
@@ -14,6 +14,39 @@ export default function SettingsPage() {
   const currentUnits = (user as { units?: "km" | "miles" } | undefined)?.units ?? "km"
   const [pendingUnits, setPendingUnits] = useState<"km" | "miles" | null>(null)
   const [saving, setSaving] = useState(false)
+  const [plan, setPlan] = useState<"free" | "pro">("free")
+  const [loadingBilling, setLoadingBilling] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/user")
+      .then((r) => r.json())
+      .then((data: { plan?: string }) => {
+        if (data.plan === "pro") setPlan("pro")
+      })
+      .catch(() => {/* leave as free */})
+  }, [])
+
+  async function handleUpgrade() {
+    setLoadingBilling(true)
+    try {
+      const res = await fetch("/api/stripe/checkout", { method: "POST" })
+      const data = (await res.json()) as { url?: string }
+      if (data.url) window.location.href = data.url
+    } finally {
+      setLoadingBilling(false)
+    }
+  }
+
+  async function handleManageBilling() {
+    setLoadingBilling(true)
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" })
+      const data = (await res.json()) as { url?: string }
+      if (data.url) window.location.href = data.url
+    } finally {
+      setLoadingBilling(false)
+    }
+  }
 
   // The toggle always shows: in-flight value or session value
   const displayedUnits = pendingUnits ?? currentUnits
@@ -95,6 +128,40 @@ export default function SettingsPage() {
         <Button variant="outline" onClick={() => void handleSignOut()}>
           Sign out
         </Button>
+      </section>
+
+      {/* Billing */}
+      <section className="rounded-xl border border-border bg-card p-6 space-y-4">
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+          Billing
+        </h2>
+
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium">
+              {plan === "pro" ? "Athlos Pro" : "Free plan"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {plan === "pro" ? "Active subscription" : "Upgrade to unlock Pro features"}
+            </p>
+          </div>
+          {plan === "pro" ? (
+            <Button
+              variant="outline"
+              onClick={() => void handleManageBilling()}
+              disabled={loadingBilling}
+            >
+              {loadingBilling ? "Loading…" : "Manage billing"}
+            </Button>
+          ) : (
+            <Button
+              onClick={() => void handleUpgrade()}
+              disabled={loadingBilling}
+            >
+              {loadingBilling ? "Loading…" : "Upgrade to Pro"}
+            </Button>
+          )}
+        </div>
       </section>
     </div>
   )

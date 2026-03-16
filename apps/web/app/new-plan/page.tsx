@@ -13,11 +13,8 @@ export default function NewPlanPage() {
   // Clear any stale draft synchronously BEFORE OnboardingFlow mounts.
   // OnboardingFlow reads sessionStorage in its useState initializers, so this
   // must happen before it renders — a useEffect would be too late.
-  const [_cleared] = useState(() => {
-    if (typeof window !== "undefined") {
-      sessionStorage.removeItem("athlos_onboarding_draft")
-    }
-    return true
+  useState(() => {
+    sessionStorage.removeItem("athlos_onboarding_draft")
   })
 
   useEffect(() => {

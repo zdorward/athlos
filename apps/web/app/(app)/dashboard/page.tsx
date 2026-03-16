@@ -4,13 +4,13 @@
 import { useEffect, useState, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { format, parseISO } from "date-fns"
-import { Loader2 } from "lucide-react"
 import Link from "next/link"
 import { authClient } from "@/lib/auth-client"
 import type { WorkoutDay, PlanGenerationInput } from "@workspace/ai"
 import { RaceBanner } from "./race-banner"
 import { TodayWorkoutCard } from "./today-workout-card"
 import { Button } from "@workspace/ui/components/button"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { WorkoutFeedbackSheet, type AdaptationSuggestion } from "./workout-feedback-sheet"
 import { AdaptationSuggestionCard } from "./adaptation-suggestion-card"
 
@@ -94,7 +94,7 @@ export default function DashboardPage() {
   if (plan === null) {
     return (
       <main className="flex min-h-svh items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Spinner />
       </main>
     )
   }

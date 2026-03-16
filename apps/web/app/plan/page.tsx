@@ -103,8 +103,9 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
 
 function goalTimeLabel(input: PlanGenerationInput): string | undefined {
   if (!input.goalTime) return undefined
-  const { hours, minutes } = input.goalTime
-  return `${hours}:${minutes.toString().padStart(2, "0")}`
+  const { hours, minutes, seconds } = input.goalTime
+  const base = `${hours}:${minutes.toString().padStart(2, "0")}`
+  return (seconds ?? 0) > 0 ? `${base}:${seconds!.toString().padStart(2, "0")}` : base
 }
 
 function planName(input: PlanGenerationInput): string {

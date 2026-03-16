@@ -276,7 +276,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
     const weeksAgoLabel: Record<string, string> = {
       "under-8": "< 8 weeks ago",
       "8-16": "8–16 weeks ago",
-      "16-24": "16–23 weeks ago",
+      "16-24": "16–24 weeks ago",
     }
     lines.push(`  Recent race: ${rd.toUpperCase()} in ${raceTimeStr} (${weeksAgoLabel[weeksAgo] ?? weeksAgo}) — used to calibrate training paces`)
   }
@@ -322,7 +322,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
       lines.push("  Note: training zones reflect current fitness — they may be faster than goal race pace for athletes whose fitness already exceeds their race target.")
     }
   } else {
-    lines.push("Goal race pace: not specified — use mp zone from training zones above for race-pace work.")
+    lines.push("Goal race pace: not specified — omit mp workouts; focus on easy, long, and threshold sessions.")
   }
 
   // 6. Schedule

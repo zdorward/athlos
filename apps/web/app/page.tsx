@@ -33,38 +33,50 @@ import {
 
 type WorkoutType = "easy" | "tempo" | "long" | "strength" | "rest"
 
-const TYPE_STYLES: Record<WorkoutType, { bg: string; border: string; label: string; dot: string } | null> = {
-  easy:     { bg: "rgba(59,130,246,0.12)",  border: "rgba(96,165,250,0.25)",  label: "rgba(147,197,253,0.9)", dot: "rgba(96,165,250,0.9)" },
-  tempo:    { bg: "rgba(124,58,237,0.12)",  border: "rgba(167,139,250,0.25)", label: "rgba(196,181,253,0.9)", dot: "rgba(167,139,250,0.9)" },
-  long:     { bg: "rgba(30,64,175,0.18)",   border: "rgba(96,165,250,0.35)",  label: "rgba(147,197,253,0.95)", dot: "rgba(96,165,250,0.9)" },
-  strength: { bg: "rgba(180,83,9,0.12)",    border: "rgba(251,146,60,0.25)",  label: "rgba(253,186,116,0.9)", dot: "rgba(251,146,60,0.9)" },
-  rest: null,
+// ── Plan preview color system (matches workout-utils.ts) ──────────────────
+type WorkoutStyle = { color: string; bg?: string; border?: string }
+
+const WORKOUT_STYLES: Record<WorkoutType, WorkoutStyle | null> = {
+  easy:     { color: "rgba(255,255,255,0.55)" },
+  tempo:    { color: "oklch(0.78 0.15 80 / 0.9)" },
+  long:     { color: "rgba(147,197,253,0.85)", bg: "rgba(80,130,255,0.07)", border: "rgba(100,160,255,0.2)" },
+  strength: { color: "oklch(0.65 0.15 300 / 0.85)" },
+  rest:     null,
+}
+
+type MockDay = {
+  day: string
+  date: number
+  type: WorkoutType
+  title: string
+  sub: string
+  extra?: string
 }
 
 const MOCK_WEEKS = [
   {
-    label: "Week 3", km: "42 km",
+    label: "W1", date: "Mar 16", km: "54 km", phase: "Base",
     days: [
-      { day: "Mon", type: "strength" as WorkoutType, title: "Strength", sub: "Chest · Back" },
-      { day: "Tue", type: "easy"     as WorkoutType, title: "Easy Run", sub: "5 km" },
-      { day: "Wed", type: "rest"     as WorkoutType, title: "",         sub: "" },
-      { day: "Thu", type: "tempo"    as WorkoutType, title: "Tempo",    sub: "8 km" },
-      { day: "Fri", type: "strength" as WorkoutType, title: "Strength", sub: "Legs · Core" },
-      { day: "Sat", type: "rest"     as WorkoutType, title: "",         sub: "" },
-      { day: "Sun", type: "long"     as WorkoutType, title: "Long Run", sub: "18 km" },
-    ],
+      { day: "Mon", date: 16, type: "easy"     as WorkoutType, title: "Easy Run",  sub: "8 km" },
+      { day: "Tue", date: 17, type: "strength" as WorkoutType, title: "Strength",  sub: "" },
+      { day: "Wed", date: 18, type: "easy"     as WorkoutType, title: "Easy Run",  sub: "8 km" },
+      { day: "Thu", date: 19, type: "easy"     as WorkoutType, title: "Easy Run",  sub: "6 km", extra: "strength" },
+      { day: "Fri", date: 20, type: "easy"     as WorkoutType, title: "Easy Run",  sub: "8 km" },
+      { day: "Sat", date: 21, type: "rest"     as WorkoutType, title: "",          sub: "" },
+      { day: "Sun", date: 22, type: "long"     as WorkoutType, title: "Long Run",  sub: "12 km" },
+    ] as MockDay[],
   },
   {
-    label: "Week 4", km: "48 km",
+    label: "W2", date: "Mar 23", km: "56 km", phase: null,
     days: [
-      { day: "Mon", type: "strength" as WorkoutType, title: "Strength", sub: "Chest · Back" },
-      { day: "Tue", type: "easy"     as WorkoutType, title: "Easy Run", sub: "6 km" },
-      { day: "Wed", type: "easy"     as WorkoutType, title: "Easy Run", sub: "5 km" },
-      { day: "Thu", type: "tempo"    as WorkoutType, title: "Tempo",    sub: "10 km" },
-      { day: "Fri", type: "strength" as WorkoutType, title: "Strength", sub: "Legs · Core" },
-      { day: "Sat", type: "rest"     as WorkoutType, title: "",         sub: "" },
-      { day: "Sun", type: "long"     as WorkoutType, title: "Long Run", sub: "21 km" },
-    ],
+      { day: "Mon", date: 23, type: "easy"     as WorkoutType, title: "Easy Run",  sub: "8 km" },
+      { day: "Tue", date: 24, type: "strength" as WorkoutType, title: "Strength",  sub: "" },
+      { day: "Wed", date: 25, type: "easy"     as WorkoutType, title: "Easy Run",  sub: "8 km" },
+      { day: "Thu", date: 26, type: "tempo"    as WorkoutType, title: "Tempo Run", sub: "8 km" },
+      { day: "Fri", date: 27, type: "easy"     as WorkoutType, title: "Easy Run",  sub: "8 km" },
+      { day: "Sat", date: 28, type: "strength" as WorkoutType, title: "Strength",  sub: "" },
+      { day: "Sun", date: 29, type: "long"     as WorkoutType, title: "Long Run",  sub: "14 km" },
+    ] as MockDay[],
   },
 ]
 
@@ -272,7 +284,7 @@ function PageContent() {
           </div>
 
           {/* Browser chrome mockup */}
-          <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}>
+          <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)", background: "#0d1117" }}>
             {/* Chrome bar */}
             <div style={{ height: 40, background: "rgba(255,255,255,0.03)", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", padding: "0 16px", gap: 12 }}>
               <div style={{ display: "flex", gap: 6 }}>
@@ -288,36 +300,73 @@ function PageContent() {
             </div>
 
             {/* Plan header bar */}
-            <div style={{ padding: "16px 24px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ padding: "12px 24px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#0d1117" }}>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>Toronto Waterfront Marathon</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.32)", marginTop: 2 }}>16 weeks · 42.2 km · Goal: 3:45</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>Toronto Waterfront Marathon</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>16 weeks · 42.2 km · Goal: 3:45</div>
               </div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: "6px 14px" }}>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: "5px 12px" }}>
                 Save Plan
               </div>
             </div>
 
             {/* Calendar */}
-            <div style={{ padding: "0 24px 24px", overflowX: "auto" }}>
+            <div style={{ padding: "0 16px 16px", overflowX: "auto", background: "#0d1117" }}>
+
+              {/* Day of week header */}
+              <div style={{ display: "grid", gridTemplateColumns: "52px repeat(7, 1fr)", gap: 3, padding: "8px 0 4px" }}>
+                <div />
+                {["MON","TUE","WED","THU","FRI","SAT","SUN"].map((d) => (
+                  <div key={d} style={{ textAlign: "center", fontSize: 8, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "rgba(255,255,255,0.25)" }}>{d}</div>
+                ))}
+              </div>
+
               {MOCK_WEEKS.map((week, wi) => (
-                <div key={wi} style={{ marginTop: 20 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.45)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                      {week.label}
-                    </span>
-                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>{week.km}</span>
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 8, minWidth: 560 }}>
+                <div key={wi}>
+                  {/* Phase header — only shown when phase label is present */}
+                  {week.phase && (
+                    <div style={{ display: "grid", gridTemplateColumns: "52px 1fr", gap: 3, padding: "4px 0 2px" }}>
+                      <div />
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 8, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.12em", color: "rgba(255,255,255,0.25)", whiteSpace: "nowrap" as const }}>{week.phase}</span>
+                        <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Week row */}
+                  <div style={{ display: "grid", gridTemplateColumns: "52px repeat(7, 1fr)", gap: 3, marginBottom: 3 }}>
+                    {/* Week label */}
+                    <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", paddingRight: 4 }}>
+                      <p style={{ fontSize: 8, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "rgba(255,255,255,0.25)", margin: 0 }}>{week.label}</p>
+                      <p style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", margin: "1px 0 0" }}>{week.date}</p>
+                      <p style={{ fontSize: 8, fontWeight: 600, color: "rgba(255,255,255,0.35)", margin: "1px 0 0" }}>{week.km}</p>
+                    </div>
+
+                    {/* Day cells */}
                     {week.days.map((d) => {
-                      const s = TYPE_STYLES[d.type]
+                      const s = WORKOUT_STYLES[d.type]
+                      const isRest = d.type === "rest"
                       return (
-                        <div key={d.day} style={{ borderRadius: 10, border: `1px solid ${s ? s.border : "rgba(255,255,255,0.05)"}`, background: s ? s.bg : "transparent", padding: "10px 10px 8px", minHeight: 72 }}>
-                          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 6, fontWeight: 500 }}>{d.day}</div>
+                        <div
+                          key={d.day}
+                          style={{
+                            minHeight: 68,
+                            borderRadius: 5,
+                            border: `1px solid ${s?.border ?? (isRest ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.08)")}`,
+                            background: s?.bg ?? (isRest ? "rgba(255,255,255,0.01)" : "rgba(255,255,255,0.03)"),
+                            padding: "5px 6px",
+                            opacity: isRest ? 0.4 : 1,
+                          }}
+                        >
+                          <p style={{ fontSize: 8, color: "rgba(255,255,255,0.22)", margin: "0 0 2px" }}>{d.date}</p>
                           {s && (
                             <>
-                              <div style={{ fontSize: 11, fontWeight: 600, color: s.label, marginBottom: 2 }}>{d.title}</div>
-                              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{d.sub}</div>
+                              <p style={{ fontSize: 8, fontWeight: 600, color: s.color, margin: 0 }}>{d.title}</p>
+                              {d.sub && <p style={{ fontSize: 7, color: "rgba(255,255,255,0.25)", margin: "1px 0 0" }}>{d.sub}</p>}
+                              {"extra" in d && d.extra === "strength" && (
+                                <p style={{ fontSize: 7, color: "oklch(0.65 0.15 300 / 0.65)", margin: "2px 0 0" }}>+ Strength</p>
+                              )}
                             </>
                           )}
                         </div>
@@ -327,55 +376,57 @@ function PageContent() {
                 </div>
               ))}
 
-              {/* Fade-out hint for more weeks */}
-              <div style={{ marginTop: 12, height: 40, background: "linear-gradient(to bottom, transparent, rgba(2,2,8,0.9))", borderRadius: "0 0 8px 8px", display: "flex", alignItems: "flex-end", justifyContent: "center", paddingBottom: 4 }}>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.18)" }}>16 weeks total</span>
+              {/* Fade-out hint */}
+              <div style={{ marginTop: 8, height: 36, background: "linear-gradient(to bottom, transparent, #0d1117)", display: "flex", alignItems: "flex-end", justifyContent: "center", paddingBottom: 4 }}>
+                <span style={{ fontSize: 9, color: "rgba(255,255,255,0.15)" }}>16 weeks total</span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── Feature highlights ────────────────────────────────────────── */}
+        {/* ── How it works ─────────────────────────────────────────────── */}
         <section style={{ padding: "0 24px 96px", maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 40 }}>
+            <h2 style={{ fontSize: "clamp(22px, 3.5vw, 36px)", fontWeight: 700, color: "#fff", letterSpacing: "-0.03em", margin: 0 }}>
+              How it works
+            </h2>
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 24 }}>
             {[
               {
-                title: "Strength integrated, not bolted on",
-                body: "Lifting days are scheduled around your key runs — not shoved into whatever gaps are left.",
+                icon: "🔍",
+                title: "Find your race",
+                body: "Search from hundreds of races, or add your own.",
               },
               {
-                title: "Built for your actual schedule",
-                body: "Pick your running days, your long run day, and your goal time. The plan works around your life.",
+                icon: "⚙️",
+                title: "Tell us about yourself",
+                body: "Your goal time, weekly mileage, lifting days, and schedule.",
               },
               {
-                title: "From 5K to ultra",
-                body: "The plan scales to your race distance and exactly how many weeks you have until race day.",
+                icon: "📋",
+                title: "Get your plan",
+                body: "A personalized week-by-week plan built for runners who also lift.",
               },
             ].map((f) => (
-              <div key={f.title} style={{ padding: 28, borderRadius: 14, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)" }}>
-                <div style={{ fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginBottom: 8 }}>{f.title}</div>
+              <div key={f.title} style={{ padding: 28, borderRadius: 14, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", textAlign: "center" }}>
+                <div style={{ fontSize: 28, marginBottom: 12 }}>{f.icon}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginBottom: 8 }}>{f.title}</div>
                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.38)", lineHeight: 1.6 }}>{f.body}</div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ── Social proof placeholder ──────────────────────────────────── */}
-        <section style={{ padding: "0 24px 96px", maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ borderRadius: 14, border: "1px dashed rgba(255,255,255,0.1)", padding: "48px 24px", textAlign: "center" }}>
-            <div style={{ fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", marginBottom: 16 }}>
-              PLACEHOLDER — Social proof
-            </div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: 8 }}>
-              Trusted by [X] runners
-            </div>
-            <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", marginTop: 32 }}>
-              {["Sarah M. — BQ'd on her first try", "Marcus R. — Didn't drop a single lift", "Priya K. — Sub-2 half with full strength block"].map((t) => (
-                <div key={t} style={{ padding: "14px 20px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", fontSize: 13, color: "rgba(255,255,255,0.35)", fontStyle: "italic", maxWidth: 240, textAlign: "left" }}>
-                  &ldquo;{t}&rdquo;
-                </div>
-              ))}
-            </div>
+        {/* ── Founder note ─────────────────────────────────────────────── */}
+        <section style={{ padding: "0 24px 96px", maxWidth: 540, margin: "0 auto" }}>
+          <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", padding: "36px 32px" }}>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.58)", lineHeight: 1.75, fontStyle: "italic", margin: "0 0 16px" }}>
+              &ldquo;I was training for the Victoria Marathon and chasing a PR. I didn&apos;t want to pay for Runna, so I was duct-taping ChatGPT and Google Sheets together. It worked, sort of &mdash; but I also lift, and no plan I found took both seriously. So I built one.&rdquo;
+            </p>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.28)", margin: 0 }}>
+              &mdash; Zack, builder &amp; runner
+            </p>
           </div>
         </section>
 

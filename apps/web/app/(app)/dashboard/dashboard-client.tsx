@@ -89,23 +89,19 @@ export function DashboardClient({
 
   if (plan === "error") {
     return (
-      <main className="min-h-svh">
-        <div className="mx-auto max-w-xl px-4 py-16 text-center space-y-4">
-          <p className="text-muted-foreground">Unable to load your plan. Please try again.</p>
-          <Button variant="outline" onClick={() => void fetchPlan()}>Retry</Button>
-        </div>
-      </main>
+      <div className="mx-auto max-w-xl px-4 py-16 text-center space-y-4">
+        <p className="text-muted-foreground">Unable to load your plan. Please try again.</p>
+        <Button variant="outline" onClick={() => void fetchPlan()}>Retry</Button>
+      </div>
     )
   }
 
   if (plan === "empty") {
     return (
-      <main className="min-h-svh">
-        <div className="mx-auto max-w-xl px-4 py-16 text-center space-y-4">
-          <p className="text-muted-foreground">You don&apos;t have a saved plan yet.</p>
-          <Button asChild><Link href="/new-plan">Create a Plan</Link></Button>
-        </div>
-      </main>
+      <div className="mx-auto max-w-xl px-4 py-16 text-center space-y-4">
+        <p className="text-muted-foreground">You don&apos;t have a saved plan yet.</p>
+        <Button asChild><Link href="/new-plan">Create a Plan</Link></Button>
+      </div>
     )
   }
 

@@ -26,8 +26,7 @@
       ]
     },
     "lint": {
-      "dependsOn": ["^lint"],
-      "env": ["NODE_ENV"]
+      "dependsOn": ["^lint"]
     },
     "format": {
       "dependsOn": ["^format"]

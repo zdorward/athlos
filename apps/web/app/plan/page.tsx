@@ -101,6 +101,7 @@ export default function PlanPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState(false)
   const [showSignInSheet, setShowSignInSheet] = useState(false)
+  const [planSaved, setPlanSaved] = useState(false)
 
   // Refs to avoid stale closures inside the async stream loop
   const totalWeeksRef = useRef(0)
@@ -111,6 +112,18 @@ export default function PlanPage() {
 
   // Keep planRef in sync with plan state for use in callbacks
   useEffect(() => { planRef.current = plan }, [plan])
+
+  // ── Cross-tab plan-saved detection ────────────────────────────────────────
+  useEffect(() => {
+    function onStorage(e: StorageEvent) {
+      if (e.key !== PLAN_SAVED_KEY) return
+      localStorage.removeItem(PLAN_SAVED_KEY)
+      setShowSignInSheet(false)
+      setPlanSaved(true)
+    }
+    window.addEventListener("storage", onStorage)
+    return () => window.removeEventListener("storage", onStorage)
+  }, [])
 
   // ── Auto-save after OAuth/magic-link redirect ─────────────────────────────
   useEffect(() => {
@@ -386,7 +399,7 @@ export default function PlanPage() {
 
   if (!input) return null  // redirecting
 
-  const saveProps = { status, isSaving, saveError, onSave: handleSave }
+  const saveProps = { status, isSaving, saveError, onSave: handleSave, saved: planSaved }
 
   return (
     <main className="min-h-svh flex flex-col">

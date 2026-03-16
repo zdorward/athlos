@@ -318,7 +318,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
 
   // 5c. Long run targets
   lines.push("")
-  lines.push("Long run targets (Pfitzinger-based — treat as hard constraints):")
+  lines.push("Long run targets (Pfitzinger-based, all distances in km — treat as hard constraints):")
   lines.push(`  Peak long run: ~${longRunTargets.peakLongRunKm} km (build toward this in Peak phase — do not exceed)`)
   lines.push(`  Day-after-long-run max: ${longRunTargets.recoveryRunMaxKm} km (easy recovery or medium-long — never quality)`)
 

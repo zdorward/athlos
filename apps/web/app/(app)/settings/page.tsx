@@ -107,7 +107,7 @@ export default function SettingsPage() {
               <button
                 key={value}
                 onClick={() => void handleUnitsChange(value)}
-                className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+                className={`cursor-pointer px-4 py-1.5 text-sm font-medium transition-colors ${
                   displayedUnits === value
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground hover:bg-accent/50"

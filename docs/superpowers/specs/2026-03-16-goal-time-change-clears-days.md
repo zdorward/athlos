@@ -23,12 +23,19 @@ In `onboarding-flow.tsx`, extend `handleNext` to detect when the user is submitt
 
 **Change detection rules:**
 
+Comparison must be value-based (compare `hours` and `minutes` individually), not reference-based — `data.goalTime` and `formData.goalTime` are always different object instances.
+
 | Condition | Clears days? |
 |---|---|
-| `timeGoal` boolean changed (e.g. had a time, now "no goal time") | Yes |
-| `timeGoal` is true and `hours` or `minutes` changed | Yes |
-| Goal time submitted with same value as before | No — preserve existing days |
-| `formData.selectedDays` was never set (first visit) | No — nothing to clear |
+| `timeGoal` changed from `true` → `false` (user selects "no goal time") | Yes |
+| `timeGoal` changed from `false` (or `undefined`) → `true` with a valid time | Yes |
+| `timeGoal` is `true` on both sides and `hours` or `minutes` changed | Yes |
+| `timeGoal` and `goalTime` are identical to the existing `formData` values | No — preserve existing days |
+| `formData.selectedDays` was never set (first visit, nothing to clear) | No-op — clearing `undefined` is safe but has no effect |
+
+`goalTime` with `hours: 0, minutes: 0` is pathological but possible (the step's `timeIsValid` allows it). It must still trigger a clear if the value differs from what is currently stored.
+
+When `formData.goalTime` is `undefined` (user never set one), comparing against a new `goalTime` object must treat `undefined` as "old value is absent" — any non-undefined incoming `goalTime` paired with `timeGoal: true` is a change.
 
 **Result:** The next time `StepWhichDays` renders, it sees `formData.selectedDays === undefined`, treats it as a first visit, and recomputes the default from the new goal time.
 
@@ -45,3 +52,4 @@ In `onboarding-flow.tsx`, extend `handleNext` to detect when the user is submitt
 - No changes to `StepWhichDays`, `StepGoalTime`, or any other step
 - No changes to the `isFirstVisit` / `defaultDays` logic in `StepWhichDays`
 - `longRunDay` is cleared alongside `selectedDays` because it is derived from the same preset — keeping a stale long run day when days are cleared would be inconsistent
+- **sessionStorage draft interaction:** If the user refreshes after changing goal time but before reaching `StepWhichDays`, the draft will contain the new `goalTime` alongside the old `selectedDays`. In that case `handleNext` from the goal time step never runs again, so days are not cleared. This is a pre-existing limitation of the draft persistence model and is not addressed here.

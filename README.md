@@ -1,6 +1,6 @@
 # Athlos
 
-Adaptive marathon training for runners with a real goal time. Athlos generates personalized week-by-week plans and adapts them based on performance and recovery. Supports running-only or running + strength scheduling.
+Adaptive marathon training for runners with a goal time. Athlos generates personalized week-by-week plans and adapts them based on performance and recovery. Supports running-only or running + strength scheduling.
 
 **Tech stack:** pnpm monorepo · Next.js 16 (App Router) · React 19 · Tailwind CSS v4 · shadcn/ui · Neon (Postgres)
 
@@ -18,11 +18,13 @@ pnpm typecheck    # TypeScript type checking
 ## Adding Components
 
 **shadcn/ui components:**
+
 ```bash
 pnpm dlx shadcn@latest add <component> -c apps/web
 ```
 
 **Magic UI components** (animated/interactive):
+
 ```bash
 pnpm dlx shadcn@latest add "https://magicui.design/r/<component>" -c apps/web
 ```

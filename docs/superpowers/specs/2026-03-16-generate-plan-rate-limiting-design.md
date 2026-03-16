@@ -47,10 +47,10 @@ At the top of the `POST` handler, before any processing:
 
 1. If `NODE_ENV !== 'production'`, skip the check entirely.
 2. Extract the client IP using this priority order:
-   - `request.ip` (set by Vercel's edge runtime — most reliable)
-   - `x-real-ip` header
+   - `x-real-ip` header (set by Vercel — most reliable in a route handler)
    - First value of `x-forwarded-for` header (`.split(',')[0]?.trim()` — the header may contain a comma-separated list of proxy hops)
    - Fall back to `'anonymous'`
+   - Note: `req.ip` is not available on `NextRequest` in Next.js route handlers (only in middleware); use headers instead.
 3. Call `getRatelimit().limit(ip)` inside a try/catch. If the call throws (missing env vars, Upstash unavailable), fail open and allow the request through.
 4. If `!success`, return a `429` response with body `{ "error": "Too many requests" }`, `Content-Type: application/json`, and a `Retry-After` header set to the seconds until the window resets: `Math.ceil((reset - Date.now()) / 1000)` where `reset` is the millisecond timestamp returned by `ratelimit.limit()`.
 

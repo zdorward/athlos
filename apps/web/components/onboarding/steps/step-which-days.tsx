@@ -23,7 +23,10 @@ function detectPreset(days: Day[]): Preset {
   return 7
 }
 
-export function StepWhichDays({ formData, onNext }: Pick<StepProps, "formData" | "onNext">) {
+export function StepWhichDays({
+  formData,
+  onNext,
+}: Pick<StepProps, "formData" | "onNext">) {
   const initialDays = formData.selectedDays ?? PRESET_DEFAULTS[6]
   const [preset, setPreset] = useState<Preset>(() => detectPreset(initialDays))
   const [selectedDays, setSelectedDays] = useState<Day[]>(initialDays)
@@ -39,7 +42,9 @@ export function StepWhichDays({ formData, onNext }: Pick<StepProps, "formData" |
 
   function toggleDay(day: Day) {
     setSelectedDays((prev) => {
-      const next = prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+      const next = prev.includes(day)
+        ? prev.filter((d) => d !== day)
+        : [...prev, day]
       // Clear long run day if it's no longer in the selected days
       if (longRunDay && !next.includes(longRunDay)) setLongRunDay(undefined)
       // Keep preset indicator in sync with actual day count
@@ -53,9 +58,12 @@ export function StepWhichDays({ formData, onNext }: Pick<StepProps, "formData" |
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h2 className="text-2xl font-semibold tracking-tight">Set up your running week.</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">
+          Set up your running week.
+        </h2>
         <p className="text-sm text-muted-foreground">
-          Most serious runners train 6 days a week. Adjust to fit your schedule.
+          Most advanced runners train 6 days a week. Adjust to fit your
+          schedule.
         </p>
       </div>
 
@@ -66,7 +74,7 @@ export function StepWhichDays({ formData, onNext }: Pick<StepProps, "formData" |
             key={p}
             onClick={() => applyPreset(p)}
             className={cn(
-              "flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors cursor-pointer",
+              "flex-1 cursor-pointer rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
               preset === p
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border hover:bg-muted"
@@ -79,7 +87,9 @@ export function StepWhichDays({ formData, onNext }: Pick<StepProps, "formData" |
 
       <div className="space-y-6">
         <div className="space-y-3">
-          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Running days</p>
+          <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
+            Running days
+          </p>
           <div className="flex w-full justify-center gap-2">
             {ORDERED_DAYS.map((day) => (
               <DayToggle
@@ -95,9 +105,14 @@ export function StepWhichDays({ formData, onNext }: Pick<StepProps, "formData" |
 
         <div
           className="space-y-3 transition-opacity duration-300"
-          style={{ opacity: selectedDays.length > 0 ? 1 : 0.25, pointerEvents: selectedDays.length > 0 ? "auto" : "none" }}
+          style={{
+            opacity: selectedDays.length > 0 ? 1 : 0.25,
+            pointerEvents: selectedDays.length > 0 ? "auto" : "none",
+          }}
         >
-          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Long run day</p>
+          <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
+            Long run day
+          </p>
           <div className="flex w-full justify-center gap-2">
             {ORDERED_DAYS.map((day) => {
               const available = selectedDays.includes(day)

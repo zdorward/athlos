@@ -115,9 +115,11 @@ function mergeStrengthDays(
   longRunDay: string,
   startDate: Date,
   endDate: Date,
-  phases: PhaseEntry[],
+  phases: PhaseEntry[] | undefined,
 ): WorkoutDay[]
 ```
+
+If `phases` is `undefined` or empty, fall back to the full strength schedule every week (preserves behaviour for plans generated before this change).
 
 Phase lookup: given a date `d` and `startDate`, `weekNum = Math.floor((d.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1`. Find the `PhaseEntry` where `startWeek <= weekNum <= endWeek`. If no phase matches (shouldn't happen), default to including all strength days.
 
@@ -125,13 +127,14 @@ Phase name matching is case-insensitive. Recognised taper names: `"Taper"`. Reco
 
 #### 6. Update call site
 
-The call to `mergeStrengthDays` (line ~314) currently passes 4 arguments. Add `planInput.longRunDay` and `trainingPlan.phases` (both already in scope). If `trainingPlan.phases` is undefined (backward compatibility with old snapshots), fall back to all strength days every week (current behaviour).
+The call to `mergeStrengthDays` (line ~314) currently passes 4 arguments. Add `planInput.longRunDay` and `trainingPlan.phases` (both already in scope). Pass `trainingPlan.phases` directly — the function handles `undefined` internally.
 
 ---
 
 ## Files
 
 - Modify: `packages/ai/src/race-prompt.ts`
+- Modify: `packages/ai/src/index.ts` — add `peakStrengthDay` to re-exports
 - Modify: `apps/web/app/plan/page.tsx`
 
 ---

@@ -124,7 +124,7 @@ export const adaptationSuggestions = pgTable("adaptation_suggestions", {
   planId: uuid("plan_id")
     .notNull()
     .references(() => plans.id, { onDelete: "cascade" }),
-  status: text("status").notNull().default("pending"),
+  status: text("status", { enum: ["pending", "accepted", "dismissed"] }).notNull().default("pending"),
   reason: text("reason").notNull(),
   targetDate: text("target_date").notNull(),
   originalWorkout: jsonb("original_workout").notNull(),

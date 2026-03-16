@@ -333,7 +333,8 @@ export function computeLongRunTargets(
     if (high === null)    { peakLongRunKm = 35; recoveryRunMaxKm = 13 }
     else if (high < 65)  { peakLongRunKm = 29; recoveryRunMaxKm = 11 }
     else if (high < 90)  { peakLongRunKm = 35; recoveryRunMaxKm = 13 }
-    else if (high < 116) { peakLongRunKm = 38; recoveryRunMaxKm = 16 }
+    // spec has two rows here (< 116 and >= 116) but both share the same targets —
+    // the Pfitz 18/70 ceiling (38 km / 16 km) applies at all volumes above 90 km/week
     else                 { peakLongRunKm = 38; recoveryRunMaxKm = 16 }
   } else if (distance === "half") {
     if (high === null)    { peakLongRunKm = 22; recoveryRunMaxKm = 11 }

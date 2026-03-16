@@ -113,7 +113,7 @@ const DAY_NAMES: Record<string, string> = {
 const DAY_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
 const DISTANCE_KM_MAP: Record<string, number> = {
-  "5k": 5, "10k": 10, half: 21.1, full: 42.2, ultra: 80,
+  half: 21.1, full: 42.2,
 }
 
 const RANGE_LABEL: Record<string, string> = {
@@ -204,7 +204,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   if (input.goalTime) {
     const { hours, minutes } = input.goalTime
     trainingZones = calculatePaceZones(
-      { hours, minutes, seconds: input.goalTime.seconds ?? 0, distance: distance === "ultra" ? "full" : distance as "5k" | "10k" | "half" | "full" },
+      { hours, minutes, seconds: input.goalTime.seconds ?? 0, distance: distance },
       "goal-time"
     )
   }
@@ -214,7 +214,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
       hours: input.goalTime.hours,
       minutes: input.goalTime.minutes,
       seconds: input.goalTime.seconds ?? 0,
-      distance: distance === "ultra" ? "full" : distance as "5k" | "10k" | "half" | "full",
+      distance: distance,
     })
   }
 

@@ -47,7 +47,7 @@ export interface PlanGenerationInput {
   race: {
     name: string
     date: string
-    distance: "5k" | "10k" | "half" | "full" | "ultra"
+    distance: "half" | "full"
     city: string
   }
   goalTime?: { hours: number; minutes: number; seconds?: number }

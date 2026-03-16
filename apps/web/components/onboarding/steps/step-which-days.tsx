@@ -6,6 +6,7 @@ import { Button } from "@workspace/ui/components/button"
 import { DayToggle } from "../day-toggle"
 import { cn } from "@workspace/ui/lib/utils"
 import { ORDERED_DAYS, DAY_LABELS, type Day, type StepProps } from "../types"
+import { computeTrainingStructure } from "@workspace/ai"
 
 type Preset = 4 | 5 | 6 | 7
 
@@ -30,7 +31,36 @@ export function StepWhichDays({
   formData,
   onNext,
 }: Pick<StepProps, "formData" | "onNext">) {
-  const initialDays = formData.selectedDays ?? PRESET_DEFAULTS[6]
+  // Compute goal-time-driven default — only on first visit (selectedDays not yet set)
+  const isFirstVisit = formData.selectedDays === undefined
+
+  const defaultDays: Preset = (() => {
+    if (!isFirstVisit) return 6 // unused on back-nav, but satisfies type
+    if (!formData.race) return 6
+    const { distance } = formData.race
+    if (formData.timeGoal === true && formData.goalTime) {
+      const goalMinutes = formData.goalTime.hours * 60 + formData.goalTime.minutes
+      if (goalMinutes > 0) {
+        const days = computeTrainingStructure(goalMinutes, distance, 7, "40-60").runDaysPerWeek
+        // Guard: clamp to valid Preset range in case of unexpected output
+        return (days in PRESET_DEFAULTS ? days : 5) as Preset
+      }
+    }
+    return 4
+  })()
+
+  const recommendationMessage: string | null = (() => {
+    if (!isFirstVisit) return null
+    if (!formData.race) return null // no race = no contextual recommendation
+    if (formData.timeGoal === true && formData.goalTime) {
+      const { hours, minutes } = formData.goalTime
+      const formatted = `${hours}:${String(minutes).padStart(2, "0")}`
+      return `Based on your goal of ${formatted}, we recommend a ${defaultDays}-day running schedule.`
+    }
+    return `We've started you with a ${defaultDays}-day schedule — easy to adjust from here.`
+  })()
+
+  const initialDays = formData.selectedDays ?? PRESET_DEFAULTS[defaultDays]
   const [preset, setPreset] = useState<Preset | null>(() => detectPreset(initialDays))
   const [selectedDays, setSelectedDays] = useState<Day[]>(initialDays)
   const [longRunDay, setLongRunDay] = useState<Day | undefined>(
@@ -64,10 +94,9 @@ export function StepWhichDays({
         <h2 className="text-2xl font-semibold tracking-tight">
           Set up your running week.
         </h2>
-        <p className="text-sm text-muted-foreground">
-          Most advanced runners train 6 days a week. Adjust to fit your
-          schedule.
-        </p>
+        {recommendationMessage && (
+          <p className="text-sm text-muted-foreground">{recommendationMessage}</p>
+        )}
       </div>
 
       {/* Preset tabs */}

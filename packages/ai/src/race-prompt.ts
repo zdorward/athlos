@@ -1,5 +1,5 @@
 import type { PlanGenerationInput } from "./types"
-import { calculatePaceZones, computePhases, computeGoalPeakMileage, calculateRawGoalPace, computeTrainingStructure } from "./pace-calculator"
+import { calculatePaceZones, computePhases, computeGoalPeakMileage, calculateRawGoalPace, computeTrainingStructure, computeLongRunTargets } from "./pace-calculator"
 import { STARTING_VOLUME_KM } from "./constants"
 
 function buildSystemPrompt(units: "km" | "miles"): string {
@@ -233,6 +233,13 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
     input.weeklyMileageRange,
   )
 
+  // ── Long run targets ─────────────────────────────────────────────────────
+  const longRunTargets = computeLongRunTargets(
+    distance,
+    peakMileage,
+    input.trainingAge,
+  )
+
   // ── User message ─────────────────────────────────────────────────────────
   const lines: string[] = []
 
@@ -308,6 +315,12 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   lines.push(`  Running days per week: ${trainingStructure.runDaysPerWeek}`)
   lines.push(`  Rest days per week: ${trainingStructure.restDaysPerWeek} (place on the day that best aids recovery — typically before a quality session or after the long run; never designate the long run day as rest)`)
   lines.push(`  Max quality sessions per week: ${trainingStructure.maxQualityPerWeek}`)
+
+  // 5c. Long run targets
+  lines.push("")
+  lines.push("Long run targets (Pfitzinger-based — treat as hard constraints):")
+  lines.push(`  Peak long run: ~${longRunTargets.peakLongRunKm} km (build toward this in Peak phase — do not exceed)`)
+  lines.push(`  Day-after-long-run max: ${longRunTargets.recoveryRunMaxKm} km (easy recovery or medium-long — never quality)`)
 
   // 6. Schedule
   const runDayNames = input.selectedDays.map(d => DAY_NAMES[d] ?? d).join(", ")

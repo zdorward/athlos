@@ -71,27 +71,6 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
     ? (rawRange as PlanGenerationInput["weeklyMileageRange"])
     : "40-60"
 
-  // Pass through new athlete profile fields if present in sessionStorage
-  const rawRecentRace = raw["recentRace"] as Record<string, unknown> | undefined
-  if (rawRecentRace && typeof rawRecentRace === "object") {
-    const weeksAgo = rawRecentRace["weeksAgo"] as string | undefined
-    const validWeeksAgo = ["under-8", "8-16", "16-24"]
-    const validDistances = ["5k", "10k", "half", "full"]
-    const dist = rawRecentRace["distance"] as string | undefined
-    if (dist && validDistances.includes(dist) && weeksAgo && validWeeksAgo.includes(weeksAgo)) {
-      input.recentRace = {
-        distance: dist as "5k" | "10k" | "half" | "full",
-        hours: Number(rawRecentRace["hours"] ?? 0),
-        minutes: Number(rawRecentRace["minutes"] ?? 0),
-        seconds: Number(rawRecentRace["seconds"] ?? 0),
-        weeksAgo: weeksAgo as "under-8" | "8-16" | "16-24",
-      }
-    }
-  }
-
-  const rawFirstTime = raw["firstTimeDistance"]
-  if (typeof rawFirstTime === "boolean") input.firstTimeDistance = rawFirstTime
-
   const rawTrainingAge = raw["trainingAge"] as string | undefined
   const validTrainingAges = ["under-1", "1-3", "3-or-more"]
   if (rawTrainingAge && validTrainingAges.includes(rawTrainingAge)) {

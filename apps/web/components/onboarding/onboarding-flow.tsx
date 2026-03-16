@@ -13,6 +13,7 @@ import { StepStrengthTraining } from "./steps/step-strength-training"
 import { StepStrengthDays } from "./steps/step-strength-days"
 import { StepGoalTime } from "./steps/step-goal-time"
 import { StepWeeklyMileage } from "./steps/step-weekly-mileage"
+import { StepTrainingAge } from "./steps/step-training-age"
 import { getSteps, type OnboardingData, type RaceData } from "./types"
 
 const slideVariants = {
@@ -34,6 +35,7 @@ const DISTANCE_KM: Record<string, string> = {
 const STEP_LABELS: Record<string, string> = {
   findRace: "Your race",
   goalTime: "Goal time",
+  trainingAge: "Experience",
   whichDays: "Running days",
   strengthTraining: "Strength training",
   strengthDays: "Lifting days",
@@ -308,12 +310,13 @@ export function OnboardingFlow({ onExit, initialData }: OnboardingFlowProps) {
     if (isComplete) return <FinalScreen formData={formData} />
     const stepName = steps[currentStep]
     switch (stepName) {
-      case "findRace":          return <StepFindRace {...stepProps} />
-      case "goalTime":          return <StepGoalTime {...stepProps} />
-      case "whichDays":         return <StepWhichDays {...stepProps} />
-      case "strengthTraining":  return <StepStrengthTraining {...stepProps} />
-      case "strengthDays":      return <StepStrengthDays {...stepProps} />
-      case "weeklyMileage":     return <StepWeeklyMileage {...stepProps} />
+      case "findRace":           return <StepFindRace {...stepProps} />
+      case "goalTime":           return <StepGoalTime {...stepProps} />
+      case "trainingAge":        return <StepTrainingAge {...stepProps} />
+      case "whichDays":          return <StepWhichDays {...stepProps} />
+      case "strengthTraining":   return <StepStrengthTraining {...stepProps} />
+      case "strengthDays":       return <StepStrengthDays {...stepProps} />
+      case "weeklyMileage":      return <StepWeeklyMileage {...stepProps} />
       default:             return null
     }
   }

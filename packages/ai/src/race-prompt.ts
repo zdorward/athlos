@@ -167,12 +167,6 @@ function buildWeekSchedule(startDate: Date, endDate: Date): string {
   return weeks.join("\n")
 }
 
-const WEEKS_AGO_CONTEXT: Record<string, "active" | "short-break" | "long-break"> = {
-  "under-8": "active",
-  "8-16": "short-break",
-  "16-24": "long-break",
-}
-
 export function buildPrompt(input: PlanGenerationInput): { system: string; user: string } {
   const startDate = input.startDate
     ? new Date(input.startDate + "T00:00:00Z")
@@ -215,14 +209,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   let trainingZones = null
   let rawGoalPace: string | null = null
 
-  if (input.recentRace) {
-    const { hours, minutes, seconds, distance: rDist, weeksAgo } = input.recentRace
-    const context = WEEKS_AGO_CONTEXT[weeksAgo] ?? "active"
-    trainingZones = calculatePaceZones(
-      { hours, minutes, seconds, distance: rDist, context },
-      "recent-race"
-    )
-  } else if (input.goalTime) {
+  if (input.goalTime) {
     const { hours, minutes } = input.goalTime
     trainingZones = calculatePaceZones(
       { hours, minutes, seconds: input.goalTime.seconds ?? 0, distance: distance === "ultra" ? "full" : distance as "5k" | "10k" | "half" | "full" },
@@ -265,21 +252,10 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
     "3-or-more": "3 or more years of consistent running",
   }
   lines.push(`  Training age: ${trainingAgeLabel[input.trainingAge ?? "1-3"] ?? "1–3 years of consistent running"}`)
-  lines.push(`  First time at this distance: ${input.firstTimeDistance ? "Yes — emphasise completion and confidence over performance targets" : "No"}`)
 
   // 3. Current fitness
   lines.push("")
   lines.push("Current fitness:")
-  if (input.recentRace) {
-    const { hours: rh, minutes: rm, seconds: rs, distance: rd, weeksAgo } = input.recentRace
-    const raceTimeStr = `${rh}h${rm.toString().padStart(2, "0")}m${rs > 0 ? rs.toString().padStart(2, "0") + "s" : ""}`
-    const weeksAgoLabel: Record<string, string> = {
-      "under-8": "< 8 weeks ago",
-      "8-16": "8–16 weeks ago",
-      "16-24": "16–24 weeks ago",
-    }
-    lines.push(`  Recent race: ${rd.toUpperCase()} in ${raceTimeStr} (${weeksAgoLabel[weeksAgo] ?? weeksAgo}) — used to calibrate training paces`)
-  }
   lines.push(`  Current weekly mileage (starting point only — does not cap peak volume): ${rangeLabel} ${u}/week`)
 
   // 4. Volume targets

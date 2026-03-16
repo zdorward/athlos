@@ -37,12 +37,21 @@ Three new routes under `apps/web/app/api/stripe/`:
 
 Checkout and portal routes require the user to be signed in. Both return a URL — the frontend redirects to it. No Stripe UI embedded in the app.
 
+Checkout session uses:
+- `success_url`: `/dashboard?upgraded=true` — dashboard detects this param and shows a one-time success banner, then re-fetches the user's plan
+- `cancel_url`: `/settings`
+
+Portal route requires `stripeCustomerId` to be set. If it is null (user has never checked out), return a 400 — the portal button should only be shown to users who have previously subscribed.
+
 ### Webhook events handled
 
-- `checkout.session.completed` → set `plan = "pro"`, save `stripeCustomerId` on user
+- `checkout.session.completed` → save `stripeCustomerId` on user (plan is set by subscription event)
+- `customer.subscription.updated` → if `status` is `"active"` or `"trialing"` set `plan = "pro"`, otherwise set `plan = "free"`
 - `customer.subscription.deleted` → set `plan = "free"`
 
-All other events are ignored.
+`subscription.updated` is the single source of truth for plan status — it handles both upgrades and downgrades, including payment recovery after lapse. All other events are ignored.
+
+The `stripe` npm package is used server-side for all Stripe API calls and webhook signature verification.
 
 ## Environment Variables
 
@@ -50,16 +59,15 @@ All other events are ignored.
 STRIPE_SECRET_KEY=sk_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PRO_PRICE_ID=price_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_...
 ```
 
 One Product ("Athlos Pro") with one recurring Price created in the Stripe dashboard. The price ID is stored in `STRIPE_PRO_PRICE_ID`.
 
 ## Paywalling
 
-A single server utility `getUserPlan(userId): Promise<"free" | "pro">` reads `user.plan` from the DB. Called at the point of need when a paid feature is accessed. Returns 403 or redirects if the user is on the free tier.
+A single server utility `getUserPlan(userId): Promise<"free" | "pro">` reads `user.plan` from the DB and returns the value. The caller decides what to do — API routes return 403, page routes redirect. No middleware, no complex permission layer.
 
-No middleware, no complex permission layer.
+No paid features exist yet, so `getUserPlan` has no call sites in this implementation. It is defined and exported so it is ready to use when the first paid feature is built.
 
 ## What This Does Not Include
 

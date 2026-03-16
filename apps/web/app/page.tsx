@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react"
 import { Wordmark } from "@/components/wordmark"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Search, Loader2, CalendarIcon } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { authClient } from "@/lib/auth-client"
@@ -191,10 +191,8 @@ export default function Page() {
 
 function PageContent() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const isNewPlan = searchParams.get("new") === "1"
   const { data: sessionData, isPending } = authClient.useSession()
-  const [showOnboarding, setShowOnboarding] = useState(isNewPlan)
+  const [showOnboarding, setShowOnboarding] = useState(false)
   const [showSignIn, setShowSignIn] = useState(false)
   const [showManualEntry, setShowManualEntry] = useState(false)
   const [initialData, setInitialData] = useState<
@@ -205,10 +203,10 @@ function PageContent() {
   const wrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!isPending && sessionData?.session && !isNewPlan) {
+    if (!isPending && sessionData?.session) {
       router.replace("/dashboard")
     }
-  }, [isPending, sessionData?.session, isNewPlan, router])
+  }, [isPending, sessionData?.session, router])
 
   useEffect(() => {
     function handleMouseDown(e: MouseEvent) {
@@ -220,7 +218,7 @@ function PageContent() {
     return () => document.removeEventListener("mousedown", handleMouseDown)
   }, [])
 
-  if (isPending || (sessionData?.session && !isNewPlan)) {
+  if (isPending || sessionData?.session) {
     return (
       <main
         style={{

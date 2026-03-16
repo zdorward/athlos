@@ -16,33 +16,49 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [plan, setPlan] = useState<"free" | "pro">("free")
   const [loadingBilling, setLoadingBilling] = useState(false)
+  const [billingError, setBillingError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!sessionData?.session) return
     fetch("/api/user")
       .then((r) => r.json())
       .then((data: { plan?: string }) => {
         if (data.plan === "pro") setPlan("pro")
       })
       .catch(() => {/* leave as free */})
-  }, [])
+  }, [sessionData?.session])
 
   async function handleUpgrade() {
+    setBillingError(null)
     setLoadingBilling(true)
     try {
       const res = await fetch("/api/stripe/checkout", { method: "POST" })
       const data = (await res.json()) as { url?: string }
-      if (data.url) window.location.href = data.url
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        setBillingError("Unable to start checkout. Please try again.")
+      }
+    } catch {
+      setBillingError("Unable to start checkout. Please try again.")
     } finally {
       setLoadingBilling(false)
     }
   }
 
   async function handleManageBilling() {
+    setBillingError(null)
     setLoadingBilling(true)
     try {
       const res = await fetch("/api/stripe/portal", { method: "POST" })
       const data = (await res.json()) as { url?: string }
-      if (data.url) window.location.href = data.url
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        setBillingError("Unable to open billing portal. Please try again.")
+      }
+    } catch {
+      setBillingError("Unable to open billing portal. Please try again.")
     } finally {
       setLoadingBilling(false)
     }
@@ -162,6 +178,9 @@ export default function SettingsPage() {
             </Button>
           )}
         </div>
+        {billingError && (
+          <p className="text-xs text-destructive">{billingError}</p>
+        )}
       </section>
     </div>
   )

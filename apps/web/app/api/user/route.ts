@@ -37,20 +37,19 @@ export async function PATCH(req: NextRequest) {
   return Response.json({ units: body.units })
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) {
     return Response.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   const [row] = await db
-    .select({ plan: user.plan, stripeCustomerId: user.stripeCustomerId })
+    .select({ plan: user.plan })
     .from(user)
     .where(eq(user.id, session.user.id))
     .limit(1)
 
   return Response.json({
     plan: row?.plan ?? "free",
-    stripeCustomerId: row?.stripeCustomerId ?? null,
   })
 }

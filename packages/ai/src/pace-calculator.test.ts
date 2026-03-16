@@ -152,12 +152,12 @@ describe("computePhases — 28 week full marathon (5-phase)", () => {
     }
   })
 
-  it("matches spec example: GF=6, Base=8, Build=7, Peak=3, Taper=4", () => {
+  it("matches spec example: GF=6, Base=8, Build=7, Peak=4, Taper=3", () => {
     expect(phases[0]).toEqual({ name: "General Fitness", startWeek: 1, endWeek: 6 })
     expect(phases[1]).toEqual({ name: "Base", startWeek: 7, endWeek: 14 })
     expect(phases[2]).toEqual({ name: "Build", startWeek: 15, endWeek: 21 })
-    expect(phases[3]).toEqual({ name: "Peak", startWeek: 22, endWeek: 24 })
-    expect(phases[4]).toEqual({ name: "Taper", startWeek: 25, endWeek: 28 })
+    expect(phases[3]).toEqual({ name: "Peak", startWeek: 22, endWeek: 25 })
+    expect(phases[4]).toEqual({ name: "Taper", startWeek: 26, endWeek: 28 })
   })
 })
 

@@ -115,7 +115,7 @@ function getTaperMin(distance: string): number {
  */
 export function computePhases(totalWeeks: number, distance: string): PhaseEntry[] {
   const taperMin = getTaperMin(distance)
-  const taper = Math.max(taperMin, Math.round(totalWeeks * 0.15))
+  const taper = taperMin
   let remaining = totalWeeks - taper
 
   const result: PhaseEntry[] = []

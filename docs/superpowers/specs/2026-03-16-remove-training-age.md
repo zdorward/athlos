@@ -37,6 +37,16 @@ Remove `trainingAge` from `OnboardingData` in `apps/web/components/onboarding/ty
 
 Remove `trainingAge` from `PlanGenerationInput` in `packages/ai/src/types.ts`.
 
+### `computeTrainingStructure` and `computeLongRunTargets` tests (`packages/ai/src/pace-calculator.test.ts`)
+
+Delete all `describe` blocks and individual test cases that:
+- Pass a `trainingAge` argument to `computeTrainingStructure` or `computeLongRunTargets`, or
+- Assert behavior specific to the `"under-1"` modifier (e.g. reduced `maxQualityPerWeek`, capped `runDaysPerWeek`, reduced `peakLongRunKm`).
+
+This includes any equivalence tests that prove `"1-3"` and `"3-or-more"` produce the same output — those tests will be meaningless once the parameter is removed. Delete them rather than updating them.
+
+Update remaining test calls to omit the `trainingAge` argument.
+
 ### `computeTrainingStructure` (`packages/ai/src/pace-calculator.ts`)
 
 Remove `trainingAge: string | undefined` parameter. Remove the `"under-1"` branch entirely:
@@ -68,6 +78,21 @@ if (trainingAge === "under-1") {
 
 Update all call sites to omit the argument.
 
+### Plan page input parser (`apps/web/app/plan/page.tsx`)
+
+Remove the `rawTrainingAge` block (lines 117–121) from the `parsePlanInput` function:
+
+```ts
+// Before
+const rawTrainingAge = raw["trainingAge"] as string | undefined
+const validTrainingAges = ["under-1", "1-3", "3-or-more"]
+if (rawTrainingAge && validTrainingAges.includes(rawTrainingAge)) {
+  input.trainingAge = rawTrainingAge as PlanGenerationInput["trainingAge"]
+}
+
+// After — block removed
+```
+
 ### LLM prompt (`packages/ai/src/race-prompt.ts`)
 
 Remove `trainingAgeLabel` lookup and the `Training age:` line from the Athlete profile section.
@@ -93,5 +118,6 @@ Remove `input.trainingAge` reference from the prompt builder.
 | `apps/web/components/onboarding/steps/step-training-age.tsx` | Delete |
 | `packages/ai/src/types.ts` | Remove `trainingAge` from `PlanGenerationInput` |
 | `packages/ai/src/pace-calculator.ts` | Remove param + `"under-1"` branches from both functions |
-| `packages/ai/src/pace-calculator.test.ts` | Remove test cases that pass `trainingAge` |
+| `packages/ai/src/pace-calculator.test.ts` | Delete `under-1` and equivalence describe blocks; update remaining calls to omit `trainingAge` |
+| `apps/web/app/plan/page.tsx` | Remove `rawTrainingAge` block from input parser |
 | `packages/ai/src/race-prompt.ts` | Remove `trainingAge` from prompt builder |

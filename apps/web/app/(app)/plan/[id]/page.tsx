@@ -34,13 +34,6 @@ export default function PlanViewPage({ params }: PageProps) {
   const [selectedKey, setSelectedKey] = useState<{ date: string; type: WorkoutType } | null>(null)
   const [fetching, setFetching] = useState(false)
 
-  // Redirect if no session
-  useEffect(() => {
-    if (!sessionPending && !sessionData?.session) {
-      router.replace("/")
-    }
-  }, [sessionPending, sessionData?.session, router])
-
   // Fetch plan once session confirmed
   useEffect(() => {
     if (!sessionPending && !sessionData?.session) return

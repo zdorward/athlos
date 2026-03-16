@@ -1,5 +1,5 @@
 import type { PlanGenerationInput } from "./types"
-import { calculatePaceZones, computePhases, computeGoalPeakMileage, calculateRawGoalPace } from "./pace-calculator"
+import { calculatePaceZones, computePhases, computeGoalPeakMileage, calculateRawGoalPace, computeTrainingStructure } from "./pace-calculator"
 import { STARTING_VOLUME_KM } from "./constants"
 
 function buildSystemPrompt(units: "km" | "miles"): string {
@@ -98,10 +98,8 @@ Follow the phase schedule provided in the user message. Apply the rules below pe
 
 ## Hard Constraints
 
-- Only schedule runs on the athlete's available running days — days that are neither running days nor strength days must be type "rest"
+- Only schedule runs on the athlete's available running days. Assign rest days to achieve the prescribed rest days per week — you may designate any available running day as rest if needed to hit this target, except the long run day which must always remain a run day. Days not in the available running days list (and not strength days) are always rest.
 - Long run MUST be on the designated long run day every single week, no exceptions
-- Strength training NEVER replaces a run. If a day appears in both the running days list AND the strength days list, emit TWO lines for that date: the run workout first, then a strength line. The run is determined by the training plan as normal; strength is always additive.
-- If a strength day is NOT a running day, emit a single "strength" type line for that date (no run, no distanceKm)
 - Follow the 10% weekly mileage increase rule; include a recovery week (30% mileage reduction) every 4th week
 - Always output distances in ${unitLabel}
 - Descriptions must be specific (e.g. "2 ${u} warm-up, 5 × 1000 m at vo2max zone with 90 sec jog, 2 ${u} cool-down") not vague (e.g. "do intervals")`
@@ -226,6 +224,15 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
     : null
   const peakMileage = goalMinutes ? computeGoalPeakMileage(distance, goalMinutes) : null
 
+  // ── Training structure ───────────────────────────────────────────────────
+  const trainingStructure = computeTrainingStructure(
+    goalMinutes,
+    distance,
+    input.trainingAge,
+    input.selectedDays.length,
+    input.weeklyMileageRange,
+  )
+
   // ── User message ─────────────────────────────────────────────────────────
   const lines: string[] = []
 
@@ -295,6 +302,13 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
     lines.push("Goal race pace: not specified — omit mp workouts; focus on easy, long, and threshold sessions.")
   }
 
+  // 5b. Prescribed training structure
+  lines.push("")
+  lines.push("Prescribed training structure (Pfitzinger-based — treat as hard constraints):")
+  lines.push(`  Running days per week: ${trainingStructure.runDaysPerWeek}`)
+  lines.push(`  Rest days per week: ${trainingStructure.restDaysPerWeek} (place on the day that best aids recovery — typically before a quality session or after the long run; never designate the long run day as rest)`)
+  lines.push(`  Max quality sessions per week: ${trainingStructure.maxQualityPerWeek}`)
+
   // 6. Schedule
   const runDayNames = input.selectedDays.map(d => DAY_NAMES[d] ?? d).join(", ")
   const longRunDayName = DAY_NAMES[input.longRunDay] ?? input.longRunDay
@@ -305,16 +319,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
 
   if (input.strengthTraining && input.strengthDays?.length) {
     const strengthDayNames = input.strengthDays.map(d => DAY_NAMES[d] ?? d).join(", ")
-    const runDaySet = new Set(input.selectedDays)
-    const bothDays = input.strengthDays.filter(d => runDaySet.has(d)).map(d => DAY_NAMES[d] ?? d)
-    const strengthOnlyDays = input.strengthDays.filter(d => !runDaySet.has(d)).map(d => DAY_NAMES[d] ?? d)
-    lines.push(`Strength training days: ${strengthDayNames}`)
-    if (bothDays.length > 0) {
-      lines.push(`  → Days with BOTH a run AND strength: ${bothDays.join(", ")} — emit TWO JSON lines for each of these dates every week (run first, strength second)`)
-    }
-    if (strengthOnlyDays.length > 0) {
-      lines.push(`  → Strength-only days (no run): ${strengthOnlyDays.join(", ")} — emit ONE strength JSON line for each of these dates`)
-    }
+    lines.push(`Strength training days: ${strengthDayNames} — treat these as heavy days; do not schedule quality running sessions (tempo, intervals, race pace) on these days. The strength schedule is already defined and will be merged into the final output separately — do not emit any strength type lines.`)
   } else {
     lines.push("Strength training: none")
   }

@@ -1,9 +1,6 @@
-<svg width="45" height="47" viewBox="0 0 45 47" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <style>
-    path { fill: #2563EB; }
-    @media (prefers-color-scheme: light) {
-      path { fill: #5B9CF6; }
-    }
-  </style>
-  <path d="M10.5455 46.5455H0L16.0682 0H28.75L44.7955 46.5455H34.25L22.5909 10.6364H22.2273L10.5455 46.5455Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" fill="none">
+  <rect x="6"  y="6"  width="28" height="28" rx="5" fill="#06b6d4" opacity="0.35"/>
+  <rect x="38" y="6"  width="28" height="28" rx="5" fill="#06b6d4" opacity="1"/>
+  <rect x="6"  y="38" width="28" height="28" rx="5" fill="#06b6d4" opacity="0.8"/>
+  <rect x="38" y="38" width="28" height="28" rx="5" fill="#06b6d4" opacity="0.55"/>
 </svg>

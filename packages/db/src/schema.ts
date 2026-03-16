@@ -20,6 +20,7 @@ export const user = pgTable("user", {
   image: text("image"),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
+  units: text("units").notNull().default("km"),
 })
 
 export const session = pgTable("session", {

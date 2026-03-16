@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "units" text DEFAULT 'km' NOT NULL;

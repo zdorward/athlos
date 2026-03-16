@@ -20,6 +20,15 @@ function createAuth() {
           clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
         },
       },
+      user: {
+        additionalFields: {
+          units: {
+            type: "string",
+            defaultValue: "km",
+            required: false,
+          },
+        },
+      },
       plugins: [
         magicLink({
           sendMagicLink: async ({ email, url }) => {

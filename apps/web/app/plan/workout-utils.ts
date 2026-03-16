@@ -50,9 +50,10 @@ export function distanceUnit(units: "km" | "miles"): string {
 
 export function groupDaysByWeek(days: WorkoutDay[]): WorkoutDay[][] {
   if (days.length === 0) return []
-  const startMs = new Date(days[0]!.date).getTime()
+  const sorted = [...days].sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0)
+  const startMs = new Date(sorted[0]!.date).getTime()
   const weeks: WorkoutDay[][] = []
-  for (const day of days) {
+  for (const day of sorted) {
     const weekIdx = Math.floor(
       (new Date(day.date).getTime() - startMs) / (7 * 24 * 60 * 60 * 1000)
     )

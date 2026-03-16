@@ -14,7 +14,7 @@ export const RACES: Race[] = [
   // Ontario
   {
     id: "scotiabank-toronto-full-2026",
-    name: "Scotiabank Toronto Waterfront Marathon",
+    name: "TCS Toronto Waterfront Marathon",
     city: "Toronto",
     province: "ON",
     date: "2026-10-18",
@@ -23,7 +23,7 @@ export const RACES: Race[] = [
   },
   {
     id: "scotiabank-toronto-half-2026",
-    name: "Scotiabank Toronto Waterfront Half Marathon",
+    name: "TCS Toronto Waterfront Half Marathon",
     city: "Toronto",
     province: "ON",
     date: "2026-10-18",
@@ -32,7 +32,7 @@ export const RACES: Race[] = [
   },
   {
     id: "tamarack-ottawa-full-2026",
-    name: "Tamarack Ottawa Marathon",
+    name: "Tamarack Homes Ottawa International Marathon",
     city: "Ottawa",
     province: "ON",
     date: "2026-05-24",
@@ -41,7 +41,7 @@ export const RACES: Race[] = [
   },
   {
     id: "tamarack-ottawa-half-2026",
-    name: "Tamarack Ottawa Half Marathon",
+    name: "Ottawa Half Marathon presented by Desjardins",
     city: "Ottawa",
     province: "ON",
     date: "2026-05-24",
@@ -50,19 +50,19 @@ export const RACES: Race[] = [
   },
   {
     id: "mississauga-full-2026",
-    name: "Mississauga Marathon",
+    name: "Beneva Mississauga Marathon",
     city: "Mississauga",
     province: "ON",
-    date: "2026-05-03",
+    date: "2026-04-26",
     distance: "full",
     url: "https://www.mississaugamarathon.com/",
   },
   {
     id: "mississauga-half-2026",
-    name: "Mississauga Half Marathon",
+    name: "Electrolit Half Marathon",
     city: "Mississauga",
     province: "ON",
-    date: "2026-05-03",
+    date: "2026-04-26",
     distance: "half",
     url: "https://www.mississaugamarathon.com/",
   },
@@ -169,7 +169,7 @@ export const RACES: Race[] = [
   // Alberta
   {
     id: "calgary-full-2026",
-    name: "Calgary Marathon",
+    name: "Servus Calgary Marathon",
     city: "Calgary",
     province: "AB",
     date: "2026-05-24",
@@ -178,7 +178,7 @@ export const RACES: Race[] = [
   },
   {
     id: "calgary-half-2026",
-    name: "Calgary Half Marathon",
+    name: "Servus Calgary Half Marathon",
     city: "Calgary",
     province: "AB",
     date: "2026-05-24",
@@ -187,7 +187,7 @@ export const RACES: Race[] = [
   },
   {
     id: "edmonton-full-2026",
-    name: "Edmonton Marathon",
+    name: "Servus Edmonton Marathon",
     city: "Edmonton",
     province: "AB",
     date: "2026-08-16",
@@ -196,7 +196,7 @@ export const RACES: Race[] = [
   },
   {
     id: "edmonton-half-2026",
-    name: "Edmonton Half Marathon",
+    name: "Servus Edmonton Half Marathon",
     city: "Edmonton",
     province: "AB",
     date: "2026-08-16",
@@ -224,19 +224,19 @@ export const RACES: Race[] = [
   // Quebec
   {
     id: "montreal-full-2026",
-    name: "Oasis Rock'n'Roll Montreal Marathon",
+    name: "Marathon Beneva de Montréal",
     city: "Montreal",
     province: "QC",
-    date: "2026-09-20",
+    date: "2026-10-11",
     distance: "full",
     url: "https://couronsmtl.com/en/marathon-beneva/home/",
   },
   {
     id: "montreal-half-2026",
-    name: "Oasis Rock'n'Roll Montreal Half Marathon",
+    name: "Marathon Beneva de Montréal",
     city: "Montreal",
     province: "QC",
-    date: "2026-09-20",
+    date: "2026-10-11",
     distance: "half",
     url: "https://couronsmtl.com/en/marathon-beneva/home/",
   },
@@ -247,7 +247,7 @@ export const RACES: Race[] = [
     province: "QC",
     date: "2026-08-23",
     distance: "full",
-    url: "https://www.jecoursqc.com/en/",
+    url: "https://www.marathondequebec.com/",
   },
   {
     id: "quebec-city-half-2026",
@@ -256,7 +256,7 @@ export const RACES: Race[] = [
     province: "QC",
     date: "2026-08-23",
     distance: "half",
-    url: "https://www.jecoursqc.com/en/",
+    url: "https://www.marathondequebec.com/",
   },
   // Manitoba
   {
@@ -264,7 +264,7 @@ export const RACES: Race[] = [
     name: "Manitoba Marathon",
     city: "Winnipeg",
     province: "MB",
-    date: "2026-06-14",
+    date: "2026-06-21",
     distance: "full",
     url: "https://manitobamarathon.mb.ca/",
   },
@@ -273,14 +273,14 @@ export const RACES: Race[] = [
     name: "Manitoba Half Marathon",
     city: "Winnipeg",
     province: "MB",
-    date: "2026-06-14",
+    date: "2026-06-21",
     distance: "half",
     url: "https://manitobamarathon.mb.ca/",
   },
   // Nova Scotia
   {
     id: "bluenose-full-2026",
-    name: "Bluenose Marathon",
+    name: "Medavie Blue Nose Marathon",
     city: "Halifax",
     province: "NS",
     date: "2026-05-17",
@@ -289,10 +289,10 @@ export const RACES: Race[] = [
   },
   {
     id: "bluenose-half-2026",
-    name: "Bluenose Half Marathon",
+    name: "Medavie Blue Nose Marathon",
     city: "Halifax",
     province: "NS",
-    date: "2026-05-17",
+    date: "2026-05-16",
     distance: "half",
     url: "https://bluenosemarathon.com/",
   },

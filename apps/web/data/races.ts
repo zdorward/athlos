@@ -7,6 +7,7 @@ export interface Race {
   province: string
   date: string // ISO date string — update these each year
   distance: Distance
+  url?: string // official race website — helps verification agents skip search step
 }
 
 export const RACES: Race[] = [
@@ -18,6 +19,7 @@ export const RACES: Race[] = [
     province: "ON",
     date: "2026-10-18",
     distance: "full",
+    url: "https://www.torontowaterfrontmarathon.com/",
   },
   {
     id: "scotiabank-toronto-half-2026",
@@ -26,6 +28,7 @@ export const RACES: Race[] = [
     province: "ON",
     date: "2026-10-18",
     distance: "half",
+    url: "https://www.torontowaterfrontmarathon.com/",
   },
   {
     id: "tamarack-ottawa-full-2026",
@@ -34,6 +37,7 @@ export const RACES: Race[] = [
     province: "ON",
     date: "2026-05-24",
     distance: "full",
+    url: "https://www.runottawa.ca/",
   },
   {
     id: "tamarack-ottawa-half-2026",
@@ -42,6 +46,7 @@ export const RACES: Race[] = [
     province: "ON",
     date: "2026-05-24",
     distance: "half",
+    url: "https://www.runottawa.ca/",
   },
   {
     id: "mississauga-full-2026",
@@ -50,6 +55,7 @@ export const RACES: Race[] = [
     province: "ON",
     date: "2026-05-03",
     distance: "full",
+    url: "https://www.mississaugamarathon.com/",
   },
   {
     id: "mississauga-half-2026",
@@ -58,6 +64,7 @@ export const RACES: Race[] = [
     province: "ON",
     date: "2026-05-03",
     distance: "half",
+    url: "https://www.mississaugamarathon.com/",
   },
   {
     id: "army-run-ottawa-half-2026",
@@ -66,6 +73,7 @@ export const RACES: Race[] = [
     province: "ON",
     date: "2026-09-20",
     distance: "half",
+    url: "https://armyrun.ca/",
   },
   {
     id: "chilly-half-2026",
@@ -74,6 +82,7 @@ export const RACES: Race[] = [
     province: "ON",
     date: "2026-03-01",
     distance: "half",
+    url: "https://chillyhalfmarathon.ca/",
   },
   {
     id: "toronto-yonge-10k-2026",
@@ -82,6 +91,7 @@ export const RACES: Race[] = [
     province: "ON",
     date: "2026-04-19",
     distance: "10k",
+    url: "https://www.sl10k.ca/",
   },
   {
     id: "goodlife-toronto-half-2026",
@@ -90,6 +100,7 @@ export const RACES: Race[] = [
     province: "ON",
     date: "2026-05-03",
     distance: "half",
+    url: "https://www.torontomarathon.com/",
   },
   // British Columbia
   {
@@ -99,6 +110,7 @@ export const RACES: Race[] = [
     province: "BC",
     date: "2026-05-03",
     distance: "full",
+    url: "https://bmovanmarathon.ca/",
   },
   {
     id: "bmo-vancouver-half-2026",
@@ -107,6 +119,7 @@ export const RACES: Race[] = [
     province: "BC",
     date: "2026-05-03",
     distance: "half",
+    url: "https://bmovanmarathon.ca/",
   },
   {
     id: "royal-victoria-full-2026",
@@ -115,6 +128,7 @@ export const RACES: Race[] = [
     province: "BC",
     date: "2026-10-11",
     distance: "full",
+    url: "https://www.runvictoriamarathon.com/",
   },
   {
     id: "royal-victoria-half-2026",
@@ -123,6 +137,7 @@ export const RACES: Race[] = [
     province: "BC",
     date: "2026-10-11",
     distance: "half",
+    url: "https://www.runvictoriamarathon.com/",
   },
   {
     id: "sun-run-10k-2026",
@@ -131,6 +146,7 @@ export const RACES: Race[] = [
     province: "BC",
     date: "2026-04-19",
     distance: "10k",
+    url: "https://www.vancouversunrun.com/",
   },
   {
     id: "okanagan-full-2026",
@@ -139,6 +155,7 @@ export const RACES: Race[] = [
     province: "BC",
     date: "2026-10-04",
     distance: "full",
+    url: "https://appleraceseries.com/",
   },
   {
     id: "okanagan-half-2026",
@@ -147,6 +164,7 @@ export const RACES: Race[] = [
     province: "BC",
     date: "2026-10-04",
     distance: "half",
+    url: "https://appleraceseries.com/",
   },
   // Alberta
   {
@@ -156,6 +174,7 @@ export const RACES: Race[] = [
     province: "AB",
     date: "2026-05-24",
     distance: "full",
+    url: "https://calgarymarathon.com/",
   },
   {
     id: "calgary-half-2026",
@@ -164,6 +183,7 @@ export const RACES: Race[] = [
     province: "AB",
     date: "2026-05-24",
     distance: "half",
+    url: "https://calgarymarathon.com/",
   },
   {
     id: "edmonton-full-2026",
@@ -172,6 +192,7 @@ export const RACES: Race[] = [
     province: "AB",
     date: "2026-08-16",
     distance: "full",
+    url: "https://www.edmontonmarathon.ca/",
   },
   {
     id: "edmonton-half-2026",
@@ -180,6 +201,7 @@ export const RACES: Race[] = [
     province: "AB",
     date: "2026-08-16",
     distance: "half",
+    url: "https://www.edmontonmarathon.ca/",
   },
   {
     id: "banff-full-2026",
@@ -188,6 +210,7 @@ export const RACES: Race[] = [
     province: "AB",
     date: "2026-06-21",
     distance: "full",
+    url: "https://www.banffmarathon.com/",
   },
   {
     id: "banff-half-2026",
@@ -196,6 +219,7 @@ export const RACES: Race[] = [
     province: "AB",
     date: "2026-06-21",
     distance: "half",
+    url: "https://www.banffmarathon.com/",
   },
   // Quebec
   {
@@ -205,6 +229,7 @@ export const RACES: Race[] = [
     province: "QC",
     date: "2026-09-20",
     distance: "full",
+    url: "https://couronsmtl.com/en/marathon-beneva/home/",
   },
   {
     id: "montreal-half-2026",
@@ -213,6 +238,7 @@ export const RACES: Race[] = [
     province: "QC",
     date: "2026-09-20",
     distance: "half",
+    url: "https://couronsmtl.com/en/marathon-beneva/home/",
   },
   {
     id: "quebec-city-full-2026",
@@ -221,6 +247,7 @@ export const RACES: Race[] = [
     province: "QC",
     date: "2026-08-23",
     distance: "full",
+    url: "https://www.jecoursqc.com/en/",
   },
   {
     id: "quebec-city-half-2026",
@@ -229,6 +256,7 @@ export const RACES: Race[] = [
     province: "QC",
     date: "2026-08-23",
     distance: "half",
+    url: "https://www.jecoursqc.com/en/",
   },
   // Manitoba
   {
@@ -238,6 +266,7 @@ export const RACES: Race[] = [
     province: "MB",
     date: "2026-06-14",
     distance: "full",
+    url: "https://manitobamarathon.mb.ca/",
   },
   {
     id: "manitoba-half-2026",
@@ -246,6 +275,7 @@ export const RACES: Race[] = [
     province: "MB",
     date: "2026-06-14",
     distance: "half",
+    url: "https://manitobamarathon.mb.ca/",
   },
   // Nova Scotia
   {
@@ -255,6 +285,7 @@ export const RACES: Race[] = [
     province: "NS",
     date: "2026-05-17",
     distance: "full",
+    url: "https://bluenosemarathon.com/",
   },
   {
     id: "bluenose-half-2026",
@@ -263,6 +294,7 @@ export const RACES: Race[] = [
     province: "NS",
     date: "2026-05-17",
     distance: "half",
+    url: "https://bluenosemarathon.com/",
   },
   // Saskatchewan
   {
@@ -272,6 +304,7 @@ export const RACES: Race[] = [
     province: "SK",
     date: "2026-09-13",
     distance: "full",
+    url: "https://runqcm.ca/",
   },
   {
     id: "queen-city-half-2026",
@@ -280,5 +313,6 @@ export const RACES: Race[] = [
     province: "SK",
     date: "2026-09-13",
     distance: "half",
+    url: "https://runqcm.ca/",
   },
 ]

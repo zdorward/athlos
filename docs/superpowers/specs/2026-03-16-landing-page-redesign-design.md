@@ -23,7 +23,7 @@ Pfitzinger-based marathon training.
 Built around your goal time.
 ```
 
-Rendered as two lines — the first line is the authority claim, the second is the personalisation hook.
+Rendered as two lines using a `<br />` between the two phrases to enforce the split at all viewport widths: `Pfitzinger-based marathon training.<br />Built around your goal time.`
 
 **Subheading** (currently `Adaptive marathon training for runners with a real goal.`):
 ```
@@ -38,7 +38,7 @@ Two short lines, muted colour, same style as current subheading.
 Adaptive · Hybrid-athlete ready · Built for BQ
 ```
 
-Same position (below search widget), same style as the removed friction copy (`fontSize: 12`, `color: rgba(255,255,255,0.22)`, `letterSpacing: "0.02em"`). This restores a credibility anchor without making misleading pricing promises.
+Insert as a new `<p>` added as a direct child of the hero flex column, immediately after the closing `</div>` of the `ref={wrapRef}` search widget div and before the closing `</div>` of the hero content flex container. Same style as the removed friction copy: `fontSize: 12`, `margin: 0`, `color: rgba(255,255,255,0.22)`, `letterSpacing: "0.02em"`.
 
 ### Middle section — "Why Athlos" (replaces "How it works")
 
@@ -52,7 +52,7 @@ Three cards replace the current three steps:
 | 2 | Strength training included | Lift days scheduled around your key runs, not as an afterthought. |
 | 3 | Adaptive by default | Log how a session felt. If you're accumulating fatigue, the plan adjusts — before it becomes an injury. |
 
-Icons are replaced: remove emojis, use text-only cards (no icon field). The card layout and styling are unchanged.
+Icons are replaced: remove the `icon` property from each card data object AND remove the `<div style={{ fontSize: 28, marginBottom: 12 }}>` render block that outputs `{f.icon}`. The remaining card layout and styling are unchanged. Also update the `{/* ── How it works ──` comment to read `{/* ── Why Athlos ──`.
 
 ### Bottom CTA section
 

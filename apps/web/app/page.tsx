@@ -77,7 +77,7 @@ function PageContent() {
           background: "#020208",
         }}
       >
-        <Spinner className="text-white/30" />
+        <Spinner />
       </main>
     )
   }

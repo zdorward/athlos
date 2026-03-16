@@ -31,7 +31,6 @@ export interface OnboardingData {
   race?: RaceData
   timeGoal?: boolean
   goalTime?: { hours: number; minutes: number }
-  trainingAge?: "under-1" | "1-3" | "3-or-more"
   selectedDays?: Day[]
   longRunDay?: Day
   strengthTraining?: boolean
@@ -49,7 +48,6 @@ export function getSteps(): readonly string[] {
   return [
     "findRace",
     "goalTime",
-    "trainingAge",
     "whichDays",
     "weeklyMileage",
     "strength",

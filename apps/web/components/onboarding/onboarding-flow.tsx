@@ -12,7 +12,6 @@ import { StepWhichDays } from "./steps/step-which-days"
 import { StepStrength } from "./steps/step-strength"
 import { StepGoalTime } from "./steps/step-goal-time"
 import { StepWeeklyMileage } from "./steps/step-weekly-mileage"
-import { StepTrainingAge } from "./steps/step-training-age"
 import { getSteps, type OnboardingData, type RaceData } from "./types"
 import { authClient } from "@/lib/auth-client"
 import { detectUnits, formatRaceDistance } from "@/lib/units"
@@ -28,7 +27,6 @@ const DRAFT_KEY = "athlos_onboarding_draft"
 const STEP_LABELS: Record<string, string> = {
   findRace: "Your race",
   goalTime: "Goal time",
-  trainingAge: "Experience",
   whichDays: "Running days",
   weeklyMileage: "Weekly mileage",
   strength: "Strength training",
@@ -305,7 +303,6 @@ export function OnboardingFlow({ onExit, initialData }: OnboardingFlowProps) {
     switch (stepName) {
       case "findRace":           return <StepFindRace {...stepProps} />
       case "goalTime":           return <StepGoalTime {...stepProps} />
-      case "trainingAge":        return <StepTrainingAge {...stepProps} />
       case "whichDays":          return <StepWhichDays {...stepProps} />
       case "weeklyMileage":      return <StepWeeklyMileage {...stepProps} />
       case "strength":           return <StepStrength {...stepProps} />

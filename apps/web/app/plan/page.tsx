@@ -114,12 +114,6 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
     ? (rawRange as PlanGenerationInput["weeklyMileageRange"])
     : "40-60"
 
-  const rawTrainingAge = raw["trainingAge"] as string | undefined
-  const validTrainingAges = ["under-1", "1-3", "3-or-more"]
-  if (rawTrainingAge && validTrainingAges.includes(rawTrainingAge)) {
-    input.trainingAge = rawTrainingAge as PlanGenerationInput["trainingAge"]
-  }
-
   return input
 }
 

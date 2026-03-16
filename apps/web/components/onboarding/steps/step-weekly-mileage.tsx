@@ -8,15 +8,15 @@ type MileageRange = "under-40" | "40-60" | "60-80" | "80-plus"
 
 const KM_OPTIONS: { value: MileageRange; label: string; description: string }[] = [
   { value: "under-40", label: "Under 40 km/week",  description: "Building base fitness" },
-  { value: "40-60",   label: "40–60 km/week",      description: "Solid recreational runner" },
-  { value: "60-80",   label: "60–80 km/week",      description: "Committed club runner" },
+  { value: "40-60",   label: "40–60 km/week",      description: "Consistent recreational runner" },
+  { value: "60-80",   label: "60–80 km/week",      description: "Consistent club runner" },
   { value: "80-plus", label: "80+ km/week",         description: "High mileage athlete" },
 ]
 
 const MILES_OPTIONS: { value: MileageRange; label: string; description: string }[] = [
   { value: "under-40", label: "Under 25 mi/week",  description: "Building base fitness" },
-  { value: "40-60",   label: "25–37 mi/week",      description: "Solid recreational runner" },
-  { value: "60-80",   label: "37–50 mi/week",      description: "Committed club runner" },
+  { value: "40-60",   label: "25–37 mi/week",      description: "Consistent recreational runner" },
+  { value: "60-80",   label: "37–50 mi/week",      description: "Consistent club runner" },
   { value: "80-plus", label: "50+ mi/week",         description: "High mileage athlete" },
 ]
 

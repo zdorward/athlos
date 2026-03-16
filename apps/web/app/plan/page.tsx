@@ -315,8 +315,8 @@ export default function PlanPage() {
               finalDays = mergeStrengthDays(
                 finalDays,
                 planInput.strengthDays,
-                new Date(finalDays[0]!.date + "T00:00:00"),
-                new Date(finalDays[finalDays.length - 1]!.date + "T00:00:00"),
+                new Date(localDays[0]!.date + "T00:00:00"),
+                new Date(localDays[localDays.length - 1]!.date + "T00:00:00"),
               )
             }
 

@@ -239,6 +239,8 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, onToggleCo
                     )}
 
                     {entries.map((entry) => {
+                      // Don't show "Rest Day" label when other workouts are present on the same day
+                      if (entry.type === "rest" && entries.length > 1) return null
                       const color = getWorkoutColor(entry.type)
                       const textClass = WORKOUT_TEXT_CLASS[entry.type]
                       return (

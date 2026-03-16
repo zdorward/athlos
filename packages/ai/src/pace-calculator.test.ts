@@ -180,6 +180,11 @@ describe("computePhases — 16 week half marathon (4-phase)", () => {
     const taper = phases.find(p => p.name === "Taper")!
     expect(taper.endWeek - taper.startWeek + 1).toBeGreaterThanOrEqual(3)
   })
+
+  it("peak is at least 3 weeks for half", () => {
+    const peak = phases.find(p => p.name === "Peak")!
+    expect(peak.endWeek - peak.startWeek + 1).toBeGreaterThanOrEqual(3)
+  })
 })
 
 describe("computePhases — 4 week 5K (very short)", () => {
@@ -197,6 +202,39 @@ describe("computePhases — 4 week 5K (very short)", () => {
 
   it("starts at week 1", () => {
     expect(phases[0]!.startWeek).toBe(1)
+  })
+})
+
+describe("computePhases — 22 week full marathon: peak >= 3 weeks", () => {
+  const phases = computePhases(22, "full")
+
+  it("produces 5 phases", () => {
+    expect(phases.map(p => p.name)).toEqual([
+      "General Fitness", "Base", "Build", "Peak", "Taper"
+    ])
+  })
+
+  it("weeks sum to 22", () => {
+    const total = phases.reduce((s, p) => s + p.endWeek - p.startWeek + 1, 0)
+    expect(total).toBe(22)
+  })
+
+  it("peak is at least 3 weeks", () => {
+    const peak = phases.find(p => p.name === "Peak")!
+    expect(peak.endWeek - peak.startWeek + 1).toBeGreaterThanOrEqual(3)
+  })
+
+  it("taper is exactly 3 weeks", () => {
+    const taper = phases.find(p => p.name === "Taper")!
+    expect(taper.endWeek - taper.startWeek + 1).toBe(3)
+  })
+
+  it("matches expected: GF=4, Base=7, Build=5, Peak=3, Taper=3", () => {
+    expect(phases[0]).toEqual({ name: "General Fitness", startWeek: 1, endWeek: 4 })
+    expect(phases[1]).toEqual({ name: "Base", startWeek: 5, endWeek: 11 })
+    expect(phases[2]).toEqual({ name: "Build", startWeek: 12, endWeek: 16 })
+    expect(phases[3]).toEqual({ name: "Peak", startWeek: 17, endWeek: 19 })
+    expect(phases[4]).toEqual({ name: "Taper", startWeek: 20, endWeek: 22 })
   })
 })
 

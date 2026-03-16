@@ -116,7 +116,9 @@ function getTaperMin(distance: string): number {
 export function computePhases(totalWeeks: number, distance: string): PhaseEntry[] {
   const taperMin = getTaperMin(distance)
   const taper = taperMin
-  let remaining = totalWeeks - taper
+  // Peak follows the same minimum rule as taper (2 weeks for 5k/10k, 3 for half/full)
+  const peakMin = taperMin
+  let remaining = totalWeeks - taper - peakMin
 
   const result: PhaseEntry[] = []
   let w = 1
@@ -134,7 +136,7 @@ export function computePhases(totalWeeks: number, distance: string): PhaseEntry[
     remaining -= base
     const build = Math.min(remaining, Math.max(0, Math.round(totalWeeks * 0.30)))
     remaining -= build
-    const peak  = Math.max(0, remaining)
+    const peak  = peakMin + Math.max(0, remaining)
 
     pushPhase("Base",  base)
     pushPhase("Build", build)
@@ -147,7 +149,7 @@ export function computePhases(totalWeeks: number, distance: string): PhaseEntry[
     remaining -= base
     const build = Math.min(remaining, Math.max(1, Math.round(totalWeeks * 0.25)))
     remaining -= build
-    const peak  = Math.max(0, remaining)
+    const peak  = peakMin + Math.max(0, remaining)
 
     pushPhase("General Fitness", gf)
     pushPhase("Base",  base)

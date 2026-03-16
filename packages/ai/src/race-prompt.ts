@@ -1,5 +1,5 @@
 import type { PlanGenerationInput } from "./types"
-import { calculatePaceZones, computePhases } from "./pace-calculator"
+import { calculatePaceZones, computePhases, computeGoalPeakMileage, calculateRawGoalPace } from "./pace-calculator"
 
 function buildSystemPrompt(units: "km" | "miles"): string {
   const unitLabel = units === "km" ? "kilometres" : "miles"
@@ -41,6 +41,19 @@ Every workout except rest and strength MUST have a targetPace matching the zone 
 - At least 80% of weekly running distance must be at easy, medium-long, or long run pace
 - Maximum 2 quality sessions per week (tempo, intervals, mp)
 - If athlete has only 3 running days: max 1 quality session per week
+
+## Athlete Training Age
+
+Apply the following constraints based on the training age in the user message.
+When constraints conflict, apply the most restrictive rule (e.g. a 3-or-more year athlete
+with only 3 available running days is still capped at 1 quality session/week by the
+running-days rule — training age does not override it).
+
+- under-1 year: max 8% weekly volume increase; max 1 quality session/week in all phases;
+  no VO2max intervals until the Build phase; emphasise easy aerobic development
+- 1-3 years: standard 10% rule; standard quality session limits per existing rules
+- 3-or-more years: may increase up to 12% in strong weeks; up to 2 quality sessions from
+  mid-Build phase onward (subject to running-days cap)
 
 ## Weekly Structure Rules
 
@@ -154,6 +167,12 @@ function buildWeekSchedule(startDate: Date, endDate: Date): string {
   return weeks.join("\n")
 }
 
+const WEEKS_AGO_CONTEXT: Record<string, "active" | "short-break" | "long-break"> = {
+  "under-8": "active",
+  "8-16": "short-break",
+  "16-24": "long-break",
+}
+
 export function buildPrompt(input: PlanGenerationInput): { system: string; user: string } {
   const startDate = input.startDate
     ? new Date(input.startDate + "T00:00:00Z")
@@ -172,18 +191,6 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   const { name, distance, city } = input.race
   const raceKm = DISTANCE_KM_MAP[distance] ?? 42.2
 
-  // ── Pace zones ──────────────────────────────────────────────────────────
-  let paceZones = null
-
-  if (input.goalTime) {
-    const { hours, minutes } = input.goalTime
-    paceZones = calculatePaceZones(
-      // ultra is out of scope; use "full" as a proxy for pace zone calculation
-      { hours, minutes, seconds: 0, distance: distance === "ultra" ? "full" : distance as "5k" | "10k" | "half" | "full" },
-      "goal-time"
-    )
-  }
-
   // ── Phase schedule ───────────────────────────────────────────────────────
   const phases = computePhases(totalWeeks, distance)
   const phasesJson = JSON.stringify(phases)
@@ -197,43 +204,130 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   const startingVolume = STARTING_VOLUME_KM[mileageRange] ?? 50
   const rangeLabel = RANGE_LABEL[mileageRange] ?? "40–60"
 
-  // ── Fitness source description ───────────────────────────────────────────
-  const fitnessSource = input.goalTime ? "goal time" : "not provided"
+  const u = input.units === "km" ? "km" : "mi"
+
+  // ── Goal time string ─────────────────────────────────────────────────────
+  const goalTimeStr = input.goalTime
+    ? `${input.goalTime.hours}h${input.goalTime.minutes.toString().padStart(2, "0")}m`
+    : null
+
+  // ── Pace zones (dual source) ─────────────────────────────────────────────
+  let trainingZones = null
+  let rawGoalPace: string | null = null
+
+  if (input.recentRace) {
+    const { hours, minutes, seconds, distance: rDist, weeksAgo } = input.recentRace
+    const context = WEEKS_AGO_CONTEXT[weeksAgo] ?? "active"
+    trainingZones = calculatePaceZones(
+      { hours, minutes, seconds: rDist === undefined ? 0 : seconds, distance: rDist, context },
+      "recent-race"
+    )
+  } else if (input.goalTime) {
+    const { hours, minutes } = input.goalTime
+    trainingZones = calculatePaceZones(
+      { hours, minutes, seconds: input.goalTime.seconds ?? 0, distance: distance === "ultra" ? "full" : distance as "5k" | "10k" | "half" | "full" },
+      "goal-time"
+    )
+  }
+
+  if (input.goalTime) {
+    rawGoalPace = calculateRawGoalPace({
+      hours: input.goalTime.hours,
+      minutes: input.goalTime.minutes,
+      seconds: input.goalTime.seconds ?? 0,
+      distance: distance === "ultra" ? "full" : distance as "5k" | "10k" | "half" | "full",
+    })
+  }
+
+  // ── Goal-implied peak mileage ────────────────────────────────────────────
+  const goalMinutes = input.goalTime
+    ? input.goalTime.hours * 60 + input.goalTime.minutes + (input.goalTime.seconds ?? 0) / 60
+    : null
+  const peakMileage = goalMinutes ? computeGoalPeakMileage(distance, goalMinutes) : null
 
   // ── User message ─────────────────────────────────────────────────────────
   const lines: string[] = []
 
-  const u = input.units === "km" ? "km" : "mi"
-  lines.push(`Goal: Race — ${name} in ${city} on ${toISO(endDate)} (${raceKm} ${u} / ${distance})`)
-
-  if (input.goalTime) {
-    const { hours, minutes } = input.goalTime
-    const goalTimeStr = `${hours}h${minutes.toString().padStart(2, "0")}m`
-    lines.push(`Time goal: ${goalTimeStr} — every decision in this plan (paces, volume, workout types, phase structure) must serve the single objective of getting this athlete to the start line ready to run ${goalTimeStr} at ${name}.`)
+  // 1. Primary objective
+  if (goalTimeStr) {
+    lines.push(`Primary objective: Run ${name} in ${goalTimeStr}. Every decision in this plan — volume, workout selection, pace targets, phase structure — exists to serve this single goal.`)
   } else {
-    lines.push("Time goal: finish — build fitness and endurance to complete the race comfortably.")
+    lines.push(`Goal: Race — ${name} in ${city} on ${toISO(endDate)} (${raceKm} ${u} / ${distance})`)
+    lines.push("Objective: finish — build fitness and endurance to complete the race comfortably.")
   }
 
+  // 2. Athlete profile
   lines.push("")
-  lines.push("Fitness baseline:")
-  lines.push(`  Current weekly mileage: ${rangeLabel} ${u}/week`)
-  lines.push(`  Starting volume (week 1 total): ${startingVolume} ${u}`)
-  lines.push(`  Fitness source: ${fitnessSource}`)
+  lines.push("Athlete profile:")
+  const trainingAgeLabel: Record<string, string> = {
+    "under-1": "under 1 year of consistent running",
+    "1-3": "1–3 years of consistent running",
+    "3-or-more": "3 or more years of consistent running",
+  }
+  lines.push(`  Training age: ${trainingAgeLabel[input.trainingAge ?? "1-3"] ?? "1–3 years of consistent running"}`)
+  lines.push(`  First time at this distance: ${input.firstTimeDistance ? "Yes — emphasise completion and confidence over performance targets" : "No"}`)
 
-  if (paceZones) {
-    lines.push("")
-    lines.push("Pace zones (use these exactly for targetPace on every non-rest, non-strength workout):")
-    lines.push(`  Easy:         ${paceZones.easy}`)
-    lines.push(`  Long run:     ${paceZones.longRun}`)
-    lines.push(`  Medium-long:  ${paceZones.mediumLong}`)
-    lines.push(`  Race pace:    ${paceZones.mp}`)
-    lines.push(`  Threshold:    ${paceZones.threshold}`)
-    lines.push(`  VO2max:       ${paceZones.vo2max}`)
-  } else {
-    lines.push("")
-    lines.push("Pace zones: not available — calibrate paces to the athlete's goal time and fitness level.")
+  // 3. Current fitness
+  lines.push("")
+  lines.push("Current fitness:")
+  if (input.recentRace) {
+    const { hours: rh, minutes: rm, seconds: rs, distance: rd, weeksAgo } = input.recentRace
+    const raceTimeStr = `${rh}h${rm.toString().padStart(2, "0")}m${rs > 0 ? rs.toString().padStart(2, "0") + "s" : ""}`
+    const weeksAgoLabel: Record<string, string> = {
+      "under-8": "< 8 weeks ago",
+      "8-16": "8–15 weeks ago",
+      "16-24": "16–23 weeks ago",
+    }
+    lines.push(`  Recent race: ${rd.toUpperCase()} in ${raceTimeStr} (${weeksAgoLabel[weeksAgo] ?? weeksAgo}) — used to calibrate training paces`)
+  }
+  lines.push(`  Current weekly mileage (starting point only — does not cap peak volume): ${rangeLabel} ${u}/week`)
+
+  // 4. Volume targets
+  // Note: startingVolume and peakMileage are always in km regardless of units preference.
+  // The prompt communicates volumes in km only — this is consistent with how distanceKm
+  // is always stored and computed in km throughout the codebase.
+  lines.push("")
+  lines.push("Volume targets (all distances in km):")
+  lines.push(`  Week 1 volume: ~${startingVolume} km`)
+  if (peakMileage) {
+    if (startingVolume >= peakMileage.low) {
+      lines.push(`  Current weekly volume already meets the target peak range (~${peakMileage.low}–${peakMileage.high} km/week). Prioritise maintaining volume and increasing workout quality rather than further mileage buildup.`)
+    } else {
+      lines.push(`  Target peak volume (soft — scale back if timeline is short, athlete is a first-timer, or training age is under-1): ~${peakMileage.low}–${peakMileage.high} km/week`)
+    }
   }
 
+  // 5. Pace zones (dual block)
+  lines.push("")
+  if (trainingZones) {
+    lines.push("Training pace zones (current fitness — use for targetPace on all workouts):")
+    lines.push(`  Easy:         ${trainingZones.easy}`)
+    lines.push(`  Long run:     ${trainingZones.longRun}`)
+    lines.push(`  Medium-long:  ${trainingZones.mediumLong}`)
+    lines.push(`  Threshold:    ${trainingZones.threshold}`)
+    lines.push(`  VO2max:       ${trainingZones.vo2max}`)
+  } else {
+    lines.push("Training pace zones: not available — calibrate paces to the athlete's fitness level.")
+  }
+  lines.push("")
+  if (rawGoalPace) {
+    lines.push("Goal race pace (target — use for mp workouts and race-pace segments only):")
+    lines.push(`  Race pace:    ${rawGoalPace}`)
+    // Only emit the note when training zones are genuinely faster than goal pace
+    if (trainingZones) {
+      function mpLoSec(zone: string): number {
+        const [m, s] = zone.split("–")[0]!.split(":").map(Number)
+        return m! * 60 + s!
+      }
+      if (mpLoSec(trainingZones.mp) < mpLoSec(rawGoalPace)) {
+        lines.push("  Note: training zones reflect current fitness — they may be faster than goal race pace for athletes whose fitness already exceeds their race target.")
+      }
+    }
+  } else {
+    lines.push("Goal race pace: not specified — use mp zone from training zones above for race-pace work.")
+  }
+
+  // 6. Schedule
   const runDayNames = input.selectedDays.map(d => DAY_NAMES[d] ?? d).join(", ")
   const longRunDayName = DAY_NAMES[input.longRunDay] ?? input.longRunDay
 
@@ -257,6 +351,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
     lines.push("Strength training: none")
   }
 
+  // 7. Phase schedule
   lines.push("")
   lines.push("Phase schedule (follow exactly):")
   lines.push(phaseScheduleLines)
@@ -265,6 +360,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   lines.push(`Meta line phases (copy verbatim into your first JSON line's "phases" field):`)
   lines.push(phasesJson)
 
+  // 8. Week schedule
   lines.push("")
   lines.push(`Week schedule (use ONLY these exact dates — do not invent or shift any dates):\n${buildWeekSchedule(startDate, endDate)}`)
 

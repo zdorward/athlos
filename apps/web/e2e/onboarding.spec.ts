@@ -1,5 +1,12 @@
 import { test, expect } from "@playwright/test"
 
+test("visiting /new-plan without a session redirects to /", async ({ page }) => {
+  // No session — should be redirected to the landing page
+  await page.goto("/new-plan")
+  await page.waitForURL("/")
+  await expect(page.getByPlaceholder("Search races by name or city…")).toBeVisible()
+})
+
 test("selecting a race from search launches the onboarding flow", async ({ page }) => {
   await page.goto("/")
 

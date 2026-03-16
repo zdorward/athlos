@@ -7,6 +7,7 @@ import {
   integer,
   numeric,
   jsonb,
+  uniqueIndex,
 } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
@@ -82,4 +83,52 @@ export const plans = pgTable("plans", {
   totalKm: numeric("total_km").notNull(),
   peakWeekKm: numeric("peak_week_km").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+})
+
+export const workoutLogs = pgTable(
+  "workout_logs",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    planId: uuid("plan_id")
+      .notNull()
+      .references(() => plans.id, { onDelete: "cascade" }),
+    workoutDate: text("workout_date").notNull(),
+    workoutType: text("workout_type").notNull(),
+    expectedEffort: text("expected_effort").notNull(),
+    actualEffort: text("actual_effort").notNull(),
+    completed: boolean("completed").notNull(),
+    soreness: text("soreness").notNull(),
+    loggedAt: timestamp("logged_at").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("workout_logs_plan_date_type_idx").on(
+      table.planId,
+      table.workoutDate,
+      table.workoutType,
+    ),
+  ],
+)
+
+export const adaptationSuggestions = pgTable("adaptation_suggestions", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  planId: uuid("plan_id")
+    .notNull()
+    .references(() => plans.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("pending"),
+  reason: text("reason").notNull(),
+  targetDate: text("target_date").notNull(),
+  originalWorkout: jsonb("original_workout").notNull(),
+  proposedWorkout: jsonb("proposed_workout").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  resolvedAt: timestamp("resolved_at"),
 })

@@ -6,7 +6,9 @@ import { DayToggle } from "../day-toggle"
 import { ORDERED_DAYS, DAY_LABELS, type Day, type StepProps } from "../types"
 
 export function StepStrengthDays({ formData, onNext }: Pick<StepProps, "formData" | "onNext">) {
-  const [selected, setSelected] = useState<Day[]>(formData.strengthDays ?? [])
+  const [selected, setSelected] = useState<Day[]>(
+    formData.strengthDays ?? (["wed", "sat"] as Day[])
+  )
 
   function toggle(day: Day) {
     setSelected((prev) =>

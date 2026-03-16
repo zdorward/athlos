@@ -33,11 +33,10 @@ function mergeStrengthDays(
   while (d <= endDate) {
     const key = DAY_KEYS[d.getDay()]
     if (key && strengthSet.has(key)) {
-      result.push({
-        date: d.toLocaleDateString("en-CA"),
-        type: "strength",
-        description: "Strength training",
-      })
+      const dateStr = d.toLocaleDateString("en-CA")
+      if (!result.some((e) => e.date === dateStr && e.type === "strength")) {
+        result.push({ date: dateStr, type: "strength", description: "Strength training" })
+      }
     }
     d.setDate(d.getDate() + 1)
   }
@@ -311,7 +310,7 @@ export default function PlanPage() {
               : localDays
 
             // Inject strength days — LLM no longer outputs them
-            if (planInput.strengthDays?.length && finalDays.length > 0) {
+            if (planInput.strengthDays?.length && localDays.length > 0) {
               finalDays = mergeStrengthDays(
                 finalDays,
                 planInput.strengthDays,

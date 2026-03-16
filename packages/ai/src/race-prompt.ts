@@ -31,11 +31,10 @@ No markdown, no explanation, no code fences. Output valid JSON only. No trailing
 - mp          — standalone race-pace run; use mp zone
 - tempo       — sustained threshold effort 20–40 min; use threshold zone
 - intervals   — short repetitions 600m–1600m with recovery; use vo2max zone
-- strength    — no distanceKm
 - rest        — full rest, no distanceKm
 - race        — race day
 
-Every workout except rest and strength MUST have a targetPace matching the zone label exactly as given in the user message.
+Every workout except rest MUST have a targetPace matching the zone label exactly as given in the user message.
 
 ## Intensity Distribution (80/20 Rule)
 
@@ -110,10 +109,31 @@ const DAY_NAMES: Record<string, string> = {
   fri: "Friday", sat: "Saturday", sun: "Sunday",
 }
 
+const DAY_INDEX: Record<string, number> = {
+  sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6,
+}
+
+export function peakStrengthDay(strengthDays: string[], longRunDay: string): string | null {
+  if (strengthDays.length === 0) return null
+  if (strengthDays.length === 1) return strengthDays[0]!
+
+  const longIdx = DAY_INDEX[longRunDay] ?? 0
+
+  function circularDistance(day: string): number {
+    const idx = DAY_INDEX[day] ?? 0
+    const diff = Math.abs(idx - longIdx)
+    return Math.min(diff, 7 - diff)
+  }
+
+  return strengthDays.reduce((best, day) =>
+    circularDistance(day) >= circularDistance(best) ? day : best
+  )
+}
+
 const DAY_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
 const DISTANCE_KM_MAP: Record<string, number> = {
-  "5k": 5, "10k": 10, half: 21.1, full: 42.2, ultra: 80,
+  half: 21.1, full: 42.2,
 }
 
 const RANGE_LABEL: Record<string, string> = {
@@ -204,7 +224,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   if (input.goalTime) {
     const { hours, minutes } = input.goalTime
     trainingZones = calculatePaceZones(
-      { hours, minutes, seconds: input.goalTime.seconds ?? 0, distance: distance === "ultra" ? "full" : distance as "5k" | "10k" | "half" | "full" },
+      { hours, minutes, seconds: input.goalTime.seconds ?? 0, distance: distance },
       "goal-time"
     )
   }
@@ -214,7 +234,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
       hours: input.goalTime.hours,
       minutes: input.goalTime.minutes,
       seconds: input.goalTime.seconds ?? 0,
-      distance: distance === "ultra" ? "full" : distance as "5k" | "10k" | "half" | "full",
+      distance: distance,
     })
   }
 
@@ -332,7 +352,12 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
 
   if (input.strengthTraining && input.strengthDays?.length) {
     const strengthDayNames = input.strengthDays.map(d => DAY_NAMES[d] ?? d).join(", ")
-    lines.push(`Strength training days: ${strengthDayNames} — treat these as heavy days; do not schedule quality running sessions (tempo, intervals, race pace) on these days. The strength schedule is already defined and will be merged into the final output separately — do not emit any strength type lines.`)
+    const peakDay = peakStrengthDay(input.strengthDays!, input.longRunDay)
+    const peakDayName = peakDay ? (DAY_NAMES[peakDay] ?? peakDay) : "none"
+    lines.push(`Strength training (managed externally — do not emit strength type lines):`)
+    lines.push(`  General Fitness, Base, Build: ${strengthDayNames} — heavy days; no quality sessions (tempo, intervals, mp) on these days`)
+    lines.push(`  Peak: ${peakDayName} only — heavy day; no quality sessions on this day`)
+    lines.push(`  Taper: no strength training — all days available for quality sessions`)
   } else {
     lines.push("Strength training: none")
   }

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { buildBridgeRuns } from "@workspace/ai"
+import { buildBridgeRuns, peakStrengthDay } from "@workspace/ai"
 import type { PlanGenerationInput, TrainingPlan, WorkoutDay, WorkoutType, PhaseEntry } from "@workspace/ai"
 import { authClient } from "@/lib/auth-client"
 import { PlanHeader } from "./plan-header"
@@ -23,16 +23,33 @@ const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const
 function mergeStrengthDays(
   days: WorkoutDay[],
   strengthDays: string[],
+  longRunDay: string,
   startDate: Date,
   endDate: Date,
+  phases: PhaseEntry[] | undefined,
 ): WorkoutDay[] {
   if (strengthDays.length === 0) return days
-  const strengthSet = new Set(strengthDays)
+
+  const msPerWeek = 7 * 24 * 60 * 60 * 1000
+
+  function activeDaysForWeek(weekNum: number): Set<string> {
+    const phase = phases?.find(p => weekNum >= p.startWeek && weekNum <= p.endWeek)
+    const name = phase?.name?.toLowerCase() ?? ""
+    if (name === "taper") return new Set()
+    if (name === "peak") {
+      const best = peakStrengthDay(strengthDays, longRunDay)
+      return best ? new Set([best]) : new Set()
+    }
+    // General Fitness, Base, Build, or no phases available: all days
+    return new Set(strengthDays)
+  }
+
   const result = [...days]
   const d = new Date(startDate.getTime())
   while (d <= endDate) {
+    const weekNum = Math.floor((d.getTime() - startDate.getTime()) / msPerWeek) + 1
     const key = DAY_KEYS[d.getDay()]
-    if (key && strengthSet.has(key)) {
+    if (key && activeDaysForWeek(weekNum).has(key)) {
       const dateStr = d.toLocaleDateString("en-CA")
       if (!result.some((e) => e.date === dateStr && e.type === "strength")) {
         result.push({ date: dateStr, type: "strength", description: "Strength training" })
@@ -68,7 +85,7 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
     race: {
       name: String(race["name"] ?? ""),
       date: String(race["date"] ?? ""),
-      distance: race["distance"] as "5k" | "10k" | "half" | "full" | "ultra",
+      distance: race["distance"] as "half" | "full",
       city: String(race["city"] ?? ""),
     },
     selectedDays,
@@ -289,6 +306,7 @@ export default function PlanPage() {
       const decoder = new TextDecoder()
       let buffer = ""
       const localDays: WorkoutDay[] = []
+      let localPhases: PhaseEntry[] = []
 
       while (true) {
         let done: boolean
@@ -314,8 +332,10 @@ export default function PlanPage() {
               finalDays = mergeStrengthDays(
                 finalDays,
                 planInput.strengthDays,
+                planInput.longRunDay,
                 new Date(localDays[0]!.date + "T00:00:00"),
                 new Date(localDays[localDays.length - 1]!.date + "T00:00:00"),
+                localPhases,
               )
             }
 
@@ -345,6 +365,7 @@ export default function PlanPage() {
                 ? (parsed["phases"] as PhaseEntry[])
                 : []
               setPhases(metaPhases)
+              localPhases = metaPhases
               setPlan((p) => ({
                 ...p,
                 totalWeeks: tw,
@@ -477,7 +498,7 @@ export default function PlanPage() {
           days={plan.days ?? []}
           units={input.units}
           totalWeeks={plan.totalWeeks ?? 0}
-          raceDistance={input.race?.distance}
+          raceDistance={input.race?.distance as "half" | "full" | undefined}
           phases={phases}
           selectedKey={selectedKey}
           onSelectedKeyChange={setSelectedKey}
@@ -490,7 +511,7 @@ export default function PlanPage() {
           days={plan.days ?? []}
           units={input.units}
           totalWeeks={plan.totalWeeks ?? 0}
-          raceDistance={input.race?.distance}
+          raceDistance={input.race?.distance as "half" | "full" | undefined}
           phases={phases}
           selectedKey={selectedKey}
           onSelectedKeyChange={setSelectedKey}

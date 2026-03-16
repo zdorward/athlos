@@ -9,6 +9,7 @@ export {
 } from "./types"
 export { buildBridgeRuns } from "./bridge-runs"
 export * from "./adaptation"
+export { peakStrengthDay } from "./race-prompt"
 
 let _provider: import("./provider").AIProvider | undefined
 

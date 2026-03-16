@@ -89,8 +89,7 @@ export function getPhaseLabel(
   return "Taper"
 }
 
-export function getTaperWeeks(distance?: "5k" | "10k" | "half" | "full" | "ultra"): number {
+export function getTaperWeeks(distance?: "half" | "full"): number {
   if (!distance) return 0
-  if (distance === "5k" || distance === "10k") return 2
   return 3
 }

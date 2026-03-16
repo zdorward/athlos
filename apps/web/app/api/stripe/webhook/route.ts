@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       if (userId && customerId) {
         await db
           .update(user)
-          .set({ stripeCustomerId: customerId })
+          .set({ stripeCustomerId: customerId, plan: "pro" })
           .where(eq(user.id, userId))
       }
       break

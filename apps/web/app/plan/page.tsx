@@ -68,7 +68,7 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
     race: {
       name: String(race["name"] ?? ""),
       date: String(race["date"] ?? ""),
-      distance: race["distance"] as "5k" | "10k" | "half" | "full" | "ultra",
+      distance: race["distance"] as "half" | "full",
       city: String(race["city"] ?? ""),
     },
     selectedDays,
@@ -477,7 +477,7 @@ export default function PlanPage() {
           days={plan.days ?? []}
           units={input.units}
           totalWeeks={plan.totalWeeks ?? 0}
-          raceDistance={input.race?.distance}
+          raceDistance={input.race?.distance as "half" | "full" | undefined}
           phases={phases}
           selectedKey={selectedKey}
           onSelectedKeyChange={setSelectedKey}
@@ -490,7 +490,7 @@ export default function PlanPage() {
           days={plan.days ?? []}
           units={input.units}
           totalWeeks={plan.totalWeeks ?? 0}
-          raceDistance={input.race?.distance}
+          raceDistance={input.race?.distance as "half" | "full" | undefined}
           phases={phases}
           selectedKey={selectedKey}
           onSelectedKeyChange={setSelectedKey}

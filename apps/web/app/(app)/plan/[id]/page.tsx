@@ -179,7 +179,7 @@ export default function PlanViewPage({ params }: PageProps) {
           days={days}
           units={units}
           totalWeeks={plan.totalWeeks}
-          raceDistance={raceDistance}
+          raceDistance={raceDistance as "half" | "full" | undefined}
           onToggleComplete={handleToggleComplete}
           onSaveEdit={handleSaveEdit}
           selectedKey={selectedKey}
@@ -193,7 +193,7 @@ export default function PlanViewPage({ params }: PageProps) {
           days={days}
           units={units}
           totalWeeks={plan.totalWeeks}
-          raceDistance={raceDistance}
+          raceDistance={raceDistance as "half" | "full" | undefined}
           onToggleComplete={handleToggleComplete}
           onSaveEdit={handleSaveEdit}
           selectedKey={selectedKey}

@@ -45,7 +45,7 @@ interface PlanCalendarProps {
   days: WorkoutDay[]
   units: "km" | "miles"
   totalWeeks: number
-  raceDistance?: "5k" | "10k" | "half" | "full" | "ultra"
+  raceDistance?: "half" | "full"
   onToggleComplete?: (date: string, type: WorkoutType, completed: boolean) => void
   onSaveEdit?: (
     date: string,

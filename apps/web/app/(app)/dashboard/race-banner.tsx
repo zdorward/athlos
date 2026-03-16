@@ -26,7 +26,7 @@ export function RaceBanner({ input, days, totalWeeks }: RaceBannerProps) {
   if (daysAway < 0) return null  // race has passed — hide banner
 
   const weekNum = getPlanWeekNum(days, todayISO)
-  const taperWeeks = getTaperWeeks(input.race.distance)
+  const taperWeeks = getTaperWeeks(input.race.distance as "half" | "full")
   const phase = totalWeeks > 0 ? getPhaseLabel(weekNum, totalWeeks, taperWeeks) : ""
   const progressPct = totalWeeks > 0 ? Math.min(100, Math.round((weekNum / totalWeeks) * 100)) : 0
   const raceDateLabel = format(raceDate, "MMM d, yyyy")

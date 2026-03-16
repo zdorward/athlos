@@ -1,20 +1,46 @@
+// apps/web/components/onboarding/steps/step-which-days.tsx
 "use client"
 
 import { useState } from "react"
 import { Button } from "@workspace/ui/components/button"
 import { DayToggle } from "../day-toggle"
+import { cn } from "@workspace/ui/lib/utils"
 import { ORDERED_DAYS, DAY_LABELS, type Day, type StepProps } from "../types"
 
+type Preset = 5 | 6 | 7
+
+const PRESET_DEFAULTS: Record<Preset, Day[]> = {
+  5: ["mon", "tue", "thu", "fri", "sun"],
+  6: ["mon", "tue", "wed", "thu", "fri", "sun"],
+  7: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+}
+
+const LONG_RUN_DEFAULT: Day = "sun"
+
+function detectPreset(days: Day[]): Preset {
+  if (days.length <= 5) return 5
+  if (days.length === 6) return 6
+  return 7
+}
+
 export function StepWhichDays({ formData, onNext }: Pick<StepProps, "formData" | "onNext">) {
-  const resolvedDays = formData.selectedDays ?? (["mon", "tue", "thu", "fri", "sun"] as Day[])
-  const [selectedDays, setSelectedDays] = useState<Day[]>(resolvedDays)
+  const initialDays = formData.selectedDays ?? PRESET_DEFAULTS[6]
+  const [preset, setPreset] = useState<Preset>(() => detectPreset(initialDays))
+  const [selectedDays, setSelectedDays] = useState<Day[]>(initialDays)
   const [longRunDay, setLongRunDay] = useState<Day | undefined>(
-    formData.longRunDay ?? (resolvedDays.includes("sun") ? "sun" : undefined)
+    formData.longRunDay ?? LONG_RUN_DEFAULT
   )
+
+  function applyPreset(p: Preset) {
+    setPreset(p)
+    setSelectedDays(PRESET_DEFAULTS[p])
+    setLongRunDay(LONG_RUN_DEFAULT)
+  }
 
   function toggleDay(day: Day) {
     setSelectedDays((prev) => {
       const next = prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+      // Clear long run day if it's no longer in the selected days
       if (longRunDay && !next.includes(longRunDay)) setLongRunDay(undefined)
       return next
     })
@@ -26,7 +52,27 @@ export function StepWhichDays({ formData, onNext }: Pick<StepProps, "formData" |
     <div className="space-y-6">
       <div className="space-y-2">
         <h2 className="text-2xl font-semibold tracking-tight">Set up your running week.</h2>
-        <p className="text-sm text-muted-foreground">Pick the days you're available to run, then choose which one is your long run.</p>
+        <p className="text-sm text-muted-foreground">
+          Most serious runners train 6 days a week. Adjust to fit your schedule.
+        </p>
+      </div>
+
+      {/* Preset tabs */}
+      <div className="flex gap-2">
+        {([5, 6, 7] as Preset[]).map((p) => (
+          <button
+            key={p}
+            onClick={() => applyPreset(p)}
+            className={cn(
+              "flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors cursor-pointer",
+              preset === p
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border hover:bg-muted"
+            )}
+          >
+            {p} days
+          </button>
+        ))}
       </div>
 
       <div className="space-y-6">
@@ -69,7 +115,7 @@ export function StepWhichDays({ formData, onNext }: Pick<StepProps, "formData" |
       </div>
 
       <Button
-        onClick={() => onNext({ selectedDays, longRunDay })}
+        onClick={() => canAdvance && onNext({ selectedDays, longRunDay })}
         disabled={!canAdvance}
         className="w-full"
       >

@@ -974,12 +974,12 @@ function PageContent() {
               {
                 icon: "⚙️",
                 title: "Tell us about yourself",
-                body: "Your goal time, weekly mileage, lifting days, and schedule.",
+                body: "Your goal time, weekly mileage, and preferred workout days.",
               },
               {
                 icon: "📋",
                 title: "Get your plan",
-                body: "A personalized week-by-week plan built for runners who also lift.",
+                body: "A personalized week-by-week run + lift plan.",
               },
             ].map((f) => (
               <div

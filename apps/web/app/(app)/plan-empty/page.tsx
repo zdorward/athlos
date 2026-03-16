@@ -11,7 +11,7 @@ export default function PlanEmptyPage() {
         Build a training plan tailored to your race and schedule.
       </p>
       <Button asChild>
-        <Link href="/">Create a plan</Link>
+        <Link href="/new-plan">Create a plan</Link>
       </Button>
     </div>
   )

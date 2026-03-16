@@ -134,7 +134,7 @@ export default function PlanPage() {
   const { data: sessionData, isPending: sessionPending } = authClient.useSession()
 
   const [plan, setPlan] = useState<Partial<TrainingPlan>>({ days: [] })
-  const [status, setStatus] = useState<"generating" | "complete" | "error">("generating")
+  const [status, setStatus] = useState<"generating" | "complete" | "error" | "rate-limited">("generating")
   const [generatingWeek, setGeneratingWeek] = useState(1)
   const [input, setInput] = useState<PlanGenerationInput | null>(null)
 
@@ -292,7 +292,7 @@ export default function PlanPage() {
       }
 
       if (!response.ok || !response.body) {
-        setStatus("error")
+        setStatus(response.status === 429 ? "rate-limited" : "error")
         return
       }
 

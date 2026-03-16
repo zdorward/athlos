@@ -10,7 +10,7 @@ interface PlanHeaderProps {
   totalWeeks: number
   totalKm: number
   units: "km" | "miles"
-  status: "generating" | "complete" | "error"
+  status: "generating" | "complete" | "error" | "rate-limited"
   generatingWeek?: number
   goalTimeLabel?: string
   backHref?: string
@@ -66,6 +66,10 @@ export function PlanHeader({
 
           {status === "error" && (
             <p className="text-xs text-destructive">Generation failed — go back and try again.</p>
+          )}
+
+          {status === "rate-limited" && (
+            <p className="text-xs text-destructive">Too many plans generated today — try again tomorrow.</p>
           )}
 
           {saveProps && <SavePlanButton {...saveProps} />}

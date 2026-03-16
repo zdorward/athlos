@@ -5,7 +5,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 
 export interface SaveProps {
-  status: "generating" | "complete" | "error"
+  status: "generating" | "complete" | "error" | "rate-limited"
   isSaving: boolean
   saveError: boolean
   onSave: () => void

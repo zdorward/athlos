@@ -430,7 +430,7 @@ function PageContent() {
                 margin: 0,
               }}
             >
-              When&apos;s your next race?
+              Pfitzinger-based marathon training.<br />Built around your goal time.
             </h1>
 
             <p
@@ -441,7 +441,7 @@ function PageContent() {
                 letterSpacing: "0.01em",
               }}
             >
-              Adaptive marathon training for runners with a real goal.
+              Strength training built in from day one.<br />Adapts when your body says it needs to.
             </p>
 
             {/* Search widget */}
@@ -532,6 +532,10 @@ function PageContent() {
                 </div>
               )}
             </div>
+
+          <p style={{ fontSize: 12, margin: 0, color: "rgba(255,255,255,0.22)", letterSpacing: "0.02em" }}>
+            Adaptive · Hybrid-athlete ready · Built for BQ
+          </p>
 
           </div>
 
@@ -926,7 +930,7 @@ function PageContent() {
           </div>
         </section>
 
-        {/* ── How it works ─────────────────────────────────────────────── */}
+        {/* ── Why Athlos ──────────────────────────────────────────────── */}
         <section
           style={{ padding: "0 24px 96px", maxWidth: 1100, margin: "0 auto" }}
         >
@@ -940,7 +944,7 @@ function PageContent() {
                 margin: 0,
               }}
             >
-              How it works
+              Why Athlos
             </h2>
           </div>
           <div
@@ -952,19 +956,16 @@ function PageContent() {
           >
             {[
               {
-                icon: "🔍",
-                title: "Find your race",
-                body: "Search from hundreds of races, or add your own.",
+                title: "Pfitzinger methodology",
+                body: "Not generic intervals. Structured phases: base, build, peak, taper — built around your race date and goal time.",
               },
               {
-                icon: "⚙️",
-                title: "Tell us about yourself",
-                body: "Your goal time, weekly mileage, and preferred workout days.",
+                title: "Strength training included",
+                body: "Lift days scheduled around your key runs, not as an afterthought.",
               },
               {
-                icon: "📋",
-                title: "Get your plan",
-                body: "A week-by-week plan built on Pfitzinger's methodology — structured by your goal time, adapted by AI.",
+                title: "Adaptive by default",
+                body: "Log how a session felt. If you're accumulating fatigue, the plan adjusts — before it becomes an injury.",
               },
             ].map((f) => (
               <div
@@ -977,7 +978,6 @@ function PageContent() {
                   textAlign: "center",
                 }}
               >
-                <div style={{ fontSize: 28, marginBottom: 12 }}>{f.icon}</div>
                 <div
                   style={{
                     fontSize: 14,
@@ -1014,7 +1014,7 @@ function PageContent() {
               margin: "0 0 12px",
             }}
           >
-            Ready to build your plan?
+            Build your plan.
           </h2>
           <p
             style={{
@@ -1023,8 +1023,7 @@ function PageContent() {
               margin: "0 0 28px",
             }}
           >
-            Pick your race above and you&apos;ll have a full plan in under 2
-            minutes.
+            Pick your race. Set your goal time. We&apos;ll handle the rest.
           </p>
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}

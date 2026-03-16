@@ -1040,7 +1040,7 @@ function PageContent() {
             >
               &ldquo;I was training for the Victoria Marathon and chasing a PR.
               I didn&apos;t want to pay for Runna, so I ended up duct-taping
-              ChatGPT and Google Sheets together. It kind of worked — but I also
+              ChatGPT and Google Sheets together. It kind of worked, but I also
               lift, so I just built something that handled both.&rdquo;
             </p>
             <p

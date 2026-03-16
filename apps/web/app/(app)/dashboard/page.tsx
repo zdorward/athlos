@@ -153,12 +153,14 @@ export default function DashboardPage() {
     if (!feedbackEntry) return
     const entry = feedbackEntry
     setFeedbackEntry(null)
-    // Update completed in local plan state
+    // Optimistically mark complete; fetchPlan will sync the effort field from server
     const updated = resolvedPlan.days.map((d: WorkoutDay) =>
       d.date === entry.date && d.type === entry.type ? { ...d, completed: true } : d
     )
     setPlan((p) => (p === null || typeof p === "string" ? p : { ...p, days: updated } as Plan))
     if (newSuggestion) setSuggestion(newSuggestion)
+    // Sync from server to get the effort field written by the log endpoint
+    void fetchPlan()
   }
 
   function handleSuggestionAccepted(updatedDays: WorkoutDay[]) {

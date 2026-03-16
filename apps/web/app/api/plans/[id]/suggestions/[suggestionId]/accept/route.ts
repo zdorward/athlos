@@ -38,7 +38,7 @@ export async function PATCH(
 
     // Idempotent — already resolved
     if (suggestion.status !== "pending") {
-      const [plan] = await db.select().from(plans).where(eq(plans.id, id)).limit(1)
+      const [plan] = await db.select().from(plans).where(and(eq(plans.id, id), eq(plans.userId, session.user.id))).limit(1)
       return Response.json({ plan })
     }
 

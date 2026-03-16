@@ -190,7 +190,8 @@ async function runAdaptationCheck(
     .returning()
 
   return suggestion ?? null
-  } catch {
+  } catch (err) {
+    console.error("[adaptation-check] failed:", err)
     return null
   }
 }

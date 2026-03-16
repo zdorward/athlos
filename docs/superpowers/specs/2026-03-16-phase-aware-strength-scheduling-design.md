@@ -127,7 +127,34 @@ Phase name matching is case-insensitive. Recognised taper names: `"Taper"`. Reco
 
 #### 6. Update call site
 
-The call to `mergeStrengthDays` (line ~314) currently passes 4 arguments. Add `planInput.longRunDay` and `trainingPlan.phases` (both already in scope). Pass `trainingPlan.phases` directly — the function handles `undefined` internally.
+**Add a `localPhases` accumulator** before the streaming `while (true)` loop, alongside the existing `localDays` declaration (line ~291):
+
+```ts
+const localDays: WorkoutDay[] = []
+let localPhases: PhaseEntry[] = []
+```
+
+**Assign it** when the `_meta` line is parsed (line ~347), alongside the existing `setPhases(metaPhases)`:
+
+```ts
+setPhases(metaPhases)
+localPhases = metaPhases   // ← add this line
+```
+
+**Update the call** to `mergeStrengthDays` (line ~314) — add `planInput.longRunDay` and `localPhases`:
+
+```ts
+finalDays = mergeStrengthDays(
+  finalDays,
+  planInput.strengthDays,
+  planInput.longRunDay,
+  new Date(localDays[0]!.date + "T00:00:00"),
+  new Date(localDays[localDays.length - 1]!.date + "T00:00:00"),
+  localPhases,
+)
+```
+
+`localPhases` may be an empty array if the `_meta` line was never parsed (e.g. the stream errored before sending it). The function treats `undefined` or empty `phases` as "use full schedule", so this is safe.
 
 ---
 

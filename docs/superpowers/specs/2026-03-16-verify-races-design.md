@@ -51,7 +51,7 @@ Invoked with `/verify-races add` or `/verify-races add [province]`.
 
 ### Mode 3 — Add Missing Races (USA) — Stubbed
 
-Invoked with `/verify-races add USA`. Individual US state codes are not yet accepted — if the user provides a two-letter code not on the Canadian province list, route to this stub.
+Invoked with the literal string `/verify-races add USA` only. Any other unrecognized two-letter code (including US state codes like `TX`) falls through to Mode 2's error handler, which outputs the valid province code list and exits.
 
 Output: "USA race support is coming in a future update." and exit.
 

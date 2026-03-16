@@ -219,7 +219,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
     const { hours, minutes, seconds, distance: rDist, weeksAgo } = input.recentRace
     const context = WEEKS_AGO_CONTEXT[weeksAgo] ?? "active"
     trainingZones = calculatePaceZones(
-      { hours, minutes, seconds: rDist === undefined ? 0 : seconds, distance: rDist, context },
+      { hours, minutes, seconds, distance: rDist, context },
       "recent-race"
     )
   } else if (input.goalTime) {

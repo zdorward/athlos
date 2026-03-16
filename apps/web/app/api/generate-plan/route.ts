@@ -1,7 +1,31 @@
 import { type NextRequest } from "next/server"
 import { getProvider, type PlanGenerationInput } from "@workspace/ai"
+import { getRatelimit } from "@/lib/rate-limit"
 
 export async function POST(req: NextRequest) {
+  // Rate limiting — skipped in development
+  if (process.env.NODE_ENV === "production") {
+    const ip =
+      req.headers.get("x-real-ip") ??
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      "anonymous"
+
+    try {
+      const { success, reset } = await getRatelimit().limit(ip)
+      if (!success) {
+        return new Response(JSON.stringify({ error: "Too many requests" }), {
+          status: 429,
+          headers: {
+            "Content-Type": "application/json",
+            "Retry-After": String(Math.ceil((reset - Date.now()) / 1000)),
+          },
+        })
+      }
+    } catch {
+      // Upstash unavailable or env vars missing — fail open
+    }
+  }
+
   let input: PlanGenerationInput
   try {
     input = (await req.json()) as PlanGenerationInput

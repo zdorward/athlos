@@ -19,11 +19,15 @@
         "STRIPE_SECRET_KEY",
         "STRIPE_PRO_PRICE_ID",
         "STRIPE_WEBHOOK_SECRET",
-        "NEXT_PUBLIC_APP_URL"
+        "NEXT_PUBLIC_APP_URL",
+        "NODE_ENV",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN"
       ]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^lint"],
+      "env": ["NODE_ENV"]
     },
     "format": {
       "dependsOn": ["^format"]

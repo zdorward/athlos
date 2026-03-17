@@ -35,4 +35,11 @@ describe("getWorkoutNote — intervals", () => {
       "3×1km at VO2max pace with 2–3 min jog recovery. Stop the session if your pace slips — quality over quantity."
     )
   })
+
+  it("caps rep count at 8 for large sessions", () => {
+    const day: WorkoutDay = { date: "2026-06-01", type: "intervals", distanceKm: 14 }
+    expect(getWorkoutNote(day, "km")).toBe(
+      "8×1km at VO2max pace with 2–3 min jog recovery. Stop the session if your pace slips — quality over quantity."
+    )
+  })
 })

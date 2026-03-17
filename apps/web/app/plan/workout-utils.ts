@@ -121,7 +121,7 @@ export function getWorkoutNote(day: WorkoutDay, units: "km" | "miles"): string {
       if (day.distanceKm == null) {
         return "800m–1km repeats at VO2max pace with 2–3 min jog recovery."
       }
-      const reps = Math.max(3, Math.round(day.distanceKm - 2))
+      const reps = Math.min(8, Math.max(3, Math.round(day.distanceKm - 2)))
       const paceStr = day.targetPace != null
         ? ` at ${day.targetPace}`
         : " at VO2max pace"

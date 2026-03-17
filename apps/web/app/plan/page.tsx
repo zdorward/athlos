@@ -102,7 +102,7 @@ export default function PlanPage() {
   // Refs
   const totalWeeksRef = useRef(0)
   const planRef = useRef<Partial<TrainingPlan>>({ days: [] })
-  const streamStartedRef = useRef(false)
+  const generationStartedRef = useRef(false)
   const abortRef = useRef<AbortController | null>(null)
 
   // Keep planRef in sync with plan state for use in callbacks
@@ -150,7 +150,7 @@ export default function PlanPage() {
 
     // Restore plan state from snapshot and trigger save.
     // Mark stream as started so the streaming effect doesn't fire a new generation.
-    streamStartedRef.current = true
+    generationStartedRef.current = true
     setInput(snapshot.input)
     setPhases(snapshot.phases ?? [])
     setPlan({
@@ -186,7 +186,7 @@ export default function PlanPage() {
           const snap = JSON.parse(planRaw) as SavedPlanSnapshot
           const TEN_MINUTES = 10 * 60 * 1000
           if (snap.savedAt && Date.now() - snap.savedAt <= TEN_MINUTES) {
-            streamStartedRef.current = true
+            generationStartedRef.current = true
             setInput(snap.input)
             return
           }
@@ -209,7 +209,7 @@ export default function PlanPage() {
     if (!mapped) { router.replace("/"); return }
     setInput(mapped)
 
-    if (streamStartedRef.current) return
+    if (generationStartedRef.current) return
 
     if (localStorage.getItem(PLAN_KEY)) {
       if (sessionPending) return
@@ -217,7 +217,7 @@ export default function PlanPage() {
       localStorage.removeItem(PLAN_KEY)
     }
 
-    streamStartedRef.current = true
+    generationStartedRef.current = true
 
     const controller = new AbortController()
     abortRef.current?.abort()
@@ -270,6 +270,7 @@ export default function PlanPage() {
     }
 
     void generate()
+    return () => { abortRef.current?.abort() }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionPending])
 

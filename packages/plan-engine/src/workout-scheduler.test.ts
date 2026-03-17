@@ -700,6 +700,34 @@ describe("progression long runs", () => {
     expect(progression?.targetPace).toBe(paceZones.longRun)
   })
 
+  it("Build recovery week never gets a progression long run", () => {
+    // Build starts W2; W4 has localIndex=2 (2%3===2, would be progression)
+    // and is a recovery week (4%4===0). Must produce "long".
+    const days = scheduleWorkouts(makeInput([
+      { name: "Base",  startWeek: 1, endWeek: 1 },
+      { name: "Build", startWeek: 2, endWeek: 6 },
+    ], 6))
+    const week4Long = days.find(d =>
+      d.date >= "2026-06-22" && d.date <= "2026-06-28" &&
+      (d.type === "long" || d.type === "progression")
+    )
+    expect(week4Long?.type).toBe("long")
+  })
+
+  it("Peak recovery week never gets a progression long run", () => {
+    // Peak starts W3; W4 has localIndex=1 (1%2===1, would be progression)
+    // and is a recovery week (4%4===0). Must produce "long".
+    const days = scheduleWorkouts(makeInput([
+      { name: "Base", startWeek: 1, endWeek: 2 },
+      { name: "Peak", startWeek: 3, endWeek: 6 },
+    ], 6))
+    const week4Long = days.find(d =>
+      d.date >= "2026-06-22" && d.date <= "2026-06-28" &&
+      (d.type === "long" || d.type === "progression")
+    )
+    expect(week4Long?.type).toBe("long")
+  })
+
   it("16-week plan: 2 intervals sessions after early Build boundary fix", () => {
     // Build = W7–10 (4 wks). New early: ceil(4*0.6)=3 → W7–9.
     // W8 is recovery (8%4=0). Non-recovery early: W7, W9 → 2 intervals.

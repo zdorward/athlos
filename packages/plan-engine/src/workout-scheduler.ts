@@ -156,7 +156,8 @@ function strengthCount(weekNumber: number, phase: string, phases: PhaseEntry[]):
   }
 }
 
-function getLongRunType(phase: string, localIndex: number): "long" | "progression" {
+function getLongRunType(phase: string, localIndex: number, isRecovery: boolean): "long" | "progression" {
+  if (isRecovery) return "long"
   if (phase === "Build" && localIndex % 3 === 2) return "progression"
   if (phase === "Peak"  && localIndex % 2 === 1) return "progression"
   return "long"
@@ -243,6 +244,8 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
       continue
     }
 
+    const isRecovery = week % 4 === 0 && week !== preTaperWeeks
+
     // ── 1. Long run ──
     const longRunEntry = weekDays.find(d => d.dayKey === longRunDay)!
     const progressFactor = Math.min(weeklyKm / peakWeeklyKm, 1.0)
@@ -251,14 +254,13 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
 
     assigned.set(longRunEntry.date, [{
       date: longRunEntry.date,
-      type: getLongRunType(phase, localIndex),
+      type: getLongRunType(phase, localIndex, isRecovery),
       distanceKm: longRunKm,
       targetPace: paceZones.longRun,
     }])
 
     // ── 2. Quality sessions ──
     const longIdx = DAY_INDEX[longRunDay] ?? 0
-    const isRecovery = week % 4 === 0 && week !== preTaperWeeks
     const { sessions, types } = getQualityConfig(week, phase, phases, isRecovery)
     const count = Math.min(sessions, trainingStructure.maxQualitySessions)
     const placedQuality: WorkoutDay[] = []

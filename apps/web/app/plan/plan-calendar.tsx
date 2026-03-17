@@ -211,7 +211,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, onToggleCo
                 }
 
                 // Primary entry for selection: prefer run types over strength/rest
-                const RUN_TYPES = new Set(["easy", "long", "progression", "medium-long", "mp", "tempo", "intervals", "race"])
+                const RUN_TYPES = new Set(["easy", "long", "progression", "medium-long", "mp", "tempo", "intervals", "race", "shakeout"])
                 const primary = entries.find((d) => RUN_TYPES.has(d.type)) ?? entries[0]!
                 const isRace = entries.some((d) => d.type === "race")
                 const isRest = entries.every((d) => d.type === "rest")

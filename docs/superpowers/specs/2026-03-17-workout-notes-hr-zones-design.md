@@ -28,7 +28,8 @@ Returns a static instructional note for each workout type. For progression runs,
 | intervals | "Hard efforts with full recovery between reps." |
 | strength | "Heavy resistance training after your run — compound lifts at ≥80% 1RM. Focus: squats, deadlifts, single-leg work. Plyometrics optional as a complement." |
 | rest | "Full recovery day." |
-| race | "Race day — execute your plan." |
+| race | "Race day. Start conservative — first half at goal pace, finish strong if you have it." |
+| shakeout | "Short shakeout to activate your legs. Keep it easy — you're not training today." |
 
 Progression fallback (no `distanceKm`): `"Last 25–30% at marathon pace."` — used when `distanceKm` is undefined.
 
@@ -47,7 +48,8 @@ Returns a static zone label. Returns `"—"` for types where HR targeting is not
 | intervals | "Zone 4–5" |
 | strength | "—" |
 | rest | "—" |
-| race | "—" |
+| race | "Zone 3" |
+| shakeout | "Zone 1" |
 
 ---
 

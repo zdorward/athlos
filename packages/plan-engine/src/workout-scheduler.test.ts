@@ -465,6 +465,28 @@ describe("scheduleWorkouts — strength sessions", () => {
     expect(w2s).toHaveLength(0)
     expect(w3s).toHaveLength(0)
   })
+
+  it("Base phase places 2 strength sessions (Mon + Fri) for Mon–Fri + Sun runner", () => {
+    // After Task 1: tempo is on Wed (dist 3 from Sun).
+    // Easy days: Mon, Tue, Thu, Fri. Pre-only blocks Sat (day before Sun) — not in selectedDays.
+    // Adjacent to Wed: Tue and Thu blocked. Remaining: Mon and Fri — non-adjacent → 2 sessions.
+    const days = scheduleWorkouts({
+      ...baseInput,
+      selectedDays: ["mon", "tue", "wed", "thu", "fri", "sun"],
+      longRunDay: "sun",
+      phases: [{ name: "Base", startWeek: 1, endWeek: 1 }],
+      totalWeeks: 1,
+      trainingStructure: { runDaysPerWeek: 6, restDaysPerWeek: 1, maxQualitySessions: 1 },
+      peakWeeklyKm: 80,
+    })
+    const strengthDays = days
+      .filter(d => d.type === "strength" && d.date >= "2026-06-01" && d.date <= "2026-06-07")
+      .map(d => dayKeyOf(d.date))
+      .sort()
+    expect(strengthDays).toHaveLength(2)
+    expect(strengthDays).toContain("mon")
+    expect(strengthDays).toContain("fri")
+  })
 })
 
 describe("scheduleWorkouts — determinism", () => {

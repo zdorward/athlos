@@ -340,7 +340,7 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
         const workouts = assigned.get(date)
         return (
           workouts?.some(w => w.type === "easy") &&
-          !isAdjacentTo(dayKey, longRunDay) &&
+          (DAY_INDEX[dayKey] ?? 0) !== (longIdx - 1 + 7) % 7 &&
           qualityDayKeys.every(qDay => !isAdjacentTo(dayKey, qDay))
         )
       })

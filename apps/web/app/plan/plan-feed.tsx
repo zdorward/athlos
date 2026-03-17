@@ -2,7 +2,7 @@
 
 import { format, parseISO } from "date-fns"
 import { Star, Check } from "lucide-react"
-import type { WorkoutDay, WorkoutType, PhaseEntry } from "@workspace/ai"
+import type { WorkoutDay, WorkoutType, PhaseEntry } from "@workspace/plan-engine"
 import { PlanDayDetail } from "./plan-day-detail"
 import {
   groupDaysByWeek,

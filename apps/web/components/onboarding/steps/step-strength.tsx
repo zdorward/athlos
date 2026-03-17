@@ -9,7 +9,7 @@ import {
   recommendStrengthCount,
   recommendStrengthDays,
   computeGoalPeakMileage,
-} from "@workspace/ai"
+} from "@workspace/plan-engine"
 
 export function StepStrength({ formData, onNext }: Pick<StepProps, "formData" | "onNext">) {
   const longRunDay = formData.longRunDay ?? "sun"

@@ -1,6 +1,6 @@
 // apps/web/app/dashboard/race-banner.tsx
 import { differenceInCalendarDays, parseISO, format } from "date-fns"
-import type { PlanGenerationInput, WorkoutDay } from "@workspace/ai"
+import type { PlanGenerationInput, WorkoutDay } from "@workspace/plan-engine"
 import { getPhaseLabel, getTaperWeeks } from "@/app/plan/workout-utils"
 
 interface RaceBannerProps {

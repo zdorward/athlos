@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Zap } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import type { WorkoutDay } from "@workspace/ai"
+import type { WorkoutDay } from "@workspace/plan-engine"
 import { WORKOUT_NAMES } from "@/app/plan/workout-utils"
 import type { AdaptationSuggestion } from "./workout-feedback-sheet"
 

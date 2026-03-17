@@ -1,7 +1,7 @@
 "use client"
 
 import { Check } from "lucide-react"
-import type { WorkoutDay } from "@workspace/ai"
+import type { WorkoutDay } from "@workspace/plan-engine"
 import {
   WORKOUT_NAMES,
   WORKOUT_TEXT_CLASS,

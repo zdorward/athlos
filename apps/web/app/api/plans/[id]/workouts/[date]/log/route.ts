@@ -6,8 +6,8 @@ import {
   deriveExpectedEffort,
   type ActualEffort,
   type Soreness,
-} from "@workspace/ai"
-import type { WorkoutDay, WorkoutType } from "@workspace/ai"
+} from "@workspace/plan-engine"
+import type { WorkoutDay, WorkoutType } from "@workspace/plan-engine"
 import { runAdaptationCheck } from "@/lib/run-adaptation-check"
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i

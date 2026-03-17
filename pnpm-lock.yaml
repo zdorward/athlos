@@ -44,12 +44,12 @@ importers:
       '@vercel/speed-insights':
         specifier: ^2.0.0
         version: 2.0.0(next@16.1.6(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
-      '@workspace/ai':
-        specifier: workspace:*
-        version: link:../../packages/ai
       '@workspace/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@workspace/plan-engine':
+        specifier: workspace:*
+        version: link:../../packages/plan-engine
       '@workspace/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -115,22 +115,6 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/ai:
-    dependencies:
-      '@anthropic-ai/sdk':
-        specifier: ^0.39.0
-        version: 0.39.0
-    devDependencies:
-      '@workspace/typescript-config':
-        specifier: workspace:*
-        version: link:../typescript-config
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-      vitest:
-        specifier: ^2.0.0
-        version: 2.1.9(@types/node@25.2.3)(lightningcss@1.30.2)(msw@2.12.10(@types/node@25.2.3)(typescript@5.9.3))
-
   packages/db:
     dependencies:
       '@neondatabase/serverless':
@@ -194,6 +178,22 @@ importers:
       typescript-eslint:
         specifier: ^8.54.0
         version: 8.55.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
+
+  packages/plan-engine:
+    dependencies:
+      '@anthropic-ai/sdk':
+        specifier: ^0.39.0
+        version: 0.39.0
+    devDependencies:
+      '@workspace/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@25.2.3)(lightningcss@1.30.2)(msw@2.12.10(@types/node@25.2.3)(typescript@5.9.3))
 
   packages/typescript-config: {}
 

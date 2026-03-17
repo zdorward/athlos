@@ -8,7 +8,7 @@ import {
   SheetTitle,
 } from "@workspace/ui/components/sheet"
 import { Button } from "@workspace/ui/components/button"
-import type { WorkoutDay } from "@workspace/ai"
+import type { WorkoutDay } from "@workspace/plan-engine"
 
 type ActualEffort = "hard" | "good" | "easy"
 type Soreness = "none" | "mild" | "significant"

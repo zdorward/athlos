@@ -4,8 +4,8 @@ import {
   checkAdaptationTrigger,
   buildReplacementWorkout,
   type WorkoutLogInput,
-} from "@workspace/ai"
-import type { WorkoutDay } from "@workspace/ai"
+} from "@workspace/plan-engine"
+import type { WorkoutDay } from "@workspace/plan-engine"
 
 export async function runAdaptationCheck(
   planId: string,

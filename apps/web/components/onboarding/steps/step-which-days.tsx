@@ -6,7 +6,7 @@ import { Button } from "@workspace/ui/components/button"
 import { DayToggle } from "../day-toggle"
 import { cn } from "@workspace/ui/lib/utils"
 import { ORDERED_DAYS, DAY_LABELS, type Day, type StepProps } from "../types"
-import { computeTrainingStructure } from "@workspace/ai"
+import { computeTrainingStructure } from "@workspace/plan-engine"
 
 type Preset = 4 | 5 | 6 | 7
 

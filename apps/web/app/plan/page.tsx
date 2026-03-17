@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { buildBridgeRuns, peakStrengthDay, firstMondayOnOrAfter } from "@workspace/ai"
-import type { PlanGenerationInput, TrainingPlan, WorkoutDay, WorkoutType, PhaseEntry } from "@workspace/ai"
+import { buildBridgeRuns, peakStrengthDay, firstMondayOnOrAfter } from "@workspace/plan-engine"
+import type { PlanGenerationInput, TrainingPlan, WorkoutDay, WorkoutType, PhaseEntry } from "@workspace/plan-engine"
 import { authClient } from "@/lib/auth-client"
 import { PlanHeader } from "./plan-header"
 import { PlanCalendar } from "./plan-calendar"

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { format, parseISO } from "date-fns"
 import { Star, Check } from "lucide-react"
-import type { WorkoutDay, WorkoutType } from "@workspace/ai"
+import type { WorkoutDay, WorkoutType } from "@workspace/plan-engine"
 import {
   WORKOUT_NAMES,
   WORKOUT_TEXT_CLASS,

@@ -2,7 +2,7 @@ import { type NextRequest } from "next/server"
 import { eq, desc } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { db, plans } from "@workspace/db"
-import type { PlanGenerationInput, WorkoutDay } from "@workspace/ai"
+import type { PlanGenerationInput, WorkoutDay } from "@workspace/plan-engine"
 
 interface SavePlanBody {
   input: PlanGenerationInput

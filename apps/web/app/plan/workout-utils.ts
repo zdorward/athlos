@@ -1,4 +1,4 @@
-import type { WorkoutType, WorkoutDay, PhaseEntry } from "@workspace/ai"
+import type { WorkoutType, WorkoutDay, PhaseEntry } from "@workspace/plan-engine"
 
 export const WORKOUT_NAMES: Record<WorkoutType, string> = {
   easy:          "Easy Run",

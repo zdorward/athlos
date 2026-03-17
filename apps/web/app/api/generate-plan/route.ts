@@ -1,5 +1,5 @@
 import { type NextRequest } from "next/server"
-import { getProvider, type PlanGenerationInput } from "@workspace/ai"
+import { getProvider, type PlanGenerationInput } from "@workspace/plan-engine"
 import { getRatelimit } from "@/lib/rate-limit"
 
 export async function POST(req: NextRequest) {

@@ -2,7 +2,7 @@ import { type NextRequest } from "next/server"
 import { eq, and } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { db, plans } from "@workspace/db"
-import type { WorkoutDay, WorkoutType } from "@workspace/ai"
+import type { WorkoutDay, WorkoutType } from "@workspace/plan-engine"
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 

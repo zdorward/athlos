@@ -109,7 +109,7 @@ function getQualityConfig(
   if (phase === "Build") {
     const buildEntry = phases.find(p => p.name === "Build")
     const buildLength = buildEntry ? buildEntry.endWeek - buildEntry.startWeek + 1 : 0
-    const slot = localIndex < Math.floor(buildLength / 2)
+    const slot = localIndex < Math.ceil(buildLength * 0.6)
       ? PHASE_CONFIG["Build"].early
       : PHASE_CONFIG["Build"].late
     return isRecovery ? slot.recovery : slot.normal

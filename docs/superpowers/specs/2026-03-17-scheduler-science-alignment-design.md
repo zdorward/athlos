@@ -160,7 +160,7 @@ function computeGoalPeakMileage(
 
 Returns `null` when `goalTotalMinutes <= 0`. The function is exported from `@workspace/plan-engine` and is a pure calculation with no Node.js dependencies — safe to import in a `"use client"` component. Use `.high` because it represents the upper end of the recommended peak volume — the worst-case ramp scenario.
 
-**Calling convention in `StepWeeklyMileage`:** The component receives `formData`. If `formData.goalTime` is undefined (user skipped goal time or set no goal), do not show the warning. If `formData.race?.distance` is undefined, do not show the warning. When both are present, compute `goalTotalMinutes = formData.goalTime.hours * 60 + formData.goalTime.minutes + (formData.goalTime.seconds ?? 0) / 60` and call `computeGoalPeakMileage(formData.race.distance, goalTotalMinutes)`. If the result is `null`, do not show the warning.
+**Calling convention in `StepWeeklyMileage`:** The component receives `formData`. If `formData.goalTime` is undefined (user skipped goal time or set no goal), do not show the warning. If `formData.race?.distance` is undefined, do not show the warning. When both are present, compute `goalTotalMinutes = formData.goalTime.hours * 60 + formData.goalTime.minutes` and call `computeGoalPeakMileage(formData.race.distance, goalTotalMinutes)`. Note: `OnboardingData.goalTime` is `{ hours: number; minutes: number }` with no `seconds` field — do not include seconds in the formula. `formData.race.distance` is typed `"half" | "full"`, which is a strict subset of `computeGoalPeakMileage`'s parameter type `"5k" | "10k" | "half" | "full" | "ultra"` — no type assertion needed. If the result is `null`, do not show the warning.
 
 The warning triggers when `peakWeeklyKm > startingVol * 1.5`.
 

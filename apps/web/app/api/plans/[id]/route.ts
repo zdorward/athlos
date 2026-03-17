@@ -92,7 +92,6 @@ export async function PATCH(
   type FieldUpdate = {
     type?: WorkoutType
     distanceKm?: number | null
-    description?: string
     targetHR?: string
     targetPace?: string
   }
@@ -135,7 +134,6 @@ export async function PATCH(
     if (isFieldUpdate) {
       const update = body.update!
       if (update.type !== undefined) entry.type = update.type
-      if (update.description !== undefined) entry.description = update.description
       if (update.targetHR !== undefined) entry.targetHR = update.targetHR
       if (update.targetPace !== undefined) entry.targetPace = update.targetPace
       if ("distanceKm" in update) {

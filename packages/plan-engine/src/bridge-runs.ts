@@ -80,7 +80,6 @@ export function buildBridgeRuns(
         type: "easy",
         distanceKm,
         ...(targetPace !== undefined && { targetPace }),
-        description: "Easy run — pre-plan bridge day.",
       })
     }
     cursor.setUTCDate(cursor.getUTCDate() + 1)

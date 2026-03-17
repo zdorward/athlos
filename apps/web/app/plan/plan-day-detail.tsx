@@ -17,7 +17,6 @@ const KM_TO_MILES = 0.621371
 type EditForm = {
   type: WorkoutType
   distanceDisplay: string  // numeric string in display units, "" if empty
-  description: string
   targetHR: string
   targetPace: string
 }
@@ -33,7 +32,6 @@ interface PlanDayDetailProps {
     update: {
       type?: WorkoutType
       distanceKm?: number | null
-      description?: string
       targetHR?: string
       targetPace?: string
     }
@@ -45,7 +43,6 @@ export function PlanDayDetail({ day, units, onClose, onToggleComplete, onSaveEdi
   const [formState, setFormState] = useState<EditForm>({
     type: "easy",
     distanceDisplay: "",
-    description: "",
     targetHR: "",
     targetPace: "",
   })
@@ -59,7 +56,6 @@ export function PlanDayDetail({ day, units, onClose, onToggleComplete, onSaveEdi
           day.distanceKm != null
             ? String(+(day.distanceKm * (units === "miles" ? KM_TO_MILES : 1)).toFixed(2))
             : "",
-        description: day.description,
         targetHR: day.targetHR ?? "",
         targetPace: day.targetPace ?? "",
       })
@@ -90,14 +86,12 @@ export function PlanDayDetail({ day, units, onClose, onToggleComplete, onSaveEdi
       const update: {
         type?: WorkoutType
         distanceKm?: number | null
-        description?: string
         targetHR?: string
         targetPace?: string
       } = {}
 
       if (formState.type !== day.type) update.type = formState.type
 
-      if (formState.description !== day.description) update.description = formState.description
       if (formState.targetHR !== (day.targetHR ?? "")) update.targetHR = formState.targetHR
       if (formState.targetPace !== (day.targetPace ?? "")) update.targetPace = formState.targetPace
 
@@ -178,21 +172,6 @@ export function PlanDayDetail({ day, units, onClose, onToggleComplete, onSaveEdi
             />
           </div>
         )}
-
-        {/* Description */}
-        <div>
-          <label className="text-xs font-semibold uppercase tracking-[0.12em] text-subtle-foreground mb-1 block">
-            Description
-          </label>
-          <textarea
-            value={formState.description}
-            onChange={(e) =>
-              setFormState((prev) => ({ ...prev, description: e.target.value }))
-            }
-            rows={3}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm resize-none"
-          />
-        </div>
 
         {/* Target HR Zone */}
         <div>
@@ -289,13 +268,6 @@ export function PlanDayDetail({ day, units, onClose, onToggleComplete, onSaveEdi
           <span className="ml-2 text-lg text-muted-foreground">{distanceUnit(units)}</span>
         </div>
       )}
-
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-subtle-foreground mb-2">
-          Workout
-        </p>
-        <p className="text-sm text-muted-foreground leading-relaxed">{day.description}</p>
-      </div>
 
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-subtle-foreground mb-2">

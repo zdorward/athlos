@@ -91,8 +91,6 @@ export function buildReplacementWorkout(original: WorkoutDay): WorkoutDay | null
       date,
       type: "easy",
       distanceKm,
-      description:
-        "Easy recovery run. Keep effort very low — conversational pace throughout.",
       targetHR: "Zone 2 (130–145 bpm)",
     }
   }
@@ -104,8 +102,6 @@ export function buildReplacementWorkout(original: WorkoutDay): WorkoutDay | null
       distanceKm: distanceKm != null
         ? Math.round(distanceKm * 0.7 * 10) / 10
         : undefined,
-      description:
-        "Medium-long easy run. Reduced from your scheduled long run to aid recovery.",
       targetHR: "Zone 2 (130–145 bpm)",
     }
   }
@@ -115,8 +111,6 @@ export function buildReplacementWorkout(original: WorkoutDay): WorkoutDay | null
       date,
       type: "easy",
       distanceKm,
-      description:
-        "Easy recovery run. Keep effort very low — conversational pace throughout.",
       targetHR: "Zone 2 (130–145 bpm)",
     }
   }
@@ -125,7 +119,6 @@ export function buildReplacementWorkout(original: WorkoutDay): WorkoutDay | null
     return {
       date,
       type: "rest",
-      description: "Rest day. Optional: 10–15 minutes of light mobility or stretching.",
     }
   }
 

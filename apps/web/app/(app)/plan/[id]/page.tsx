@@ -118,7 +118,6 @@ export default function PlanViewPage({ params }: PageProps) {
     update: {
       type?: WorkoutType
       distanceKm?: number | null
-      description?: string
       targetHR?: string
       targetPace?: string
     }
@@ -131,7 +130,6 @@ export default function PlanViewPage({ params }: PageProps) {
       if (d.date !== date || d.type !== originalType) return d
       const next = { ...d }
       if (update.type !== undefined) next.type = update.type
-      if (update.description !== undefined) next.description = update.description
       if (update.targetHR !== undefined) next.targetHR = update.targetHR
       if (update.targetPace !== undefined) next.targetPace = update.targetPace
       if ("distanceKm" in update) {

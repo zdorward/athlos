@@ -154,11 +154,6 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, onToggleComple
                             {isComplete && <Check className="h-4 w-4 text-green-600" />}
                             {WORKOUT_NAMES[day.type]}
                           </p>
-                          {!isRest && (
-                            <p className="text-xs text-muted-foreground truncate mt-0.5">
-                              {day.description}
-                            </p>
-                          )}
                         </div>
 
                         {/* Distance */}

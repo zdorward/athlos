@@ -85,12 +85,6 @@ export function TodayWorkoutCard({ entry, units, onComplete, variant = "today" }
         </div>
       </div>
 
-      {entry.description && (
-        <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-          {entry.description}
-        </p>
-      )}
-
       {!isPreview && (
         <button
           onClick={onComplete}

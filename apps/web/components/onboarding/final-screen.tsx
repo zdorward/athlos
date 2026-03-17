@@ -1,7 +1,7 @@
 "use client"
 
 import { differenceInWeeks, format } from "date-fns"
-import { Calendar, Dumbbell, Timer } from "lucide-react"
+import { Calendar, Timer } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@workspace/ui/components/button"
 import { type Distance, type OnboardingData, DAY_LABELS, ORDERED_DAYS } from "./types"
@@ -42,7 +42,7 @@ function DayChips({ days, longRunDay }: { days: string[]; longRunDay?: string })
 
 export function FinalScreen({ formData }: FinalScreenProps) {
   const router = useRouter()
-  const { race, goal, selectedDays, longRunDay, goalTime, strengthDays } = formData
+  const { race, goal, selectedDays, longRunDay, goalTime } = formData
 
   function handleGenerate() {
     // Normalize race.date (Date object) to ISO "YYYY-MM-DD" before JSON.stringify
@@ -92,14 +92,6 @@ export function FinalScreen({ formData }: FinalScreenProps) {
           <div className="space-y-2">
             <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Running days</span>
             <DayChips days={selectedDays} longRunDay={longRunDay} />
-          </div>
-        )}
-        {strengthDays && strengthDays.length > 0 && (
-          <div className="space-y-2">
-            <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-              <Dumbbell className="h-3 w-3" /> Lifting days
-            </span>
-            <DayChips days={strengthDays} />
           </div>
         )}
       </div>

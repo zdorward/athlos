@@ -40,7 +40,13 @@ const PHASE_CONFIG = {
 }
 ```
 
-**Recovery week detection:** A week is a recovery week when `weekNumber % 4 === 0` AND it is not the last pre-taper week. This matches the existing `computeWeeklyVolumes` logic exactly — no new detection mechanism is needed, just pass `isRecovery: boolean` from the volume computation through to the scheduler.
+**Recovery week detection:** A week is a recovery week when `weekNumber % 4 === 0` AND it is not the last pre-taper week. `computeWeeklyVolumes` returns `number[]` and does not expose this flag. The scheduler must re-derive it independently using the same formula:
+
+```ts
+const isRecovery = weekNumber % 4 === 0 && weekNumber !== preTaperWeeks
+```
+
+where `preTaperWeeks` is computed the same way as in `computeWeeklyVolumes`: `taperPhase ? taperPhase.startWeek - 1 : totalWeeks`.
 
 **PHASE_CONFIG lookup path:** The lookup is always two steps: (1) resolve any sub-key (`early`/`late` for Build, `first`/`rest` for Taper), then (2) resolve `normal` or `recovery`. For non-split phases (`"General Fitness"`, `"Base"`, `"Peak"`), the config object has `normal` and `recovery` directly — no sub-key step is needed. Pseudocode:
 
@@ -51,7 +57,9 @@ const phaseEntry = phase === "Build" ? PHASE_CONFIG["Build"][earlyOrLate]
 const config = isRecovery ? phaseEntry.recovery : phaseEntry.normal
 ```
 
-**Build split:** Determined by the week's position within the Build phase. Weeks in the first half of Build (`localIndex < Math.floor(buildLength / 2)`) are "early"; remainder are "late". Use `Math.floor` — this matches the existing code's split boundary and biases toward "early" config for odd-length Builds (e.g., 7-week Build: weeks 0–2 are early, weeks 3–6 are late). For a 1-week Build (`buildLength === 1`), `Math.floor(1/2) === 0` so `localIndex === 0` is NOT less than 0, meaning it resolves to "late" (`{ sessions: 2, types: ["tempo", "mp"] }`). This is intentional: a single Build week immediately before Peak should focus on MP entry, not VO2max sharpening.
+**Build split:** Determined by the week's position within the Build phase. Weeks in the first half of Build (`localIndex < Math.floor(buildLength / 2)`) are "early"; remainder are "late". Use `Math.floor` — this biases toward "early" config for odd-length Builds (e.g., 7-week Build: weeks 0–2 are early, weeks 3–6 are late).
+
+**1-week Build edge case (behavioral change):** The existing code handles `buildLength === 1` as a special case returning `{ count: 1, types: ["tempo"] }`. The new `PHASE_CONFIG` replaces this: `Math.floor(1/2) === 0` means `localIndex === 0 >= 0` → "late" → `{ sessions: 2, types: ["tempo", "mp"] }`. This is a deliberate behavioral change: a single Build week immediately before Peak should focus on MP entry, not generic tempo. If the available running days cannot fit 2 quality sessions, the placement logic will schedule as many as fit.
 
 **Quality session ordering:** Within each phase, the first listed type is primary (higher priority for placement on the best available day).
 
@@ -127,9 +135,10 @@ When the selected mileage range's lower bound × 1.5 < the goal-implied peak wee
 
 **Computation:**
 
-`startingVol` is the lower bound of the selected mileage range. Define this constant directly in `step-weekly-mileage.tsx` (do not import from `route.ts`, which is a server-only API file):
+`startingVol` is the lower bound of the selected mileage range **in kilometers** — these values match `WEEK1_VOLUME_KM` in `volume-progression.ts` and are always km regardless of the user's display units. The comparison is km vs. km throughout. Define this constant directly in `step-weekly-mileage.tsx` (do not import from `route.ts`, which is a server-only API file):
+
 ```ts
-const MILEAGE_RANGE_LOW: Record<string, number> = {
+const MILEAGE_RANGE_LOW_KM: Record<string, number> = {
   "under-40": 30,
   "40-60": 40,
   "60-80": 60,
@@ -156,7 +165,7 @@ The warning triggers when `peakWeeklyKm > startingVol * 1.5`.
 |------|--------|
 | `packages/plan-engine/src/types.ts` | Add `"progression"` to `WorkoutType` union |
 | `packages/plan-engine/src/workout-scheduler.ts` | Replace `qualityCountAndTypes` with declarative `PHASE_CONFIG`; add progression long run logic |
-| `apps/web/components/onboarding/types.ts` | Add `mileageConsistency` field to `OnboardingData` |
+| `apps/web/components/onboarding/types.ts` | Add `mileageConsistency` field to `OnboardingData`; add `"mileageConsistency"` to the `getSteps()` return array (after `"weeklyMileage"`) |
 | `apps/web/components/onboarding/steps/step-mileage-consistency.tsx` | New step component |
 | `apps/web/components/onboarding/steps/step-weekly-mileage.tsx` | Add inline gap warning |
 | `apps/web/components/onboarding/onboarding-flow.tsx` | Insert `StepMileageConsistency` step; add `"mileageConsistency"` entry to `STEP_LABELS`; add `case "mileageConsistency": return <StepMileageConsistency {...stepProps} />` to `renderStep()` switch |

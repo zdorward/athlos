@@ -772,14 +772,25 @@ describe("scheduleWorkouts — race week", () => {
     expect(days.find(d => d.date === "2026-06-25")?.type).toBe("rest")
   })
 
-  it("race week easy run total ≈ peakWeeklyKm * 0.4 (within 2 km)", () => {
-    // taper week 4 → 40 % of 100 km = 40 km; distributed across mon/wed/fri
+  it("race week easy run total is capped at 20% of peak", () => {
+    // peakWeeklyKm=100; taper week 4 → 40% = 40 km, but cap = 100 * 0.20 = 20 km
+    // eligible days: mon/wed/fri (3 days); round05(20/3) = 6.5 km each → 19.5 km total
     const days = week4Days(scheduleWorkouts(raceInput))
     const easyKm = days
       .filter(d => d.type === "easy")
       .reduce((s, d) => s + (d.distanceKm ?? 0), 0)
-    expect(easyKm).toBeGreaterThan(38)
-    expect(easyKm).toBeLessThan(42)
+    expect(easyKm).toBeGreaterThan(18)
+    expect(easyKm).toBeLessThanOrEqual(20)
+  })
+
+  it("race week easy runs are short jogs (≤ 7 km each)", () => {
+    // With cap=20 km and 3 eligible days, each easy run should be round05(20/3)=6.5 km
+    const days = week4Days(scheduleWorkouts(raceInput))
+    const easyDays = days.filter(d => d.type === "easy")
+    easyDays.forEach(d => {
+      expect(d.distanceKm).toBeDefined()
+      expect(d.distanceKm!).toBeLessThanOrEqual(7)
+    })
   })
 
   it("when raceDateISO is absent, normal scheduling applies (no regression)", () => {

@@ -38,6 +38,8 @@ function round05(km: number): number {
   return Math.round(km * 2) / 2
 }
 
+const RACE_WEEK_TRAINING_RATIO = 0.20
+
 function addDaysToISO(isoDate: string, days: number): string {
   const d = new Date(isoDate + "T00:00:00Z")
   d.setUTCDate(d.getUTCDate() + days)
@@ -224,7 +226,8 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
         d => selectedDays.includes(d.dayKey) && !excludedDates.has(d.date)
       )
       if (eligibleDays.length > 0 && weeklyKm > 0) {
-        const perDay = round05(weeklyKm / eligibleDays.length)
+        const raceWeekTrainingKm = Math.min(weeklyKm, peakWeeklyKm * RACE_WEEK_TRAINING_RATIO)
+        const perDay = round05(raceWeekTrainingKm / eligibleDays.length)
         for (const ed of eligibleDays) {
           assigned.set(ed.date, [{
             date: ed.date, type: "easy", distanceKm: perDay, targetPace: paceZones.easy,

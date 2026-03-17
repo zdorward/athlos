@@ -568,6 +568,40 @@ describe("phase config — quality session types", () => {
     })
     expect(taper23Quality).toHaveLength(0)
   })
+
+  it("taper week 1 gets exactly 1 tempo even with Peak immediately prior (full 29-week plan)", () => {
+    // Mirrors a real 29-week full marathon plan.
+    // startDate 2026-03-23 (Monday). Week 27 starts on 2026-09-21.
+    const phases: PhaseEntry[] = [
+      { name: "General Fitness", startWeek: 1,  endWeek: 6  },
+      { name: "Base",            startWeek: 7,  endWeek: 15 },
+      { name: "Build",           startWeek: 16, endWeek: 22 },
+      { name: "Peak",            startWeek: 23, endWeek: 26 },
+      { name: "Taper",           startWeek: 27, endWeek: 29 },
+    ]
+    const days = scheduleWorkouts({
+      startDate: "2026-03-23",
+      selectedDays: ["mon", "tue", "wed", "thu", "fri", "sun"],
+      longRunDay: "sun",
+      weeklyMileageRange: "60-80" as const,
+      phases,
+      totalWeeks: 29,
+      peakWeeklyKm: 100,
+      trainingStructure: { runDaysPerWeek: 6, restDaysPerWeek: 1, maxQualitySessions: 2 },
+      longRunTargets: { peakLongRunKm: 35, recoveryRunMaxKm: 13 },
+      paceZones,
+    })
+    // Taper W1 = week 27. startDate + (27-1)*7 = 2026-03-23 + 182 days = 2026-09-21.
+    const taperW1Start = "2026-09-21"
+    const taperW1End   = "2026-09-27"
+    const taperW1Quality = days.filter(d =>
+      d.date >= taperW1Start &&
+      d.date <= taperW1End &&
+      (d.type === "tempo" || d.type === "mp" || d.type === "intervals")
+    )
+    expect(taperW1Quality).toHaveLength(1)
+    expect(taperW1Quality[0]!.type).toBe("tempo")
+  })
 })
 
 describe("progression long runs", () => {

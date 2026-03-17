@@ -26,6 +26,7 @@ export interface SchedulerInput {
   trainingStructure: TrainingStructure
   longRunTargets: LongRunTargets
   paceZones: PaceZones
+  raceDateISO?: string
 }
 
 const DAY_ORDER = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const
@@ -196,6 +197,32 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
 
     // Assigned slots: date → WorkoutDay[]
     const assigned = new Map<string, WorkoutDay[]>()
+
+    // ── Race week (early exit) ──
+    if (input.raceDateISO && week === totalWeeks) {
+      const praceDate = addDaysToISO(input.raceDateISO, -1)
+      const excludedDates = new Set(
+        weekDays.filter(d => d.date === input.raceDateISO || d.date === praceDate).map(d => d.date)
+      )
+      const eligibleDays = weekDays.filter(
+        d => selectedDays.includes(d.dayKey) && !excludedDates.has(d.date)
+      )
+      if (eligibleDays.length > 0 && weeklyKm > 0) {
+        const perDay = round05(weeklyKm / eligibleDays.length)
+        for (const ed of eligibleDays) {
+          assigned.set(ed.date, [{
+            date: ed.date, type: "easy", distanceKm: perDay, targetPace: paceZones.easy,
+          }])
+        }
+      }
+      for (const { date } of weekDays) {
+        if (!assigned.has(date)) assigned.set(date, [{ date, type: "rest" }])
+      }
+      for (const { date } of weekDays) {
+        result.push(...(assigned.get(date) ?? [{ date, type: "rest" as const }]))
+      }
+      continue
+    }
 
     // ── 1. Long run ──
     const longRunEntry = weekDays.find(d => d.dayKey === longRunDay)!

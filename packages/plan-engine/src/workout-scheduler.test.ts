@@ -598,3 +598,79 @@ describe("progression long runs", () => {
     expect(progression?.targetPace).toBe(paceZones.longRun)
   })
 })
+
+// ── Race week ────────────────────────────────────────────────────────────────
+
+describe("scheduleWorkouts — race week", () => {
+  // 4-week plan, taper throughout, race on Sunday of week 4.
+  // startDate 2026-06-01 (Mon) → week 4 = Mon 2026-06-22 – Sun 2026-06-28.
+  // selectedDays: mon, wed, fri, sat; longRunDay: sat; race: 2026-06-28 (Sun).
+  // pre-race day: 2026-06-27 (Sat) — coincides with longRunDay.
+  const raceInput = {
+    ...baseInput,
+    raceDateISO: "2026-06-28",
+    totalWeeks: 4,
+    peakWeeklyKm: 100,
+    phases: [{ name: "Taper", startWeek: 1, endWeek: 4 }] as PhaseEntry[],
+  }
+
+  function week4Days(days: ReturnType<typeof scheduleWorkouts>) {
+    return days.filter(d => d.date >= "2026-06-22" && d.date <= "2026-06-28")
+  }
+
+  it("race week has no long run", () => {
+    const days = week4Days(scheduleWorkouts(raceInput))
+    expect(days.some(d => d.type === "long" || d.type === "progression")).toBe(false)
+  })
+
+  it("race week has no quality sessions", () => {
+    const days = week4Days(scheduleWorkouts(raceInput))
+    const qualityTypes = new Set(["tempo", "intervals", "mp"])
+    expect(days.some(d => qualityTypes.has(d.type))).toBe(false)
+  })
+
+  it("race day (Sun) gets type rest", () => {
+    const days = scheduleWorkouts(raceInput)
+    const raceDay = days.find(d => d.date === "2026-06-28")
+    expect(raceDay?.type).toBe("rest")
+  })
+
+  it("pre-race day (Sat) gets type rest", () => {
+    const days = scheduleWorkouts(raceInput)
+    const praceDay = days.find(d => d.date === "2026-06-27")
+    expect(praceDay?.type).toBe("rest")
+  })
+
+  it("selected days except race day and pre-race day get easy runs", () => {
+    // mon (2026-06-22), wed (2026-06-24), fri (2026-06-26) should be easy
+    const days = scheduleWorkouts(raceInput)
+    expect(days.find(d => d.date === "2026-06-22")?.type).toBe("easy")
+    expect(days.find(d => d.date === "2026-06-24")?.type).toBe("easy")
+    expect(days.find(d => d.date === "2026-06-26")?.type).toBe("easy")
+  })
+
+  it("non-selected days in race week get type rest", () => {
+    // tue (2026-06-23), thu (2026-06-25)
+    const days = scheduleWorkouts(raceInput)
+    expect(days.find(d => d.date === "2026-06-23")?.type).toBe("rest")
+    expect(days.find(d => d.date === "2026-06-25")?.type).toBe("rest")
+  })
+
+  it("race week easy run total ≈ peakWeeklyKm * 0.4 (within 2 km)", () => {
+    // taper week 4 → 40 % of 100 km = 40 km; distributed across mon/wed/fri
+    const days = week4Days(scheduleWorkouts(raceInput))
+    const easyKm = days
+      .filter(d => d.type === "easy")
+      .reduce((s, d) => s + (d.distanceKm ?? 0), 0)
+    expect(easyKm).toBeGreaterThan(38)
+    expect(easyKm).toBeLessThan(42)
+  })
+
+  it("when raceDateISO is absent, normal scheduling applies (no regression)", () => {
+    const { raceDateISO: _, ...noRaceInput } = raceInput
+    const days = scheduleWorkouts(noRaceInput)
+    const w4 = week4Days(days)
+    // Normal taper week should still have a long run on longRunDay (sat)
+    expect(w4.some(d => d.type === "long" || d.type === "progression")).toBe(true)
+  })
+})

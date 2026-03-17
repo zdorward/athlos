@@ -16,7 +16,7 @@ Align the training plan scheduler with modern marathon science as documented in 
 The current `qualityCountAndTypes` function in `workout-scheduler.ts` uses an imperative switch/case that does not correctly implement the evidence-based periodization arc:
 
 - Early Build assigns **tempo only** (current code: `localIndex % 2 === 0 ? ["intervals"] : ["tempo"]` — alternating, not cumulative) but should be **tempo + intervals together** (VO2max as sharpener)
-- Base always assigns 1 quality session regardless of whether it's a recovery week; recovery week policy should be explicit but Base behavior coincidentally aligns with science
+- Current Base code alternates intervals and tempo (`localIndex % 2` in the Build branch bleeds into the Base switch). The fix sets Base to `{ sessions: 1, types: ["tempo"] }` — **no intervals in Base** — consistent with the science doc phase table which shows Base uses threshold/tempo only
 - Build recovery weeks have no explicit handling — the scheduler assigns sessions based on phase only, ignoring the recovery week signal entirely
 - Peak correctly prioritizes MP but the code path is fragile and not clearly grounded in the phase config
 - Recovery weeks in Peak should have 1 short tempo session (not 0) — science doc explicitly states "0 in taper recovery, 1 short in Base/Build recovery"; Peak is adjacent to Build, not Taper
@@ -97,7 +97,7 @@ Currently, all long runs are scheduled as generic `"long"` type. Runners have no
 ### Implementation Notes
 
 - `WorkoutType` union in `packages/plan-engine/src/types.ts` adds `"progression"`
-- `scheduleWorkouts` in `workout-scheduler.ts` tracks `longRunLocalIndex` **per phase** — the counter resets to 0 at the start of each new phase. When the phase name changes during the week loop, reset `longRunLocalIndex = 0`. Apply the progression rule using this phase-local count.
+- `scheduleWorkouts` in `workout-scheduler.ts` tracks `longRunLocalIndex` **per phase** as a simple 0-indexed week-within-phase counter (`weekNumber - phaseEntry.startWeek`). This is identical to the existing `localIndex` variable already computed per week in the scheduler. No separate counter variable is needed — just use `localIndex` directly in the progression rule. The counter effectively resets at phase boundaries because `localIndex` is derived from `phaseEntry.startWeek` which changes with each phase.
 - Plan display components (`PlanCalendar`, `PlanFeed`, day detail) handle `"progression"` type with appropriate label and description
 
 ---
@@ -126,7 +126,7 @@ Options:
 
 This is stored as `mileageConsistency: "lt-4w" | "4-12w" | "3-6m" | "6m-plus"` in `OnboardingData`. It is metadata only for now — future adaptive logic can use it to adjust ramp rate or flag high-risk plans.
 
-**`StepMileageConsistency` UX:** Auto-advances on selection (same behavior as all other option-list steps — 150ms delay then `onNext`). No confirm button needed. The component receives `Pick<StepProps, "formData" | "onNext">`. Heading: "How long have you been training at this weekly mileage?" (no subheading). `STEP_LABELS` entry in `onboarding-flow.tsx`: `"mileageConsistency": "Training history"`.
+**`StepMileageConsistency` UX:** Auto-advances on selection (same behavior as all other option-list steps — 150ms delay then `onNext({ mileageConsistency: selectedValue })`). No confirm button needed. The component receives `Pick<StepProps, "formData" | "onNext">`. Heading: "How long have you been training at this weekly mileage?" (no subheading). `STEP_LABELS` entry in `onboarding-flow.tsx`: `"mileageConsistency": "Training history"`.
 
 **Inline mileage gap warning in `StepWeeklyMileage`**
 
@@ -134,7 +134,7 @@ When the selected mileage range's lower bound × 1.5 < the goal-implied peak wee
 
 > "Your goal time implies peak training weeks of ~{X} km — about {Y}× your current volume. Your plan will ramp gradually, but this is an ambitious build. Consider extending your plan start date for more ramp time."
 
-**Auto-advance interaction:** `StepWeeklyMileage` currently auto-advances 150ms after a selection (no confirm button). When the warning condition is met, this auto-advance behavior must be suppressed: instead of calling `onNext` after the timeout, render the inline warning and a "Continue" button that the user must tap to proceed. When there is no warning, the existing auto-advance behavior is preserved. This is the only change to the component's interaction model.
+**Auto-advance interaction:** `StepWeeklyMileage` currently auto-advances 150ms after a selection (no confirm button). When the warning condition is met, this auto-advance behavior must be suppressed: instead of calling `onNext` after the timeout, show the selection as confirmed (highlighted/selected state), render the inline warning below, and a "Continue" button that calls `onNext`. When there is no warning, the existing auto-advance behavior is preserved. If the user taps a *different* mileage range while the warning is visible, re-evaluate the warning condition immediately — the new selection is shown as selected, the old warning is cleared, and if the new range also triggers the warning, show it again; if not, auto-advance as normal. This is the only change to the component's interaction model.
 
 **Computation:**
 
@@ -158,7 +158,9 @@ function computeGoalPeakMileage(
 ): { low: number; high: number } | null
 ```
 
-Returns `null` when `goalTotalMinutes <= 0`. The function is exported from `@workspace/plan-engine` and is a pure calculation with no Node.js dependencies — safe to import in a `"use client"` component. Use `.high` because it represents the upper end of the recommended peak volume — the worst-case ramp scenario. If the return value is `null` (no goal time set), the warning is not shown.
+Returns `null` when `goalTotalMinutes <= 0`. The function is exported from `@workspace/plan-engine` and is a pure calculation with no Node.js dependencies — safe to import in a `"use client"` component. Use `.high` because it represents the upper end of the recommended peak volume — the worst-case ramp scenario.
+
+**Calling convention in `StepWeeklyMileage`:** The component receives `formData`. If `formData.goalTime` is undefined (user skipped goal time or set no goal), do not show the warning. If `formData.race?.distance` is undefined, do not show the warning. When both are present, compute `goalTotalMinutes = formData.goalTime.hours * 60 + formData.goalTime.minutes + (formData.goalTime.seconds ?? 0) / 60` and call `computeGoalPeakMileage(formData.race.distance, goalTotalMinutes)`. If the result is `null`, do not show the warning.
 
 The warning triggers when `peakWeeklyKm > startingVol * 1.5`.
 

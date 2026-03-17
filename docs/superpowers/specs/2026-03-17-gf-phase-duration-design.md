@@ -61,6 +61,8 @@ Current order: GF → Base → Build → Peak (overflow).
 New order: Base → Build → GF (capped) → Peak (overflow). Phases are still **pushed in chronological order** (GF first, then Base, Build, Peak).
 
 ```ts
+let remaining = totalWeeks - taperMin - peakMin
+
 // Compute Base and Build first
 const base  = Math.min(remaining, Math.max(1, Math.round(totalWeeks * 0.30)))
 remaining -= base

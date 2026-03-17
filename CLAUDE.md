@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Athlos is an adaptive marathon training platform for serious runners with a real goal time. The core differentiator is intelligent plan adaptation based on athlete performance, recovery, and goals — not just static plan generation. Target audience: runners chasing a qualifying time (BQ as the implied benchmark). Strength training is supported as a scheduling feature. Currently building out the web app with plans to implement mobile later. Business model is subscription + time-limited trial (not freemium).
 
+Training plans are built on the methods from Pete Pfitzinger's *Advanced Marathoning*. All volume progression, long run targets, phase structure, intensity distribution (80/20 rule), and quality session placement follow Pfitzinger's principles. When making decisions about training plan logic, default to what Pfitzinger prescribes.
+
 ## General Principles
 
 Always follow standard, best-practice approaches. When multiple solutions exist, default to the conventional, well-established pattern for the technology in use. If a non-standard approach was used previously, refactor it to be correct rather than preserving the deviation.

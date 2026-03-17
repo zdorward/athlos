@@ -14,6 +14,8 @@ Refactor plan generation from LLM-based (Claude streaming NDJSON) to a fully det
 - Remove all LLM infrastructure (Anthropic SDK, prompt builder, rate limiting)
 - Drop `description` from `WorkoutDay` — UI infers workout context from type, distance, and pace
 - Rename `packages/ai` → `packages/plan-engine`
+- Integrate strength training into the scheduler (currently injected by the frontend as an afterthought)
+- Apply corrected periodization: VO2max work in Base/early Build to raise ceiling; MP-dominant in Peak; intervals eliminated from the final phase
 
 ## What Changes
 
@@ -37,8 +39,10 @@ All import paths referencing `@workspace/ai` are updated to `@workspace/plan-eng
 - `training-structure.ts`
 - `long-run-targets.ts`
 - `bridge-runs.ts`
-- `strength-recommendation.ts`
 - `adaptation.ts`
+
+**Deleted (strength scheduling moved into scheduler):**
+- `strength-recommendation.ts` — `recommendStrengthCount()` and `recommendStrengthDays()` are replaced by scheduler-native strength placement logic
 
 ### Type: `WorkoutDay`
 
@@ -123,10 +127,12 @@ If the user triggers a new generation while one is in flight, the prior `AbortCo
 
 **Unchanged:**
 - Bridge run merge
-- Strength day injection
 - Save flow
 - Cross-tab localStorage preservation
 - All plan display components (`plan-calendar.tsx`, `plan-feed.tsx`, `plan-header.tsx`, `plan-day-detail.tsx`)
+
+**Removed from frontend:**
+- Strength day injection (`mergeStrengthDays`) — strength is now assigned by the scheduler and present in the `days[]` response. The frontend no longer injects or modifies strength days post-fetch.
 
 ---
 
@@ -150,6 +156,8 @@ interface SchedulerInput {
   paceZones: PaceZones                   // from calculatePaceZones()
 }
 ```
+
+Note: `strengthTraining` and `strengthDays` are removed from `PlanGenerationInput` (and therefore from the onboarding flow). Strength sessions are assigned automatically by the scheduler according to Pfitzinger's prescription and modern training science. Users no longer configure strength day preferences.
 
 ### Volume Progression (`volume-progression.ts`)
 
@@ -204,19 +212,37 @@ Within a week, "adjacent to `longRunDay`" means the calendar day immediately bef
 
 #### 2. Quality Sessions
 
-**Count per phase:**
-- **General Fitness:** 0
-- **Base:** 1/week — `"tempo"`
-- **Build (first half):** 1/week — type alternates by local week index within Build phase: even local index → `"tempo"`, odd local index → `"intervals"`
+The phase distribution below reflects the corrected periodization from modern marathon science (see `docs/training-science/modern-marathon-science.md`): VO2max work appears early to raise the aerobic ceiling; MP work increases through Build and dominates Peak; intervals are eliminated from the final phase.
+
+**Count and type per phase:**
+
+- **General Fitness:** 0 quality sessions
+
+- **Base:** 1/week — alternates by local week index:
+  - Even local index → `"intervals"` (VO2max — raises the ceiling early)
+  - Odd local index → `"tempo"` (threshold — maintains aerobic development)
+
+- **Build (first half):** 1/week — `"tempo"`
+  - Threshold focus as volume climbs; intervals have done their ceiling-raising work in Base
   - "First half" = local index < `Math.floor(buildPhaseLength / 2)`
-- **Build (second half):** 2/week — `"tempo"` placed first, then `"intervals"`
+
+- **Build (second half):** 2/week — `"tempo"` placed first, then `"mp"`
+  - MP enters; intervals drop out entirely. Specificity begins increasing.
   - "Second half" = local index ≥ `Math.floor(buildPhaseLength / 2)`
-  - **Special case — `buildPhaseLength === 1`:** `Math.floor(1/2) = 0`, so the single week is second half. It gets 1 quality session (`"tempo"`) only — the 2-session rule is suppressed to avoid overloading a 1-week transition. No first half exists.
-- **Peak:** 2/week — `"intervals"` placed first, then `"mp"`
+  - **Special case — `buildPhaseLength === 1`:** single week is second half; gets 1 session (`"tempo"`) only, 2-session rule suppressed.
+
+- **Peak:** 2/week — `"mp"` placed first, then `"tempo"`
+  - MP-dominant. No intervals. The race is in 3–8 weeks — train specifically for it.
+
 - **Taper:** 1 in first taper week (`"tempo"`), 0 in remaining taper weeks
+  - Maintain feel; reduce stress.
+
 - Count is also capped by `trainingStructure.maxQualitySessions`
 
-**Distance:** 12% of `weeklyKm` per session, rounded to nearest 0.5 km
+**Distance per session:**
+- `"intervals"`: 10% of `weeklyKm`, rounded to nearest 0.5 km (shorter, more intense)
+- `"tempo"`: 12% of `weeklyKm`, rounded to nearest 0.5 km
+- `"mp"`: 15% of `weeklyKm`, rounded to nearest 0.5 km (longer, marathon-specific)
 
 **Placement (applied sequentially, one session at a time, in the order listed above):**
 
@@ -235,7 +261,25 @@ For each quality session that needs to be placed:
 - Pace: `paceZones.easy`
 - Type: `"easy"`
 
-#### 4. Rest Days
+#### 4. Strength Sessions
+
+Strength training is assigned by the scheduler as additional `WorkoutDay` entries on easy run days — the same calendar date as an easy run. Users complete the run first, then strength work after. Strength is not user-configurable; it is automatic.
+
+**Count per phase:**
+- **General Fitness / Base / Build:** 2 strength sessions/week
+- **Peak:** 1–2 strength sessions/week (1 in final 2 weeks of Peak to reduce pre-race fatigue)
+- **Taper:** 1 strength session in first taper week, 0 in remaining taper weeks
+
+**Placement rules:**
+1. Candidates: easy run days only — days already assigned `"easy"` in step 3
+2. Never on a day adjacent to the long run day (same adjacency definition as quality sessions)
+3. Never on consecutive days (no back-to-back strength)
+4. Select the 2 candidates that are furthest from `longRunDay` in the Mon–Sun ordering (circular distance), spreading strength as evenly as possible through the week
+5. If fewer than the required count of valid candidates exist, assign as many as possible; the shortfall is accepted
+
+**Representation:** Each strength session is a separate `WorkoutDay` entry with the same `date` as its paired easy run. The UI renders both for that day. Type: `"strength"`, no `distanceKm`, no `targetPace`.
+
+#### 5. Rest Days
 - All days of the week not in `selectedDays`
 - Type: `"rest"`, no `distanceKm`, no `targetPace`
 
@@ -252,6 +296,7 @@ For each quality session that needs to be placed:
 | `tempo` | `paceZones.threshold` |
 | `intervals` | `paceZones.vo2max` |
 | `mp` | `paceZones.mp` |
+| `strength` | none |
 | `rest` | none |
 
 ---
@@ -260,10 +305,14 @@ For each quality session that needs to be placed:
 
 - **Adaptation logic** (`adaptation.ts`) — workout log analysis and suggestion generation are unaffected
 - **Bridge runs** (`bridge-runs.ts`) — pre-plan gap filling is unaffected
-- **Strength injection** — phase-aware strength day merging in `plan/page.tsx` is unaffected
 - **Database schema** — `plans` table JSONB fields are compatible with new `WorkoutDay` shape
-- **Onboarding** — no changes to input collection
 - **All plan display UI** — components don't care how data was generated
+
+## What Changes Beyond the Scheduler
+
+- **Onboarding** — `strengthTraining` and `strengthDays` fields removed from the flow; strength is no longer user-configured
+- **`PlanGenerationInput` type** — remove `strengthTraining: boolean` and `strengthDays?: string[]`
+- **Frontend** — remove `mergeStrengthDays()` post-processing; strength days now arrive in the `days[]` response directly
 
 ## Dependencies Removed
 
@@ -284,8 +333,12 @@ For each quality session that needs to be placed:
   - Placement rules (no consecutive quality sessions, none adjacent to long run)
   - Quality session degradation on 2-day schedules; shortfall accepted
   - Easy run distance cap and volume shortfall acceptance
-  - Build phase transitions: 1-week Build treated as all-second-half; midpoint split for longer phases
-  - Build second half: tempo placed before intervals; Peak: intervals placed before MP
+  - Base: intervals on even local index, tempo on odd
+  - Build first half: tempo only; Build second half: tempo + mp (correct order)
+  - Peak: mp first, then tempo; no intervals in Peak
   - Long run: `min(rawDistance, weeklyKm × 0.35)` behavior in both early and peak weeks
+  - Strength: placed on easy days, not adjacent to long run, not consecutive, furthest from long run
+  - Strength count by phase: 2 in Base/Build, 1–2 in Peak, 1 in first taper week, 0 in remaining
+  - Strength appears as separate `WorkoutDay` entries on same date as easy runs
 - Snapshot test: given fixed inputs, output is identical across runs (determinism)
 - Integration test: full `POST /api/generate-plan` round-trip returns valid plan shape, validates all preconditions

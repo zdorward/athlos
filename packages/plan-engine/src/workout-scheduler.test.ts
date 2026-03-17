@@ -347,6 +347,31 @@ describe("scheduleWorkouts — strength sessions", () => {
     })
   })
 
+  it("no strength session is adjacent to any quality session in the same week", () => {
+    // Base phase: 1 tempo per week placed on earliest valid non-adjacent-to-sat day (Mon).
+    // After placement, strength must not land on Tue (adjacent to Mon).
+    const days = scheduleWorkouts({
+      ...baseInput,
+      selectedDays: ["mon", "tue", "wed", "thu", "fri", "sat"],
+      longRunDay: "sat",
+      phases: [{ name: "Base", startWeek: 1, endWeek: 4 }],
+      trainingStructure: { runDaysPerWeek: 6, restDaysPerWeek: 1, maxQualitySessions: 1 },
+      peakWeeklyKm: 80,
+    })
+    const strengthDays = days.filter(d => d.type === "strength")
+    const qualityDays  = days.filter(d => ["tempo", "intervals", "mp"].includes(d.type))
+
+    strengthDays.forEach(s => {
+      const sameWeekQuality = qualityDays.filter(q => {
+        const diff = Math.abs(new Date(s.date).getTime() - new Date(q.date).getTime())
+        return diff < 7 * 86400000
+      })
+      sameWeekQuality.forEach(q => {
+        expect(isAdjacentTo(dayKeyOf(s.date), dayKeyOf(q.date))).toBe(false)
+      })
+    })
+  })
+
   it("no two strength sessions on consecutive days in a week", () => {
     const days = scheduleWorkouts({
       ...baseInput,
@@ -383,14 +408,15 @@ describe("scheduleWorkouts — strength sessions", () => {
   })
 
   it("Peak: 2 strength in early weeks, 1 in final 2 weeks", () => {
-    // Use 5 run days so there are enough easy days (non-adjacent to long run) for strength
-    // Long run on sat → fri is adjacent, so mon/tue/wed/thu are all valid easy day candidates
+    // Use 5 run days with 1 quality session so easy days remain for strength.
+    // Long run on sat → fri is adjacent. Quality lands on Mon (earliest valid).
+    // Wed and Thu are non-adjacent to Mon quality and non-adjacent to Sat → 2 strength candidates.
     const days = scheduleWorkouts({
       ...baseInput,
       totalWeeks: 4,
       selectedDays: ["mon", "tue", "wed", "thu", "sat"],
       phases: [{ name: "Peak", startWeek: 1, endWeek: 4 }],
-      trainingStructure: { runDaysPerWeek: 5, restDaysPerWeek: 2, maxQualitySessions: 2 },
+      trainingStructure: { runDaysPerWeek: 5, restDaysPerWeek: 2, maxQualitySessions: 1 },
       peakWeeklyKm: 80,
     })
     // Week 1 and 2: early Peak (localIndex 0,1 < 4-2=2) → 2 strength sessions

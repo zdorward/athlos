@@ -311,11 +311,17 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
     const sCount = strengthCount(week, phase, phases)
 
     if (sCount > 0) {
+      // Collect quality day keys for adjacency exclusion
+      const qualityDayKeys = placedQuality.map(q =>
+        weekDays.find(w => w.date === q.date)?.dayKey ?? ""
+      ).filter(Boolean)
+
       const sCandidates = weekDays.filter(({ dayKey, date }) => {
         const workouts = assigned.get(date)
         return (
           workouts?.some(w => w.type === "easy") &&
-          !isAdjacentTo(dayKey, longRunDay)
+          !isAdjacentTo(dayKey, longRunDay) &&
+          qualityDayKeys.every(qDay => !isAdjacentTo(dayKey, qDay))
         )
       })
 

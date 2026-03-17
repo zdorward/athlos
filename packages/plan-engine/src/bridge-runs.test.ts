@@ -8,7 +8,6 @@ const BASE_INPUT: PlanGenerationInput = {
   selectedDays: ["wed", "fri"],
   longRunDay: "sun",
   units: "km",
-  strengthTraining: false,
   weeklyMileageRange: "40-60",
 }
 
@@ -16,7 +15,7 @@ const BASE_INPUT: PlanGenerationInput = {
 const NEXT_MONDAY = new Date("2026-03-23T00:00:00Z")
 
 function makeEasyRun(date: string, distanceKm: number, targetPace?: string): WorkoutDay {
-  return { date, type: "easy", distanceKm, description: "Easy run.", ...(targetPace && { targetPace }) }
+  return { date, type: "easy", distanceKm, ...(targetPace && { targetPace }) }
 }
 
 describe("buildBridgeRuns", () => {

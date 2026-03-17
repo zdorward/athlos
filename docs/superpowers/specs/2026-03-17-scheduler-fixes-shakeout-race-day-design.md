@@ -9,7 +9,7 @@
 
 Three independent areas of change:
 
-1. **Scheduler bug fixes** — four bugs in the workout scheduling engine that produce scientifically incorrect plans
+1. **Scheduler bug fixes** — three confirmed bugs plus one investigation item in the workout scheduling engine that produce scientifically incorrect plans
 2. **Shakeout workout type** — new type scheduled the day before the race, replacing the forced rest day
 3. **Race day enhancements** — populate `targetHR`, `targetPace`, and improve the description note for race entries
 
@@ -45,29 +45,18 @@ Strength remains on easy-run days, non-adjacent to both the long run and any qua
 
 ---
 
-### Bug 3 — Taper volume does not reduce from actual peak
+### Investigation — Taper quality session count
 
-**File:** `packages/plan-engine/src/volume-progression.ts`
+**File:** `packages/plan-engine/src/workout-scheduler.ts` and wherever `computePhases` is defined
 
-**Problem:** Taper week volumes are computed as `peakWeeklyKm * pct` (0.8, 0.6, 0.4), where `peakWeeklyKm` is the configured target mileage for the plan. The plan's linear interpolation may not reach this target before taper begins. When the configured target exceeds what the plan actually achieves, taper week 1 ends up at or above the actual last peak week rather than below it.
+**Symptom:** Taper W1 in some generated plans shows two quality sessions (Race Pace + Tempo) instead of the one allowed by `PHASE_CONFIG["Taper"].first.normal = { sessions: 1, types: ["tempo"] }`.
 
-**Fix:** Compute the actual last pre-taper week volume at `t = 1.0` in the linear interpolation (without the recovery dip). Store this as `actualPeakVol` and use it as the reduction base:
-```ts
-const actualPeakVol = startVol + (peakWeeklyKm - startVol) * 1.0
-// For taper weeks:
-volume = actualPeakVol * pct
-```
-This guarantees taper week 1 is genuinely lower than the week the runner just completed.
+**Root cause is unconfirmed.** Candidate causes:
+- `computePhases` sets a `startWeek` for Taper that does not match what the scheduler's `phaseForWeek` lookup returns for that week number, causing the week to be classified as Peak rather than Taper
+- `isRecovery` evaluation at the taper boundary interacts unexpectedly with `getQualityConfig`
+- Off-by-one in `preTaperWeeks` that shifts which week is treated as the last Peak week
 
----
-
-### Bug 4 — Taper quality session count
-
-**File:** `packages/plan-engine/src/workout-scheduler.ts` and `packages/plan-engine/src/pace-calculator.ts` (wherever `computePhases` lives)
-
-**Problem:** Taper W1 in some generated plans shows two quality sessions (Race Pace + Tempo) instead of the one allowed by `PHASE_CONFIG["Taper"].first.normal`. This likely follows from Bug 3 — if the taper phase `startWeek` is misaligned with the volume reduction, the scheduler may treat taper weeks as peak weeks.
-
-**Fix:** After fixing Bug 3, verify that `computePhases` sets `startWeek` for Taper consistently with what `computeWeeklyVolumes` uses for `taperPhase.startWeek`. Confirm `PHASE_CONFIG["Taper"].first.normal = { sessions: 1, types: ["tempo"] }` is correctly applied.
+**Action during implementation:** Add logging or a test fixture to confirm which `phase` and `getQualityConfig` result the scheduler resolves for taper W1. Trace from `computePhases` output through `phaseForWeek` and `getQualityConfig` until the source of the extra session is identified, then fix at the source.
 
 ---
 
@@ -109,7 +98,7 @@ In the race week block, the pre-race day (day before the race date) is currently
 - Distance: 5 km fixed — short enough to avoid fatigue, long enough to feel purposeful
 - Pace: easy pace (`paceZones.easy`)
 - No strength session
-- Applies always, regardless of whether the pre-race day is in the user's selected training days
+- Applies always, regardless of whether the pre-race day is in the user's selected training days — a shakeout the day before the race is universal coaching practice and should not be gated on configured training days
 
 ### UI constants (`apps/web/app/plan/workout-utils.ts`)
 
@@ -164,8 +153,7 @@ Change `race` from `"—"` to `"Zone 3"` to match the populated `targetHR` field
 | File | Change |
 |------|--------|
 | `packages/plan-engine/src/types.ts` | Add `"shakeout"` to `WorkoutType` |
-| `packages/plan-engine/src/volume-progression.ts` | Fix taper base volume (Bug 3) |
-| `packages/plan-engine/src/workout-scheduler.ts` | Fix quality adjacency (Bug 1), strength adjacency (Bug 2), shakeout scheduling, verify taper phase alignment (Bug 4) |
+| `packages/plan-engine/src/workout-scheduler.ts` | Fix quality adjacency (Bug 1), strength adjacency (Bug 2), shakeout scheduling, fix taper quality session count (investigation item) |
 | `apps/web/app/api/generate-plan/route.ts` | Add `targetPace` and `targetHR` to race entry |
 | `apps/web/app/plan/workout-utils.ts` | Add shakeout to all lookup functions, update race `getWorkoutNote` and `getHRZone` |
 

@@ -60,9 +60,11 @@ Changing to pre-only (block Saturday, allow Monday) is consistent with how coach
 | Tue | Easy | Easy | Easy | Easy |
 | Wed | Tempo | Tempo | Tempo | MP |
 | Thu | Easy | Easy | Easy | Easy |
-| Fri | Easy + Strength | Intervals + Strength | MP + Strength | Tempo |
+| Fri | Easy + Strength | **Intervals** | **MP** | Tempo |
 | Sat | Rest | Rest | Rest | Rest |
 | Sun | Long | Long | Progression | Progression |
+
+Note: In Build early and late, Friday carries the second quality session (Intervals or MP), leaving it ineligible for strength. Monday is the sole strength day in those weeks (1 session). This is acceptable — high-intensity weeks with 2 quality sessions correctly deprioritize the second strength day.
 
 This layout gives:
 - 2 non-adjacent strength sessions in Base and Build (Mon + Fri)

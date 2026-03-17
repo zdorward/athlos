@@ -44,14 +44,22 @@ The strength candidate filter (line 341) uses `isAdjacentTo(dayKey, longRunDay)`
 
 Replace the ascending-index sort with a descending circular-distance-from-long-run sort. Add `longIdx` before the quality loop (it is currently declared later for the strength section — move or duplicate):
 
+Hoist `longIdx` to just above the quality loop (before line 265), removing its existing declaration from the strength section (line 328):
+
 ```ts
-// Before (line 278–280)
+// Hoist this declaration above the quality loop (was in the strength section at line 328)
+const longIdx = DAY_INDEX[longRunDay] ?? 0
+```
+
+Then replace the quality sort (lines 278–280):
+
+```ts
+// Before
 const candidate = [...candidates].sort(
   (a, b) => (DAY_INDEX[a.dayKey] ?? 0) - (DAY_INDEX[b.dayKey] ?? 0)
 )[0]
 
 // After
-const longIdx = DAY_INDEX[longRunDay] ?? 0
 const candidate = [...candidates].sort(
   (a, b) =>
     circularDist(DAY_INDEX[b.dayKey] ?? 0, longIdx) -
@@ -60,8 +68,6 @@ const candidate = [...candidates].sort(
 ```
 
 `circularDist` is already defined in the file (line 165). Ties (e.g., Wednesday and Thursday both at distance 3 from Sunday) are broken by the sort's natural stability — whichever appears first in the filtered array, which follows DAY_ORDER (Mon→Sun), so Wednesday wins over Thursday.
-
-Since `longIdx` is now declared inside the quality loop, remove the duplicate declaration from the strength section (line 328) and hoist it above the quality loop.
 
 ### Change 2: Strength adjacency — pre-only for long run
 
@@ -109,7 +115,7 @@ Result: 2 strength sessions (Mon + Fri), non-adjacent, correctly spaced from lon
 | Sat | Rest |
 | Sun | Long |
 
-Strength: Monday only (1 session — Friday is occupied by intervals). This is correct for a high-intensity week.
+Strength: Monday only (1 session). Friday has intervals; Thursday is adjacent to both Wednesday (tempo) and Friday (intervals), leaving Monday as the sole eligible strength day. This is acceptable for a high-intensity week — the priority is executing two quality sessions well.
 
 **Build late / Peak (tempo + MP or MP + tempo)**
 

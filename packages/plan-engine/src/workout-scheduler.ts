@@ -47,7 +47,8 @@ function addDaysToISO(isoDate: string, days: number): string {
 function isAdjacentTo(day: string, targetDay: string): boolean {
   const a = DAY_INDEX[day] ?? -1
   const b = DAY_INDEX[targetDay] ?? -1
-  return Math.abs(a - b) === 1
+  if (a === -1 || b === -1) return false
+  return circularDist(a, b) === 1
 }
 
 function phaseForWeek(weekNumber: number, phases: PhaseEntry[]): string {

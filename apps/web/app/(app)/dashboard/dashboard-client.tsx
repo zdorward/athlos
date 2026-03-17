@@ -8,7 +8,6 @@ import type { WorkoutDay, PlanGenerationInput } from "@workspace/plan-engine"
 import { RaceBanner } from "./race-banner"
 import { TodayWorkoutCard } from "./today-workout-card"
 import { Button } from "@workspace/ui/components/button"
-import { Spinner } from "@workspace/ui/components/spinner"
 
 export interface Plan {
   id: string

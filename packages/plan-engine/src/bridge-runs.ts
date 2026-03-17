@@ -47,7 +47,7 @@ export function buildBridgeRuns(
   planEndWeek1.setUTCDate(planStart.getUTCDate() + 6)
   const planEndWeek1ISO = toISO(planEndWeek1)
 
-  // Find week-1 easy runs
+  // Find week-1 easy runs and long run
   const week1EasyRuns = planDays.filter(
     d =>
       d.type === "easy" &&
@@ -55,8 +55,15 @@ export function buildBridgeRuns(
       d.date <= planEndWeek1ISO &&
       d.distanceKm !== undefined,
   )
+  const week1LongRun = planDays.find(
+    d =>
+      (d.type === "long" || d.type === "progression") &&
+      d.date >= planStartISO &&
+      d.date <= planEndWeek1ISO &&
+      d.distanceKm !== undefined,
+  )
 
-  // Compute distance per bridge run
+  // Compute distance per bridge easy run
   // Fallback denominator = input.selectedDays.length = running days per week (not gap days)
   const distanceKm =
     week1EasyRuns.length > 0
@@ -70,17 +77,28 @@ export function buildBridgeRuns(
   // Target pace: copy from first week-1 easy run that has one; omit key if none
   const targetPace = week1EasyRuns.find(d => d.targetPace != null)?.targetPace
 
+  const longRunUTCDay = DAY_KEY_TO_UTC[input.longRunDay] ?? -1
+
   // Iterate gap — todayUTC is fixed; cursor is a separate mutable copy
   const results: WorkoutDay[] = []
   const cursor = new Date(todayUTC)
   while (cursor.getTime() < planStart.getTime()) {
     if (selectedUTCDays.has(cursor.getUTCDay())) {
-      results.push({
-        date: toISO(cursor),
-        type: "easy",
-        distanceKm,
-        ...(targetPace !== undefined && { targetPace }),
-      })
+      if (cursor.getUTCDay() === longRunUTCDay) {
+        results.push({
+          date: toISO(cursor),
+          type: "long",
+          distanceKm: week1LongRun?.distanceKm ?? distanceKm,
+          ...(week1LongRun?.targetPace !== undefined && { targetPace: week1LongRun.targetPace }),
+        })
+      } else {
+        results.push({
+          date: toISO(cursor),
+          type: "easy",
+          distanceKm,
+          ...(targetPace !== undefined && { targetPace }),
+        })
+      }
     } else {
       results.push({ date: toISO(cursor), type: "rest" })
     }

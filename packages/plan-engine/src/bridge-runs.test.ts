@@ -96,12 +96,27 @@ describe("buildBridgeRuns", () => {
     expect("targetPace" in result[0]!).toBe(false)
   })
 
-  it("adds bridge run on Sunday when Sunday is selected", () => {
+  it("adds a long run on Sunday when Sunday is the longRunDay", () => {
     const sunday = new Date("2026-03-22T00:00:00Z")  // Sun before Mon 23
-    const input = { ...BASE_INPUT, selectedDays: ["sun"] }
+    const input = { ...BASE_INPUT, selectedDays: ["sun"], longRunDay: "sun" }
     const result = buildBridgeRuns(input, [], sunday)
     expect(result).toHaveLength(1)
     expect(result[0]!.date).toBe("2026-03-22")
+    expect(result[0]!.type).toBe("long")
+  })
+
+  it("long run uses week-1 long run distance and pace", () => {
+    const tuesday = new Date("2026-03-17T00:00:00Z")  // Tue, gap = Tue–Sun
+    const input = { ...BASE_INPUT, selectedDays: ["tue", "sun"], longRunDay: "sun" }
+    const planDays: WorkoutDay[] = [
+      { date: "2026-03-23", type: "easy", distanceKm: 10 },
+      { date: "2026-03-29", type: "long", distanceKm: 22, targetPace: "5:45–6:15/km" },
+    ]
+    const result = buildBridgeRuns(input, planDays, tuesday)
+    const longRun = result.find(d => d.date === "2026-03-22")
+    expect(longRun?.type).toBe("long")
+    expect(longRun?.distanceKm).toBe(22)
+    expect(longRun?.targetPace).toBe("5:45–6:15/km")
   })
 
   it("returns a rest entry on Sunday when Sunday is not selected", () => {

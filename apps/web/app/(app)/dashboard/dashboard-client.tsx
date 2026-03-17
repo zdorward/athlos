@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { format, parseISO } from "date-fns"
 import Link from "next/link"
@@ -70,7 +70,7 @@ export function DashboardClient({
     }
   }, [searchParams, router])
 
-  const fetchPlan = useCallback(async () => {
+  async function fetchPlan() {
     try {
       const res = await fetch("/api/plans")
       if (res.status === 401) { router.replace("/"); return }
@@ -80,7 +80,7 @@ export function DashboardClient({
     } catch {
       setPlan("error")
     }
-  }, [router])
+  }
 
   if (plan === "error") {
     return (

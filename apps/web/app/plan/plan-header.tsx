@@ -11,7 +11,6 @@ interface PlanHeaderProps {
   totalKm: number
   units: "km" | "miles"
   status: "generating" | "complete" | "error" | "rate-limited"
-  generatingWeek?: number
   goalTimeLabel?: string
   backHref?: string
   saveProps?: SaveProps
@@ -24,7 +23,6 @@ export function PlanHeader({
   totalKm,
   units,
   status,
-  generatingWeek,
   goalTimeLabel,
   backHref = "/",
   saveProps,
@@ -52,19 +50,7 @@ export function PlanHeader({
         </Link>
 
         <div className="flex items-center gap-3">
-          {status === "generating" && (
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-              </span>
-              <p className="text-xs text-muted-foreground">
-                Week {generatingWeek}{totalWeeks > 0 ? ` of ${totalWeeks}` : ""}
-              </p>
-            </div>
-          )}
-
-          {status === "error" && (
+{status === "error" && (
             <p className="text-xs text-destructive">Generation failed — go back and try again.</p>
           )}
 

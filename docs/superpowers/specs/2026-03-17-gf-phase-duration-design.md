@@ -48,7 +48,12 @@ const GF_CAP: Record<string, number> = {
 }
 ```
 
-Cap values are grounded in connective tissue adaptation timelines (8–10 weeks, `strength-training-science.md`) and training monotony evidence (`modern-marathon-science.md`). Higher-mileage runners have more established tissue tolerance and aerobic base, so their GF ceiling is lower.
+Cap values are grounded in two evidence sources from the training science docs:
+
+- **Connective tissue adaptation** (`strength-training-science.md`): 8–10 weeks to establish tissue tolerance at GF-level loading (60–75% 1RM). This directly supports the 60-80 cap of 8 weeks.
+- **Aerobic base and training monotony** (`modern-marathon-science.md`): lower-mileage runners (under-40, 40-60) need additional GF time to build aerobic base from a lower starting volume. Beyond 10–12 weeks without a quality stimulus, training monotony risk increases, making further GF weeks counterproductive.
+
+Higher-mileage runners have pre-established tissue tolerance and aerobic base, so their ceiling is lower (6–8 weeks). The caps do not represent "optimal GF duration" — they represent the maximum beyond which additional GF weeks yield diminishing returns.
 
 ### 3. Inverted 5-phase allocation
 
@@ -106,7 +111,7 @@ const phases = computePhases(totalWeeks, input.race.distance, input.weeklyMileag
 
 ### 6. Move `WeeklyMileageRange` type to `types.ts`
 
-`WeeklyMileageRange` is currently a local type in `workout-scheduler.ts`. Since `computePhases` now uses it, move it to `types.ts` and import from there in both files. Export it from `index.ts`.
+`WeeklyMileageRange` is currently declared as a local type in both `workout-scheduler.ts` and `volume-progression.ts`. Move the single canonical definition to `types.ts`, import it in both files, and update `PlanGenerationInput` in `types.ts` to reference the named type instead of the inline union. Export it from `index.ts`.
 
 ---
 
@@ -128,6 +133,26 @@ For 29-week plans, the GF cap does not bite (remaining after Base+Build = 4, bel
 
 ---
 
+## Tests
+
+**Update (3 tests):**
+
+- 28-week exact-match: `GF=3, Base=8, Build=8, Peak=6` → `GF=5, Base=8, Build=8, Peak=4`
+- 22-week exact-match: `GF=2, Base=7, Build=7, Peak=3` → `GF=1, Base=7, Build=7, Peak=4`
+- 22-week soft invariant: `peak >= 3` → `peak >= 4`
+
+**Add (5 tests):**
+
+- 29-week, "under-40": GF=4, Base=9, Build=9, Peak=4, Taper=3
+- 29-week, "80-plus": GF=4, Base=9, Build=9, Peak=4, Taper=3 (cap doesn't bite; same as under-40)
+- 52-week, "under-40": GF=12 (capped at bracket max)
+- 52-week, "80-plus": GF=6 (capped lower)
+- Full marathon peak is at least 4 weeks (invariant test for peakMin change)
+
+**GF floor:** `gf` has no explicit floor. If `remaining` after Base+Build is 0, GF=0 and `pushPhase` silently skips the phase. This degenerates to 4-phase behavior and is correct — GF is unnecessary in that scenario.
+
+---
+
 ## Out of Scope
 
 - Phase allocation for 4-phase plans (≤20 weeks) — unchanged
@@ -145,5 +170,6 @@ For 29-week plans, the GF cap does not bite (remaining after Base+Build = 4, bel
 | `packages/plan-engine/src/pace-calculator.ts` | Add `GF_CAP` table; add `getPeakMin`; update `computePhases` signature and 5-phase algorithm |
 | `packages/plan-engine/src/workout-scheduler.ts` | Import `WeeklyMileageRange` from `types.ts` instead of local declaration |
 | `packages/plan-engine/src/index.ts` | Export `WeeklyMileageRange` |
-| `packages/plan-engine/src/pace-calculator.test.ts` | Update 2 exact-match tests; add 5 new tests |
+| `packages/plan-engine/src/volume-progression.ts` | Import `WeeklyMileageRange` from `types.ts` instead of local declaration |
+| `packages/plan-engine/src/pace-calculator.test.ts` | Update 3 tests (2 exact-match + 1 soft invariant); add 5 new tests |
 | `apps/web/app/api/generate-plan/route.ts` | Pass `input.weeklyMileageRange` to `computePhases` |

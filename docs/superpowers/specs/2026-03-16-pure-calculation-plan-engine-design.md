@@ -166,7 +166,7 @@ interface VolumeProgressionInput {
 }
 ```
 
-Rules are checked in this exact order; the first matching rule wins:
+Rules 1–5 are checked in order; the first matching rule determines the base volume. Rule 6 is a post-processing cap applied unconditionally to the result of whichever rule matched — it is not part of the priority chain.
 
 1. **Taper weeks:** If a week falls within the taper phase, use fixed reductions from `peakWeeklyKm`. Taper overrides all other rules:
    - First taper week: 80% of peak
@@ -176,7 +176,7 @@ Rules are checked in this exact order; the first matching rule wins:
 3. **Recovery weeks:** `weekNumber % 4 === 0` (1-indexed). Only reaches this rule for non-taper, non-final weeks. Volume = 70% of the prior week's volume.
 4. **Week 1:** Lower bound of `weeklyMileageRange` (e.g. `"40-60"` → 40 km)
 5. **All other weeks:** Prior week's volume × 1.10 (fixed 10% — Pfitzinger's 10% rule)
-6. **Cap (always applied after the rule above):** result is `Math.min(result, peakWeeklyKm)`. This ensures `weeklyKm` never exceeds `peakWeeklyKm`.
+6. **Post-processing cap (unconditional):** `result = Math.min(result, peakWeeklyKm)`. Applied after whichever of rules 1–5 matched. Guarantees `weeklyKm ≤ peakWeeklyKm` as an invariant used by the scheduler's `progressFactor` calculation.
 
 ### Per-Week Slot Allocation
 
@@ -187,15 +187,18 @@ The scheduler iterates over weeks 1–N. For each week it:
 
 #### Adjacency definition
 
-For the purposes of quality session placement, "adjacent to `longRunDay`" means the calendar day immediately before or immediately after `longRunDay` within a Mon–Sun week ordering. Days are ordered Mon(0)–Sun(6); adjacency does not wrap (Sun is not adjacent to Mon of the same week).
+The scheduler processes each week independently. Adjacency constraints apply only within the current week's Mon–Sun window — cross-week adjacency (e.g., Sunday of week N and Monday of week N+1) is not checked.
+
+Within a week, "adjacent to `longRunDay`" means the calendar day immediately before or immediately after `longRunDay` in Mon(0)–Sun(6) ordering. Adjacency does not wrap: Sunday(6) and Monday(0) of the same week are not adjacent.
 
 #### 1. Long Run
 - Day: always `longRunDay`
 - `progressFactor` = `Math.min(weeklyKm / peakWeeklyKm, 1.0)` — clamped to [0, 1]. Since rule 6 of `computeWeeklyVolumes` guarantees `weeklyKm ≤ peakWeeklyKm`, this clamp is a safety guard; it will not change values in practice but prevents floating-point overshoot from producing long runs larger than `peakLongRunKm`.
 - Raw distance: `peakLongRunKm × progressFactor` (where `peakLongRunKm` = `longRunTargets.peakLongRunKm`)
 - Final distance: `min(rawDistance, weeklyKm × 0.35)`
-  - In high-volume weeks the raw distance is typically the binding constraint
-  - In low-volume early weeks the 35% cap may bind, keeping the long run proportional to the week's total
+  - In high-volume weeks, `rawDistance` (the progressFactor term) is typically the binding constraint
+  - In low-volume early weeks, the 35% cap may bind, keeping the long run proportional to the week's total
+  - In taper weeks: e.g. for a plan with `peakWeeklyKm = 100`, `peakLongRunKm = 35`, taper week 3 (40% of peak) gives `weeklyKm = 40`, `rawDistance = 35 × 0.4 = 14`, cap = `40 × 0.35 = 14` → long run is 14 km. This is correct taper behavior — long runs shrink with weekly volume.
 - Pace: `paceZones.longRun`
 - Type: `"long"`
 
@@ -206,9 +209,9 @@ For the purposes of quality session placement, "adjacent to `longRunDay`" means 
 - **Base:** 1/week — `"tempo"`
 - **Build (first half):** 1/week — type alternates by local week index within Build phase: even local index → `"tempo"`, odd local index → `"intervals"`
   - "First half" = local index < `Math.floor(buildPhaseLength / 2)`
-  - If `buildPhaseLength < 2` (1-week Build): `Math.floor(1/2) = 0`, so there is no first half — the single week falls into second half but gets only 1 session (`"tempo"`). The 2-session count is suppressed to avoid overloading a 1-week build transition.
-- **Build (second half):** 2/week — `"tempo"` placed first, then `"intervals"`. Exception: if `buildPhaseLength < 2`, second half gets only 1 session (`"tempo"`).
+- **Build (second half):** 2/week — `"tempo"` placed first, then `"intervals"`
   - "Second half" = local index ≥ `Math.floor(buildPhaseLength / 2)`
+  - **Special case — `buildPhaseLength === 1`:** `Math.floor(1/2) = 0`, so the single week is second half. It gets 1 quality session (`"tempo"`) only — the 2-session rule is suppressed to avoid overloading a 1-week transition. No first half exists.
 - **Peak:** 2/week — `"intervals"` placed first, then `"mp"`
 - **Taper:** 1 in first taper week (`"tempo"`), 0 in remaining taper weeks
 - Count is also capped by `trainingStructure.maxQualitySessions`
@@ -220,7 +223,7 @@ For the purposes of quality session placement, "adjacent to `longRunDay`" means 
 For each quality session that needs to be placed:
 1. Collect candidate days: running days in `selectedDays` that are not `longRunDay`, not already assigned to any workout type, not adjacent to `longRunDay` (per the adjacency definition above), and not consecutive with an already-placed quality session
 2. If one or more candidates exist: place the quality session on the first available candidate in day-of-week order (Mon < Tue < … < Sun)
-3. If no candidates exist: the session is **dropped** — no day is assigned to it and it does not appear in the output. Its planned distance (12% of weeklyKm) is not subtracted from the easy run volume calculation, so that volume rolls naturally into the easy pool. Any running days that were not claimed by the long run or a successfully placed quality session are picked up as easy runs in step 3. Note: with 2-day `selectedDays` schedules (long run + 1 other day), quality sessions will always drop because the only non-long-run day is adjacent to or consecutive with the long run. The resulting volume shortfall (easy cap may prevent full distribution) is accepted.
+3. If no candidates exist: the session is **dropped** — no day is assigned to it. The easy volume formula is `weeklyKm − longRunKm − sum(placed quality km)`; since the dropped session contributes 0 to `sum(placed quality km)`, its distance automatically remains in the easy pool. No special accounting step is needed. Any unassigned running days are picked up as easy runs in step 3. Note: with 2-day `selectedDays` schedules (long run + 1 other day), quality sessions will always drop because the only non-long-run day is typically adjacent to the long run. The resulting volume shortfall (easy cap may prevent full distribution) is accepted.
 
 **Pace:** `threshold` for tempo, `vo2max` for intervals, `mp` for MP
 

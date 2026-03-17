@@ -10,6 +10,8 @@ import {
   getWorkoutColor,
   formatDistance,
   distanceUnit,
+  getWorkoutNote,
+  getHRZone,
 } from "./workout-utils"
 
 const KM_TO_MILES = 0.621371
@@ -257,6 +259,12 @@ export function PlanDayDetail({ day, units, onClose, onToggleComplete, onSaveEdi
         </h2>
       </div>
 
+      {day.type !== "rest" && (
+        <p className="text-sm text-muted-foreground">
+          {getWorkoutNote(day, units)}
+        </p>
+      )}
+
       {day.distanceKm != null && (
         <div>
           <span
@@ -273,7 +281,7 @@ export function PlanDayDetail({ day, units, onClose, onToggleComplete, onSaveEdi
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-subtle-foreground mb-2">
           Target HR Zone
         </p>
-        <p className="text-sm text-subtle-foreground">{day.targetHR ?? "—"}</p>
+        <p className="text-sm text-subtle-foreground">{day.targetHR ?? getHRZone(day.type)}</p>
       </div>
 
       <div>

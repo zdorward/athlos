@@ -97,3 +97,46 @@ export function getTaperWeeks(distance?: "half" | "full"): number {
   if (!distance) return 0
   return 3
 }
+
+export function getWorkoutNote(day: WorkoutDay, units: "km" | "miles"): string {
+  switch (day.type) {
+    case "easy":
+      return "Keep it genuinely easy — conversational pace throughout."
+    case "long":
+      return "Easy effort throughout. Protect your quality sessions."
+    case "progression": {
+      if (day.distanceKm == null) return "Last 25–30% at marathon pace."
+      const mpKm = day.distanceKm * 0.25
+      return `Last ${formatDistance(mpKm, units)} ${distanceUnit(units)} at marathon pace.`
+    }
+    case "medium-long":
+      return "Comfortably aerobic — slightly harder than easy."
+    case "mp":
+      return "Marathon pace throughout — race-specific effort."
+    case "tempo":
+      return "Comfortably hard — lactate threshold pace."
+    case "intervals":
+      return "Hard efforts with full recovery between reps."
+    case "strength":
+      return "Heavy resistance training after your run — compound lifts at ≥80% 1RM. Focus: squats, deadlifts, single-leg work. Plyometrics optional as a complement."
+    case "rest":
+      return "Full recovery day."
+    case "race":
+      return "Race day — execute your plan."
+  }
+}
+
+export function getHRZone(type: WorkoutType): string {
+  switch (type) {
+    case "easy":        return "Zone 1"
+    case "long":        return "Zone 1"
+    case "progression": return "Zone 1 / Zone 3 finish"
+    case "medium-long": return "Zone 1–2"
+    case "mp":          return "Zone 3"
+    case "tempo":       return "Zone 3–4"
+    case "intervals":   return "Zone 4–5"
+    case "strength":
+    case "rest":
+    case "race":        return "—"
+  }
+}

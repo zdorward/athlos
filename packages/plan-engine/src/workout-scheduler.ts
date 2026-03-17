@@ -1,8 +1,6 @@
-import type { WorkoutDay, PhaseEntry } from "./types"
+import type { WorkoutDay, PhaseEntry, WeeklyMileageRange } from "./types"
 import type { PaceZones } from "./pace-calculator"
 import { computeWeeklyVolumes } from "./volume-progression"
-
-type WeeklyMileageRange = "under-40" | "40-60" | "60-80" | "80-plus"
 
 export interface TrainingStructure {
   runDaysPerWeek: number

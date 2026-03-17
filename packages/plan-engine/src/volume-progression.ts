@@ -1,6 +1,4 @@
-import type { PhaseEntry } from "./types"
-
-type WeeklyMileageRange = "under-40" | "40-60" | "60-80" | "80-plus"
+import type { PhaseEntry, WeeklyMileageRange } from "./types"
 
 export interface VolumeProgressionInput {
   totalWeeks: number

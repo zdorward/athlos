@@ -4,6 +4,7 @@ export {
   type TrainingPlan,
   type PlanGenerationInput,
   type PhaseEntry,
+  type WeeklyMileageRange,
 } from "./types"
 export { buildBridgeRuns, firstMondayOnOrAfter } from "./bridge-runs"
 export {

@@ -34,6 +34,8 @@ export interface TrainingPlan {
   phases?: PhaseEntry[]
 }
 
+export type WeeklyMileageRange = "under-40" | "40-60" | "60-80" | "80-plus"
+
 export interface PlanGenerationInput {
   goal: "race"
   race: {
@@ -47,5 +49,5 @@ export interface PlanGenerationInput {
   longRunDay: string
   units: "km" | "miles"
   startDate?: string
-  weeklyMileageRange: "under-40" | "40-60" | "60-80" | "80-plus"
+  weeklyMileageRange: WeeklyMileageRange
 }

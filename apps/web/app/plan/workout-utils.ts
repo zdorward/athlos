@@ -3,6 +3,7 @@ import type { WorkoutType, WorkoutDay, PhaseEntry } from "@workspace/plan-engine
 export const WORKOUT_NAMES: Record<WorkoutType, string> = {
   easy:          "Easy Run",
   long:          "Long Run",
+  progression:   "Progression Run",
   "medium-long": "Medium-Long",
   mp:            "Race Pace",
   tempo:         "Tempo Run",
@@ -17,6 +18,7 @@ export const WORKOUT_NAMES: Record<WorkoutType, string> = {
 export const WORKOUT_TEXT_CLASS: Record<WorkoutType, string> = {
   easy:          "text-muted-foreground",
   long:          "text-primary",
+  progression:   "text-primary/70",
   "medium-long": "text-primary/70",
   mp:            "",  // color applied via getWorkoutColor() (warm amber oklch)
   tempo:         "",
@@ -29,6 +31,7 @@ export const WORKOUT_TEXT_CLASS: Record<WorkoutType, string> = {
 // Inline color style for types that can't be expressed as Tailwind classes.
 export function getWorkoutColor(type: WorkoutType): string {
   const map: Partial<Record<WorkoutType, string>> = {
+    progression:   "oklch(0.72 0.12 220)",
     mp:            "oklch(0.78 0.15 55)",   // warm amber — between easy and tempo
     tempo:         "oklch(0.78 0.15 80)",
     intervals:     "oklch(0.75 0.18 30)",

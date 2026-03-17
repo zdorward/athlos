@@ -20,6 +20,7 @@ interface PlanFeedProps {
   units: "km" | "miles"
   totalWeeks: number
   raceDistance?: "half" | "full"
+  planStartDate?: string
   onToggleComplete?: (date: string, type: WorkoutType, completed: boolean) => void
   onSaveEdit?: (
     date: string,
@@ -38,12 +39,14 @@ interface PlanFeedProps {
   isNewlyGenerated?: boolean
 }
 
-export function PlanFeed({ days, units, totalWeeks, raceDistance, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange, phases, isNewlyGenerated }: PlanFeedProps) {
+export function PlanFeed({ days, units, totalWeeks, raceDistance, planStartDate, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange, phases, isNewlyGenerated }: PlanFeedProps) {
   // Derive the live WorkoutDay from days so the detail sheet always reflects current state
   const selectedDay = selectedKey
     ? (days.find((d) => d.date === selectedKey.date && d.type === selectedKey.type) ?? null)
     : null
-  const weeks = groupDaysByWeek(days)
+  const planFirstMonday = planStartDate ?? days[0]?.date ?? null
+  const planDays = planFirstMonday ? days.filter(d => d.date >= planFirstMonday) : days
+  const weeks = groupDaysByWeek(planDays)
   const taperWeeks = getTaperWeeks(raceDistance)
   const unit = distanceUnit(units)
 

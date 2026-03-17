@@ -90,6 +90,7 @@ export default function PlanPage() {
   const [input, setInput] = useState<PlanGenerationInput | null>(null)
 
   const [phases, setPhases] = useState<PhaseEntry[]>([])
+  const [planStartDate, setPlanStartDate] = useState<string | null>(null)
 
   const [selectedKey, setSelectedKey] = useState<{ date: string; type: WorkoutType } | null>(null)
 
@@ -256,6 +257,7 @@ export default function PlanPage() {
 
       totalWeeksRef.current = result.totalWeeks
       setPhases(result.phases ?? [])
+      setPlanStartDate(result.days[0]?.date ?? null)
       setPlan({
         days: finalDays,
         totalWeeks: result.totalWeeks,
@@ -370,6 +372,7 @@ export default function PlanPage() {
           totalWeeks={plan.totalWeeks ?? 0}
           raceDistance={input.race?.distance as "half" | "full" | undefined}
           phases={phases}
+          planStartDate={planStartDate ?? undefined}
           selectedKey={selectedKey}
           onSelectedKeyChange={setSelectedKey}
           isNewlyGenerated={isNewlyGenerated}
@@ -384,6 +387,7 @@ export default function PlanPage() {
           totalWeeks={plan.totalWeeks ?? 0}
           raceDistance={input.race?.distance as "half" | "full" | undefined}
           phases={phases}
+          planStartDate={planStartDate ?? undefined}
           selectedKey={selectedKey}
           onSelectedKeyChange={setSelectedKey}
           isNewlyGenerated={isNewlyGenerated}

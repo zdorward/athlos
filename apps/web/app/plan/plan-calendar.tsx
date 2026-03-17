@@ -46,6 +46,7 @@ interface PlanCalendarProps {
   units: "km" | "miles"
   totalWeeks: number
   raceDistance?: "half" | "full"
+  planStartDate?: string
   onToggleComplete?: (date: string, type: WorkoutType, completed: boolean) => void
   onSaveEdit?: (
     date: string,
@@ -64,17 +65,20 @@ interface PlanCalendarProps {
   isNewlyGenerated?: boolean
 }
 
-export function PlanCalendar({ days, units, totalWeeks, raceDistance, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange, phases, isNewlyGenerated }: PlanCalendarProps) {
+export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartDate, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange, phases, isNewlyGenerated }: PlanCalendarProps) {
   // Derive the live WorkoutDay from the days prop so the detail panel always reflects current state
   const selectedDay = selectedKey
     ? (days.find((d) => d.date === selectedKey.date && d.type === selectedKey.type) ?? null)
     : null
-  const weeks = groupDaysByWeek(days)
+  // Filter out bridge days (pre-plan gap runs) before grouping — they shift startMs and
+  // misalign the 7-day windows with the scheduler's Monday-based weeks
+  const planFirstMonday = planStartDate ?? days[0]?.date ?? null
+  const planDays = planFirstMonday ? days.filter(d => d.date >= planFirstMonday) : days
+  const weeks = groupDaysByWeek(planDays)
   const taperWeeks = getTaperWeeks(raceDistance)
   const unit = distanceUnit(units)
   const todayISO = getTodayISO()
   const currentWeekMonday = getMondayOfWeek(todayISO)
-  const planFirstMonday = days[0]?.date ?? null
   const showPrePlanWeek = planFirstMonday !== null && currentWeekMonday < planFirstMonday
   const prePlanDates = showPrePlanWeek ? getWeekDates(currentWeekMonday) : []
 

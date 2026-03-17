@@ -156,7 +156,7 @@ describe("scheduleWorkouts — quality session phase rules", () => {
     expect(quality).toHaveLength(0)
   })
 
-  it("Base phase: 1 quality/week — intervals on even local index, tempo on odd", () => {
+  it("Base weeks always get 1 tempo session", () => {
     const days = scheduleWorkouts({
       ...baseInput,
       phases: [{ name: "Base", startWeek: 1, endWeek: 4 }],
@@ -164,11 +164,11 @@ describe("scheduleWorkouts — quality session phase rules", () => {
     const week1Quality = days.filter(d => d.date >= "2026-06-01" && d.date <= "2026-06-07" && ["intervals","tempo"].includes(d.type))
     const week2Quality = days.filter(d => d.date >= "2026-06-08" && d.date <= "2026-06-14" && ["intervals","tempo"].includes(d.type))
     expect(week1Quality).toHaveLength(1)
-    expect(week1Quality[0]!.type).toBe("intervals") // week 1 = local index 0 = even
-    expect(week2Quality[0]!.type).toBe("tempo")      // week 2 = local index 1 = odd
+    expect(week1Quality[0]!.type).toBe("tempo")
+    expect(week2Quality[0]!.type).toBe("tempo")
   })
 
-  it("Build first half: 1 tempo/week", () => {
+  it("Build early half: 2 sessions — tempo + intervals", () => {
     const days = scheduleWorkouts({
       ...baseInput,
       totalWeeks: 6,
@@ -179,10 +179,12 @@ describe("scheduleWorkouts — quality session phase rules", () => {
       ],
       peakWeeklyKm: 80,
     })
-    // Build week 1 (startWeek=3, local index 0 < floor(4/2)=2) = first half = 1 tempo
+    // Build week 1 (startWeek=3, local index 0 < floor(4/2)=2) = early half = tempo + intervals
     const buildW1 = days.filter(d => d.date >= "2026-06-15" && d.date <= "2026-06-21" && ["tempo","mp","intervals"].includes(d.type))
-    expect(buildW1).toHaveLength(1)
-    expect(buildW1[0]!.type).toBe("tempo")
+    expect(buildW1).toHaveLength(2)
+    const types = buildW1.map(d => d.type)
+    expect(types).toContain("tempo")
+    expect(types).toContain("intervals")
   })
 
   it("Build second half: 2 sessions — tempo first, then mp", () => {
@@ -424,5 +426,120 @@ describe("scheduleWorkouts — determinism", () => {
     const a = scheduleWorkouts(baseInput)
     const b = scheduleWorkouts(baseInput)
     expect(a).toEqual(b)
+  })
+})
+
+// Helpers for phase config tests
+function makeInput(phases: PhaseEntry[], totalWeeks: number, selectedDays = ["mon", "wed", "fri", "sat"]) {
+  return {
+    startDate: "2026-06-01",
+    selectedDays,
+    longRunDay: "sat",
+    weeklyMileageRange: "40-60" as const,
+    phases,
+    totalWeeks,
+    peakWeeklyKm: 80,
+    trainingStructure: { runDaysPerWeek: selectedDays.length, restDaysPerWeek: 7 - selectedDays.length, maxQualitySessions: 2 },
+    longRunTargets: { peakLongRunKm: 30, recoveryRunMaxKm: 13 },
+    paceZones,
+  }
+}
+
+describe("phase config — quality session types", () => {
+  it("Base weeks get 1 tempo session, not intervals", () => {
+    const phases: PhaseEntry[] = [{ name: "Base", startWeek: 1, endWeek: 8 }]
+    const days = scheduleWorkouts(makeInput(phases, 8))
+    const qualitySessions = days.filter(d => d.type === "tempo" || d.type === "intervals" || d.type === "mp")
+    // No intervals in Base
+    expect(days.filter(d => d.type === "intervals")).toHaveLength(0)
+    // Tempo sessions present
+    expect(qualitySessions.filter(d => d.type === "tempo").length).toBeGreaterThan(0)
+  })
+
+  it("early Build gets tempo + intervals", () => {
+    // 8-week Build; weeks 1-3 are early (localIndex 0-2 < floor(8/2)=4)
+    const phases: PhaseEntry[] = [
+      { name: "Build", startWeek: 1, endWeek: 8 },
+    ]
+    const days = scheduleWorkouts(makeInput(phases, 8))
+    // Week 1 (localIndex 0 < 4 → early) should have both tempo and intervals
+    const week1 = days.filter(d => {
+      const d0 = new Date("2026-06-01T00:00:00Z")
+      const dDate = new Date(d.date + "T00:00:00Z")
+      const dayDiff = Math.floor((dDate.getTime() - d0.getTime()) / 86400000)
+      return dayDiff < 7
+    })
+    const types = week1.map(d => d.type)
+    expect(types).toContain("tempo")
+    expect(types).toContain("intervals")
+  })
+
+  it("late Build gets tempo + mp", () => {
+    // 8-week Build; weeks 5-8 are late (localIndex 4-7 >= 4)
+    const phases: PhaseEntry[] = [
+      { name: "Build", startWeek: 1, endWeek: 8 },
+    ]
+    const days = scheduleWorkouts(makeInput(phases, 8))
+    // Week 5 (localIndex 4 >= 4 → late) should have both tempo and mp, no intervals
+    const week5 = days.filter(d => {
+      const d0 = new Date("2026-06-01T00:00:00Z")
+      const dDate = new Date(d.date + "T00:00:00Z")
+      const dayDiff = Math.floor((dDate.getTime() - d0.getTime()) / 86400000)
+      return dayDiff >= 28 && dayDiff < 35
+    })
+    const types = week5.map(d => d.type)
+    expect(types).toContain("tempo")
+    expect(types).toContain("mp")
+    expect(types).not.toContain("intervals")
+  })
+
+  it("Peak recovery week (every 4th) gets 1 tempo, not 2 sessions", () => {
+    // 8-week Peak with no taper; week 4 is a recovery week (4 % 4 === 0)
+    const phases: PhaseEntry[] = [
+      { name: "Peak", startWeek: 1, endWeek: 8 },
+    ]
+    const days = scheduleWorkouts(makeInput(phases, 8))
+    // Week 4 = recovery week; should have 1 quality session (tempo), not mp
+    const week4Quality = days.filter(d => {
+      const d0 = new Date("2026-06-01T00:00:00Z")
+      const dDate = new Date(d.date + "T00:00:00Z")
+      const dayDiff = Math.floor((dDate.getTime() - d0.getTime()) / 86400000)
+      return dayDiff >= 21 && dayDiff < 28 && (d.type === "tempo" || d.type === "mp" || d.type === "intervals")
+    })
+    expect(week4Quality).toHaveLength(1)
+    expect(week4Quality[0]!.type).toBe("tempo")
+  })
+
+  it("Taper week 1 gets 1 tempo session", () => {
+    const phases: PhaseEntry[] = [
+      { name: "Peak", startWeek: 1, endWeek: 4 },
+      { name: "Taper", startWeek: 5, endWeek: 7 },
+    ]
+    const days = scheduleWorkouts(makeInput(phases, 7))
+    // Week 5 = taper first week; 1 tempo
+    const week5Quality = days.filter(d => {
+      const d0 = new Date("2026-06-01T00:00:00Z")
+      const dDate = new Date(d.date + "T00:00:00Z")
+      const dayDiff = Math.floor((dDate.getTime() - d0.getTime()) / 86400000)
+      return dayDiff >= 28 && dayDiff < 35 && (d.type === "tempo" || d.type === "mp" || d.type === "intervals")
+    })
+    expect(week5Quality).toHaveLength(1)
+    expect(week5Quality[0]!.type).toBe("tempo")
+  })
+
+  it("Taper weeks 2+ get no quality sessions", () => {
+    const phases: PhaseEntry[] = [
+      { name: "Peak", startWeek: 1, endWeek: 4 },
+      { name: "Taper", startWeek: 5, endWeek: 7 },
+    ]
+    const days = scheduleWorkouts(makeInput(phases, 7))
+    // Weeks 6-7 = taper rest weeks; 0 quality
+    const taper23Quality = days.filter(d => {
+      const d0 = new Date("2026-06-01T00:00:00Z")
+      const dDate = new Date(d.date + "T00:00:00Z")
+      const dayDiff = Math.floor((dDate.getTime() - d0.getTime()) / 86400000)
+      return dayDiff >= 35 && (d.type === "tempo" || d.type === "mp" || d.type === "intervals")
+    })
+    expect(taper23Quality).toHaveLength(0)
   })
 })

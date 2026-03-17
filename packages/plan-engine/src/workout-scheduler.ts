@@ -53,51 +53,76 @@ function phaseForWeek(weekNumber: number, phases: PhaseEntry[]): string {
   return phases.find(p => weekNumber >= p.startWeek && weekNumber <= p.endWeek)?.name ?? "Base"
 }
 
-function qualityCountAndTypes(
+type QualityType = "tempo" | "intervals" | "mp"
+
+interface PhaseSlot {
+  sessions: number
+  types: QualityType[]
+}
+
+const PHASE_CONFIG = {
+  "General Fitness": {
+    normal:   { sessions: 0, types: [] as QualityType[] },
+    recovery: { sessions: 0, types: [] as QualityType[] },
+  },
+  "Base": {
+    normal:   { sessions: 1, types: ["tempo"] as QualityType[] },
+    recovery: { sessions: 1, types: ["tempo"] as QualityType[] },
+  },
+  "Build": {
+    early: {
+      normal:   { sessions: 2, types: ["tempo", "intervals"] as QualityType[] },
+      recovery: { sessions: 1, types: ["tempo"] as QualityType[] },
+    },
+    late: {
+      normal:   { sessions: 2, types: ["tempo", "mp"] as QualityType[] },
+      recovery: { sessions: 1, types: ["tempo"] as QualityType[] },
+    },
+  },
+  "Peak": {
+    normal:   { sessions: 2, types: ["mp", "tempo"] as QualityType[] },
+    recovery: { sessions: 1, types: ["tempo"] as QualityType[] },
+  },
+  "Taper": {
+    first: {
+      normal:   { sessions: 1, types: ["tempo"] as QualityType[] },
+      recovery: { sessions: 0, types: [] as QualityType[] },
+    },
+    rest: {
+      normal:   { sessions: 0, types: [] as QualityType[] },
+      recovery: { sessions: 0, types: [] as QualityType[] },
+    },
+  },
+} as const satisfies Record<string, unknown>
+
+function getQualityConfig(
   weekNumber: number,
   phase: string,
   phases: PhaseEntry[],
-  maxQualitySessions: number,
-): { count: number; types: Array<"tempo" | "intervals" | "mp"> } {
+  isRecovery: boolean,
+): PhaseSlot {
   const phaseEntry = phases.find(p => p.name === phase)
   const localIndex = phaseEntry ? weekNumber - phaseEntry.startWeek : 0
-  const buildEntry = phases.find(p => p.name === "Build")
-  const buildLength = buildEntry ? buildEntry.endWeek - buildEntry.startWeek + 1 : 0
 
-  let count: number
-  let types: Array<"tempo" | "intervals" | "mp">
-
-  switch (phase) {
-    case "General Fitness":
-      count = 0; types = []; break
-    case "Base":
-      count = 1
-      types = localIndex % 2 === 0 ? ["intervals"] : ["tempo"]
-      break
-    case "Build":
-      if (buildLength === 1) {
-        count = 1; types = ["tempo"]
-      } else if (localIndex < Math.floor(buildLength / 2)) {
-        count = 1; types = ["tempo"]
-      } else {
-        count = 2; types = ["tempo", "mp"]
-      }
-      break
-    case "Peak":
-      count = 2; types = ["mp", "tempo"]; break
-    case "Taper":
-      if (phaseEntry && weekNumber === phaseEntry.startWeek) {
-        count = 1; types = ["tempo"]
-      } else {
-        count = 0; types = []
-      }
-      break
-    default:
-      count = 1; types = ["tempo"]
+  if (phase === "Build") {
+    const buildEntry = phases.find(p => p.name === "Build")
+    const buildLength = buildEntry ? buildEntry.endWeek - buildEntry.startWeek + 1 : 0
+    const slot = localIndex < Math.floor(buildLength / 2)
+      ? PHASE_CONFIG["Build"].early
+      : PHASE_CONFIG["Build"].late
+    return isRecovery ? slot.recovery : slot.normal
   }
 
-  count = Math.min(count, maxQualitySessions)
-  return { count, types: types.slice(0, count) }
+  if (phase === "Taper") {
+    const slot = phaseEntry && weekNumber === phaseEntry.startWeek
+      ? PHASE_CONFIG["Taper"].first
+      : PHASE_CONFIG["Taper"].rest
+    return isRecovery ? slot.recovery : slot.normal
+  }
+
+  const config = (PHASE_CONFIG as Record<string, { normal: PhaseSlot; recovery: PhaseSlot }>)[phase]
+    ?? PHASE_CONFIG["Base"]
+  return isRecovery ? config.recovery : config.normal
 }
 
 function qualityDistance(type: "tempo" | "intervals" | "mp", weeklyKm: number): number {
@@ -147,6 +172,9 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
 
   const result: WorkoutDay[] = []
 
+  const taperPhase = phases.find(p => p.name === "Taper")
+  const preTaperWeeks = taperPhase ? taperPhase.startWeek - 1 : totalWeeks
+
   for (let week = 1; week <= totalWeeks; week++) {
     const weeklyKm = weeklyVolumes[week - 1]!
     const phase = phaseForWeek(week, phases)
@@ -175,7 +203,9 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
     }])
 
     // ── 2. Quality sessions ──
-    const { count, types } = qualityCountAndTypes(week, phase, phases, trainingStructure.maxQualitySessions)
+    const isRecovery = week % 4 === 0 && week !== preTaperWeeks
+    const { sessions, types } = getQualityConfig(week, phase, phases, isRecovery)
+    const count = Math.min(sessions, trainingStructure.maxQualitySessions)
     const placedQuality: WorkoutDay[] = []
 
     for (let i = 0; i < count; i++) {

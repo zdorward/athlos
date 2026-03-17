@@ -7,9 +7,9 @@ export {
   type PlanGenerationInput,
   type PhaseEntry,
 } from "./types"
-export { buildBridgeRuns } from "./bridge-runs"
+export { buildBridgeRuns, firstMondayOnOrAfter } from "./bridge-runs"
 export * from "./adaptation"
-export { peakStrengthDay, firstMondayOnOrAfter } from "./race-prompt"
+export { peakStrengthDay } from "./race-prompt"
 export { recommendStrengthCount, recommendStrengthDays } from "./strength-recommendation"
 export { computeGoalPeakMileage, computeTrainingStructure } from "./pace-calculator"
 

@@ -1,9 +1,18 @@
-import { firstMondayOnOrAfter } from "./race-prompt"
 import { STARTING_VOLUME_KM } from "./constants"
 import type { PlanGenerationInput, WorkoutDay } from "./types"
 
 function toISO(date: Date): string {
   return date.toISOString().slice(0, 10)
+}
+
+export function firstMondayOnOrAfter(date: Date): Date {
+  const d = new Date(date)
+  d.setUTCHours(0, 0, 0, 0)
+  const day = d.getUTCDay()
+  if (day !== 1) {
+    d.setUTCDate(d.getUTCDate() + (day === 0 ? 1 : 8 - day))
+  }
+  return d
 }
 
 const DAY_KEY_TO_UTC: Record<string, number> = {

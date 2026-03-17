@@ -9,8 +9,6 @@ import { RaceBanner } from "./race-banner"
 import { TodayWorkoutCard } from "./today-workout-card"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { WorkoutFeedbackSheet, type AdaptationSuggestion } from "./workout-feedback-sheet"
-import { AdaptationSuggestionCard } from "./adaptation-suggestion-card"
 
 export interface Plan {
   id: string
@@ -64,8 +62,6 @@ export function DashboardClient({
   const searchParams = useSearchParams()
 
   const [plan, setPlan] = useState<Plan | "empty" | "error">(initialPlan)
-  const [feedbackEntry, setFeedbackEntry] = useState<WorkoutDay | null>(null)
-  const [suggestion, setSuggestion] = useState<AdaptationSuggestion | null>(null)
   const [showUpgradedBanner, setShowUpgradedBanner] = useState(false)
 
   useEffect(() => {
@@ -108,13 +104,6 @@ export function DashboardClient({
   const resolvedPlan = plan as Plan
 
   function handleComplete(entry: WorkoutDay) {
-    setFeedbackEntry(entry)
-  }
-
-  function handleFeedbackDismiss() {
-    if (!feedbackEntry) return
-    const entry = feedbackEntry
-    setFeedbackEntry(null)
     const prevDays = resolvedPlan.days
     const updated = resolvedPlan.days.map((d: WorkoutDay) =>
       d.date === entry.date && d.type === entry.type ? { ...d, completed: true } : d
@@ -127,27 +116,6 @@ export function DashboardClient({
     }).catch(() => {
       setPlan((p) => (typeof p === "string" ? p : { ...p, days: prevDays } as Plan))
     })
-  }
-
-  function handleFeedbackLogged(newSuggestion: AdaptationSuggestion | null) {
-    if (!feedbackEntry) return
-    const entry = feedbackEntry
-    setFeedbackEntry(null)
-    const updated = resolvedPlan.days.map((d: WorkoutDay) =>
-      d.date === entry.date && d.type === entry.type ? { ...d, completed: true } : d
-    )
-    setPlan((p) => (typeof p === "string" ? p : { ...p, days: updated } as Plan))
-    if (newSuggestion) setSuggestion(newSuggestion)
-    void fetchPlan()
-  }
-
-  function handleSuggestionAccepted(updatedDays: WorkoutDay[]) {
-    setPlan((p) => (typeof p === "string" ? p : { ...p, days: updatedDays } as Plan))
-    setSuggestion(null)
-  }
-
-  function handleSuggestionDismissed() {
-    setSuggestion(null)
   }
 
   const todayISO = getTodayISO()
@@ -202,15 +170,6 @@ export function DashboardClient({
           </div>
         ) : (
           <>
-            {suggestion && (
-              <AdaptationSuggestionCard
-                suggestion={suggestion}
-                planId={resolvedPlan.id}
-                onAccepted={handleSuggestionAccepted}
-                onDismissed={handleSuggestionDismissed}
-              />
-            )}
-
             <section className="space-y-2">
               <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 {format(parseISO(todayISO), "EEEE")}
@@ -265,13 +224,6 @@ export function DashboardClient({
 
       </div>
 
-      <WorkoutFeedbackSheet
-        open={feedbackEntry !== null}
-        entry={feedbackEntry}
-        planId={resolvedPlan.id}
-        onLogged={handleFeedbackLogged}
-        onDismiss={handleFeedbackDismiss}
-      />
     </main>
   )
 }

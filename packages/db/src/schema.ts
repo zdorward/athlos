@@ -7,7 +7,7 @@ import {
   integer,
   numeric,
   jsonb,
-  uniqueIndex,
+  sql,
 } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 

@@ -47,7 +47,7 @@ Goal-derived training parameters. Moves here:
 - `computeTrainingStructure`
 - `computeLongRunTargets`
 
-No imports from `pace-calculator` or `phase-planner`. Imports nothing from within `plan-engine` (pure logic over primitive inputs).
+No named imports from `pace-calculator` or `phase-planner`. The `peakWeeklyKm` parameter accepted by `computeLongRunTargets` is typed as the structurally anonymous `{ low: number; high: number } | null` — this shape is the return type of `computeGoalPeakMileage` but no named type alias is shared between the two functions. Keep it anonymous; do not introduce a named type as part of this refactor.
 
 ~140 lines.
 
@@ -87,11 +87,25 @@ No changes to any other file in `packages/plan-engine/src/` or in `apps/`.
 
 Each test file mirrors its implementation file. The `loSec` helper stays in `pace-calculator.test.ts` (used only by `calculateRawGoalPace` tests).
 
-| Test file | Describe blocks |
+| Test file | Describe blocks (in file order) |
 |-----------|----------------|
-| `pace-calculator.test.ts` | `calculatePaceZones` (recent-race, context multipliers, goal-time, invalid input, slow-runner), `calculateRawGoalPace` |
+| `pace-calculator.test.ts` | `calculatePaceZones` (recent-race, context multipliers, goal-time, invalid input), `calculateRawGoalPace`, `calculatePaceZones — slow runner (no zone overlap)` |
 | `phase-planner.test.ts` | All `computePhases` describe blocks (28-week, 16-week, 4-week, 22-week, 21-week boundary, 20-week boundary, 29-week mileage range, 52-week caps, peakMin invariant) |
 | `training-parameters.test.ts` | `computeGoalPeakMileage`, `computeTrainingStructure`, `computeLongRunTargets` |
+
+**Updated import in `pace-calculator.test.ts`** (after split):
+```ts
+import { calculatePaceZones, calculateRawGoalPace } from "./pace-calculator"
+```
+
+**Imports in new test files** follow the same `import type` convention as the source files:
+```ts
+// phase-planner.test.ts
+import { computePhases } from "./phase-planner"
+
+// training-parameters.test.ts
+import { computeGoalPeakMileage, computeTrainingStructure, computeLongRunTargets } from "./training-parameters"
+```
 
 ---
 
@@ -100,7 +114,7 @@ Each test file mirrors its implementation file. The `loSec` helper stays in `pac
 - No logic changes. All functions move verbatim.
 - No new exports or types.
 - No changes to `types.ts`, `workout-scheduler.ts`, `volume-progression.ts`, or any app code.
-- `PaceInput` type export: currently exported from `pace-calculator` via `index.ts` — check whether it's in the index export block. If not, no change needed.
+- `PaceInput` type export: `PaceInput` is exported from `pace-calculator.ts` but is **not** re-exported from `index.ts` (pre-existing omission, not introduced by this refactor). Do not add it to `index.ts` as part of this change — preserving the existing public API surface is the goal.
 
 ---
 

@@ -20,7 +20,7 @@ Most volume (~80%) should be genuinely easy (Zone 1 — conversational, aerobic)
 Early phases build aerobic base and introduce VO2max work to raise the ceiling. Later phases shift to marathon-specific work: threshold runs, MP segments, MP-heavy long runs. This is the opposite of classic Pfitz (LT early → VO2max late). Reverse the emphasis.
 
 **4. Strength training is first-class**
-Modern meta-analyses (2022–2024) show heavy resistance and plyometric training meaningfully improve running economy — this is performance, not just injury prevention. Strength sessions belong on easy run days (after the run), never on quality days or adjacent to the long run. 2x/week resistance, 3x/week core; reduce to 1x/week in taper, 0 in race week.
+Modern meta-analyses (2022–2024) show heavy resistance and plyometric training meaningfully improve running economy — this is performance, not just injury prevention. Strength sessions belong on easy run days (after the run), never on quality days or adjacent to the long run. 2x/week resistance, 3x/week core; reduce resistance to 1x/week in Peak, reduce both to 1x/week in Taper Week 1, 0 from Taper Week 2 onward and race week.
 
 **5. Recovery must be real**
 Recovery weeks every 4th week at ~70% of prior volume. High training monotony (running at similar paces every day) is a leading cause of overtraining. Hard and easy days must be genuinely different.

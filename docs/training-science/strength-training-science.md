@@ -130,7 +130,7 @@ Rules the plan engine must not violate.
 - **Load periodization arc: coaching consensus.** The hypertrophy → max strength → power progression is theoretically grounded but no RCT has tested this specific sequence for marathon runners against alternatives.
 - **Plyometric volume thresholds: unknown.** Evidence does not establish a minimum effective dose for plyometrics as a complement to heavy resistance. Current guidance (Build late only, low volume) is conservative.
 - **Female runners: limited data.** Most meta-analyses skew male. Whether loading parameters differ meaningfully for female athletes is an open question.
-- **Core training programming** — This document specifies core frequency by phase (3×/week through Build, 2×/week in Peak, 1×/week in Taper W1, 0 thereafter) but does not specify exercise selection or volume. The Peak reduction (3×/week → 2×/week) is a refinement over `CLAUDE.md`'s simpler rule ("3×/week core; reduce to 1×/week in taper"); `CLAUDE.md` should be updated to reflect the Peak step-down. Core exercise selection is deferred to a future document.
+- **Core training programming** — This document specifies core frequency by phase (3×/week through Build, 2×/week in Peak, 1×/week in Taper W1, 0 thereafter) but does not specify exercise selection or volume. Core exercise selection is deferred to a future document.
 
 ---
 

@@ -81,6 +81,12 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
   const currentWeekMonday = getMondayOfWeek(todayISO)
   const showPrePlanWeek = planFirstMonday !== null && currentWeekMonday < planFirstMonday
   const prePlanDates = showPrePlanWeek ? getWeekDates(currentWeekMonday) : []
+  // Bridge days are pre-plan gap runs; build a lookup for the pre-plan row
+  const bridgeDayMap = new Map(
+    days
+      .filter(d => planFirstMonday && d.date < planFirstMonday)
+      .map(d => [d.date, d])
+  )
 
   if (weeks.length === 0) {
     return (
@@ -120,23 +126,63 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
             {prePlanDates.map((dateISO) => {
               const isToday = dateISO === todayISO
               const isPast = dateISO < todayISO
+              const bridgeDay = bridgeDayMap.get(dateISO)
+              const isRest = !bridgeDay || bridgeDay.type === "rest"
+              const isSelected = selectedDay?.date === dateISO && selectedDay?.type === bridgeDay?.type
+
+              if (isRest) {
+                return (
+                  <div
+                    key={dateISO}
+                    className={[
+                      "min-h-[88px] rounded-md border p-2",
+                      isPast
+                        ? "bg-muted/10 border-border/20 opacity-25"
+                        : "bg-muted/30 border-border/40",
+                    ].join(" ")}
+                  >
+                    <p className={`text-[10px] font-medium ${isToday ? "text-primary" : "text-subtle-foreground"}`}>
+                      {format(parseISO(dateISO), "d")}
+                    </p>
+                    {isToday && (
+                      <div className="w-1 h-1 rounded-full bg-primary mt-1" />
+                    )}
+                  </div>
+                )
+              }
+
+              const color = getWorkoutColor(bridgeDay.type)
+              const textClass = WORKOUT_TEXT_CLASS[bridgeDay.type]
               return (
-                <div
+                <button
                   key={dateISO}
+                  onClick={() => onSelectedKeyChange(isSelected ? null : { date: bridgeDay.date, type: bridgeDay.type })}
                   className={[
-                    "min-h-[88px] rounded-md border p-2",
-                    isPast
-                      ? "bg-muted/10 border-border/20 opacity-25"
-                      : "bg-muted/30 border-border/40",
+                    "min-h-[88px] rounded-md border p-2 text-left transition-colors cursor-pointer",
+                    isSelected
+                      ? "bg-muted border-primary/40"
+                      : "bg-card border-border hover:border-primary/25",
                   ].join(" ")}
                 >
                   <p className={`text-[10px] font-medium ${isToday ? "text-primary" : "text-subtle-foreground"}`}>
                     {format(parseISO(dateISO), "d")}
                   </p>
-                  {isToday && (
-                    <div className="w-1 h-1 rounded-full bg-primary mt-1" />
+                  {bridgeDay.distanceKm != null && (
+                    <p
+                      className={`text-sm font-bold tabular-nums ${textClass}`}
+                      style={color ? { color } : undefined}
+                    >
+                      {formatDistance(bridgeDay.distanceKm, units)}
+                      <span className="text-[9px] font-normal ml-0.5 text-muted-foreground">{unit}</span>
+                    </p>
                   )}
-                </div>
+                  <p
+                    className={`text-[10px] mt-0.5 ${textClass}`}
+                    style={color ? { color } : undefined}
+                  >
+                    {WORKOUT_NAMES[bridgeDay.type]}
+                  </p>
+                </button>
               )
             })}
           </div>

@@ -15,12 +15,12 @@ These rules govern when strength sessions may be placed. They apply across all p
 - **Not adjacent to quality sessions (either side).** No strength on the day immediately before or after a tempo, interval, or MP session. Pre-quality strength compromises session performance; post-quality means recovering from two hard efforts simultaneously.
 - **Not the day before the long run.** Pre-long-run strength creates fatigue that compromises the most important session of the week. The day *after* the long run is acceptable — post-effort fatigue is not the concern. See `quality-and-strength-placement.md` for full rationale.
 - **Frequency by phase:**
-  - General Fitness, Base, Build: 2×/week (subject to quality session displacement — see Phase 3 note)
+  - General Fitness, Base, Build: 2×/week (subject to quality session displacement — see Notes Before the Table in the Phase-by-Phase Programming section)
   - Peak: 1×/week (the session furthest from the long run day)
   - Taper Week 1: 1×/week
   - Taper Week 2 onward: 0
   - Race Week: 0
-- **Core training** (separate from resistance, not subject to long-run adjacency rule):
+- **Core training** (separate from resistance, not subject to long-run or quality-session adjacency rules):
   - General Fitness, Base, Build: 3×/week
   - Peak: 2×/week
   - Taper Week 1: 1×/week
@@ -74,7 +74,7 @@ This is the plan generation reference. Each phase has a training goal, loading p
 | General Fitness | Build tissue tolerance, movement quality | 2×/week | 60–75% 1RM | 3×10–12 | Bilateral compound, unilateral intro — sub-threshold by design; RE gain is not the goal here |
 | Base | Hypertrophy → max strength transition | 2×/week | 70–85% 1RM | 3–4×6–10 | Heavy compound lower body, hip drive |
 | Build (early) | Maximum strength | 2×/week* | ≥85% 1RM | 3–5×3–6 | Peak load, low volume — this is where RE adaptations primarily occur |
-| Build (late) | Strength → power transition | 2×/week* | 75–85% 1RM + plyos | 3×4–6 + plyos | Explosive variants, single-leg; plyometric complement introduced here only |
+| Build (late) | Strength → power transition | 2×/week* | ≥80% 1RM + plyos | 3×4–6 + plyos | Explosive variants, single-leg; plyometric complement introduced here only |
 | Peak | Strength maintenance | 1×/week | ≥80% 1RM | 2–3×3–5 | Maintain neural adaptations, minimal fatigue; 1×/week = lowest fatigue cost while preserving gains |
 | Taper W1 | Keep motor patterns fresh | 1×/week | ≥75% 1RM | 2×4–6 | Reduced volume, maintained intensity — neural pattern retention without new load stress |
 | Taper W2+ | 0 | — | — | — | — |
@@ -89,6 +89,8 @@ This is the plan generation reference. Each phase has a training goal, loading p
 General Fitness and Base use 60–85% 1RM — below the ≥80% threshold where significant RE gains occur. This is intentional. Connective tissue (tendons, ligaments) adapts more slowly than muscle. Beginning at lower loads and higher rep ranges builds tissue tolerance before progressing to heavy training. Starting ≥85% 1RM from week 1 without a prior adaptation base increases injury risk without commensurate RE benefit.
 
 The Base-to-Build transition (up to 85% → ≥85% 1RM) is continuous, not a hard step. Athletes in late Base who are tolerating 85% comfortably should begin progressing into Build-early territory ahead of the phase boundary.
+
+In Build (late), heavy resistance maintains ≥80% 1RM; the plyometric complement operates at bodyweight or light load and is not subject to the intensity threshold.
 
 ### Why Taper W1 Maintains Load
 

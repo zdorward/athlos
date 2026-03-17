@@ -203,8 +203,23 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
     if (input.raceDateISO && week === totalWeeks) {
       const preRaceDate = addDaysToISO(input.raceDateISO, -1)
       const excludedDates = new Set(
-        weekDays.filter(d => d.date === input.raceDateISO || d.date === preRaceDate).map(d => d.date)
+        weekDays
+          .filter(d => d.date === input.raceDateISO || d.date === preRaceDate)
+          .map(d => d.date)
       )
+
+      // Shakeout on pre-race day — always, regardless of selectedDays
+      const preRaceEntry = weekDays.find(d => d.date === preRaceDate)
+      if (preRaceEntry) {
+        assigned.set(preRaceDate, [{
+          date: preRaceDate,
+          type: "shakeout",
+          distanceKm: 5,
+          targetPace: paceZones.easy,
+        }])
+      }
+
+      // Easy runs on selected days (excluding race and pre-race)
       const eligibleDays = weekDays.filter(
         d => selectedDays.includes(d.dayKey) && !excludedDates.has(d.date)
       )

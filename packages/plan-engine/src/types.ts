@@ -9,6 +9,7 @@ export type WorkoutType =
   | "rest"
   | "race"
   | "strength"
+  | "shakeout"
 
 export interface WorkoutDay {
   date: string         // ISO "2026-06-16"

@@ -695,10 +695,26 @@ describe("scheduleWorkouts — race week", () => {
     expect(raceDay?.type).toBe("rest")
   })
 
-  it("pre-race day (Sat) gets type rest", () => {
+  it("pre-race day gets a shakeout run, not rest", () => {
     const days = scheduleWorkouts(raceInput)
     const preRaceDay = days.find(d => d.date === "2026-06-27")
-    expect(preRaceDay?.type).toBe("rest")
+    expect(preRaceDay?.type).toBe("shakeout")
+    expect(preRaceDay?.distanceKm).toBe(5)
+    expect(preRaceDay?.targetPace).toBe(paceZones.easy)
+  })
+
+  it("shakeout appears on pre-race day even if that day is not in selectedDays", () => {
+    // raceInput selectedDays: ["mon","wed","fri","sat"]. Use a race on Monday so
+    // the pre-race day (Sunday) is not in selectedDays.
+    const days = scheduleWorkouts({
+      ...raceInput,
+      selectedDays: ["mon", "wed", "fri", "sat"],
+      longRunDay: "sat",
+      raceDateISO: "2026-06-29", // Monday — pre-race day = Sunday June 28
+    })
+    const preRaceDay = days.find(d => d.date === "2026-06-28")
+    expect(preRaceDay?.type).toBe("shakeout")
+    expect(preRaceDay?.distanceKm).toBe(5)
   })
 
   it("selected days except race day and pre-race day get easy runs", () => {

@@ -5,7 +5,7 @@
 
 ## Overview
 
-Cap pre-race easy run volume in race week at 20 km regardless of the taper percentage formula. Currently the race week handler distributes `weeklyKm` (40% of peak) across selected easy run days, then adds a 5 km shakeout and the 42.2 km marathon on top. For a ~100 km peak plan this produces ~45 km of pre-race training, which accumulates fatigue in the week the runner needs to be freshest.
+Cap pre-race easy run volume in race week at 20% of `peakWeeklyKm`. Currently the race week handler distributes `weeklyKm` (40% of peak) across selected easy run days, then adds a 5 km shakeout and the 42.2 km marathon on top. For a ~100 km peak plan this produces ~45 km of pre-race training, which accumulates fatigue in the week the runner needs to be freshest.
 
 ---
 
@@ -22,7 +22,7 @@ const perDay = round05(weeklyKm / eligibleDays.length)
 - Shakeout (Sat): 5 km
 - **Pre-race training total: ~45 km** — physiologically wrong; the marathon is not a training run and the runner needs to arrive fresh
 
-The marathon is not a training run. It should not be preceded by 40+ km of accumulated easy miles in the same week. Modern marathon coaching prescribes 20–25 km of pre-race running in race week (short maintenance jogs, nothing more).
+The marathon is not a training run. It should not be preceded by 40+ km of accumulated easy miles in the same week. Modern marathon coaching prescribes roughly 20% of peak weekly volume as pre-race running in race week — short maintenance jogs, nothing more. A percentage-based cap scales correctly across all plan mileage levels (50–130+ km/week peak) rather than under-tapering low-mileage runners or over-restricting high-mileage runners.
 
 ---
 
@@ -33,7 +33,7 @@ The marathon is not a training run. It should not be preceded by 40+ km of accum
 Add a constant near the top of the file:
 
 ```ts
-const RACE_WEEK_MAX_TRAINING_KM = 20
+const RACE_WEEK_TRAINING_RATIO = 0.20
 ```
 
 In the race week handler, replace the `weeklyKm` reference in the easy run distribution with a capped value:
@@ -43,18 +43,22 @@ In the race week handler, replace the `weeklyKm` reference in the easy run distr
 const perDay = round05(weeklyKm / eligibleDays.length)
 
 // After
-const raceWeekTrainingKm = Math.min(weeklyKm, RACE_WEEK_MAX_TRAINING_KM)
+const raceWeekTrainingKm = Math.min(weeklyKm, peakWeeklyKm * RACE_WEEK_TRAINING_RATIO)
 const perDay = round05(raceWeekTrainingKm / eligibleDays.length)
 ```
 
-### Effect
+`peakWeeklyKm` is already in scope — it is destructured from `input` at the top of `scheduleWorkouts`.
 
-For a 100 km peak plan with 3 eligible easy run days (Mon, Wed, Fri):
-- Easy runs: 20 km ÷ 3 = ~6.5 km each (was ~13 km each)
-- Shakeout (Sat): 5 km (unchanged)
-- Pre-race training total: ~25 km (was ~45 km)
+### Effect by plan mileage
 
-The cap also applies for lower-mileage plans where 40% of peak is already ≤ 20 km — `Math.min` is a no-op in those cases.
+| Peak weekly km | Race week cap | Per day (3 eligible days) |
+|---|---|---|
+| 50 km | 10 km | ~3.5 km |
+| 70 km | 14 km | ~4.5 km |
+| 100 km | 20 km | ~6.5 km |
+| 130 km | 26 km | ~8.5 km |
+
+`Math.min` is a no-op for any plan where `weeklyKm` (taper week volume) is already ≤ `peakWeeklyKm * 0.20`, which cannot happen given taper week 3 is always `peakWeeklyKm * 0.40`.
 
 ---
 
@@ -79,5 +83,5 @@ The 40% taper volume figure is a guideline for regular taper weeks (where a long
 
 | File | Change |
 |------|--------|
-| `packages/plan-engine/src/workout-scheduler.ts` | Add `RACE_WEEK_MAX_TRAINING_KM = 20` constant; cap easy run distribution in race week handler |
+| `packages/plan-engine/src/workout-scheduler.ts` | Add `RACE_WEEK_TRAINING_RATIO = 0.20` constant; cap easy run distribution at `peakWeeklyKm * RACE_WEEK_TRAINING_RATIO` in race week handler |
 | `packages/plan-engine/src/workout-scheduler.test.ts` | Update "race week easy run total ≈ peakWeeklyKm * 0.4" test: replace the `> 38 && < 42` bounds with `> 18 && <= 20` to reflect the cap; add test asserting per-day easy distance is ≤ 7 km |

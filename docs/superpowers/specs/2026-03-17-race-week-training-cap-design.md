@@ -20,8 +20,7 @@ const perDay = round05(weeklyKm / eligibleDays.length)
 `weeklyKm` for the last taper week is `peakWeeklyKm * 0.4`. For a 100 km peak plan:
 - Easy runs: 40 km spread across eligible days (e.g., 5 days × 8 km)
 - Shakeout (Sat): 5 km
-- Race (Sun): 42.2 km
-- **Total displayed: ~87 km** — misleading and physiologically wrong
+- **Pre-race training total: ~45 km** — physiologically wrong; the marathon is not a training run and the runner needs to arrive fresh
 
 The marathon is not a training run. It should not be preceded by 40+ km of accumulated easy miles in the same week. Modern marathon coaching prescribes 20–25 km of pre-race running in race week (short maintenance jogs, nothing more).
 
@@ -72,6 +71,7 @@ The 40% taper volume figure is a guideline for regular taper weeks (where a long
 - No changes to taper percentages (0.8 / 0.6 / 0.4) in `volume-progression.ts`
 - No changes to shakeout distance (stays 5 km)
 - No changes to how the weekly km total is displayed in the calendar (it will naturally drop because easy run distances are smaller)
+- Race day intentionally remains `type: "rest"` in the scheduler output — the race entry is managed separately at the API/display layer and is not part of the volume cap logic
 
 ---
 
@@ -80,4 +80,4 @@ The 40% taper volume figure is a guideline for regular taper weeks (where a long
 | File | Change |
 |------|--------|
 | `packages/plan-engine/src/workout-scheduler.ts` | Add `RACE_WEEK_MAX_TRAINING_KM = 20` constant; cap easy run distribution in race week handler |
-| `packages/plan-engine/src/workout-scheduler.test.ts` | Update "race week easy run total ≈ peakWeeklyKm * 0.4" test to assert `easyKm ≤ 20`; add test asserting per-day easy distance is small (≤ 7 km) |
+| `packages/plan-engine/src/workout-scheduler.test.ts` | Update "race week easy run total ≈ peakWeeklyKm * 0.4" test: replace the `> 38 && < 42` bounds with `> 18 && <= 20` to reflect the cap; add test asserting per-day easy distance is ≤ 7 km |

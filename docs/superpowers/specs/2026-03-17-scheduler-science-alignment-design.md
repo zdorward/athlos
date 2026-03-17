@@ -18,6 +18,7 @@ The current `qualityCountAndTypes` function in `workout-scheduler.ts` uses an im
 - Early Build should have **tempo + intervals** (VO2max as sharpener) but currently assigns tempo only
 - Build/Base recovery weeks have **no quality session** but science supports 1 short session for advanced runners
 - Peak correctly prioritizes MP but the code path is fragile and not clearly grounded in the phase config
+- Recovery weeks in Peak should have 1 short tempo session (not 0) — science doc explicitly states "0 in taper recovery, 1 short in Base/Build recovery"; Peak is adjacent to Build, not Taper
 
 ### Design
 
@@ -31,7 +32,7 @@ const PHASE_CONFIG = {
     early: { normal: { sessions: 2, types: ["tempo", "intervals"] }, recovery: { sessions: 1, types: ["tempo"] } },
     late:  { normal: { sessions: 2, types: ["tempo", "mp"] },        recovery: { sessions: 1, types: ["tempo"] } },
   },
-  "Peak":            { normal: { sessions: 2, types: ["mp", "tempo"] }, recovery: { sessions: 0, types: [] } },
+  "Peak":            { normal: { sessions: 2, types: ["mp", "tempo"] }, recovery: { sessions: 1, types: ["tempo"] } },
   "Taper":           {
     first: { normal: { sessions: 1, types: ["tempo"] }, recovery: { sessions: 0, types: [] } },
     rest:  { normal: { sessions: 0, types: [] },        recovery: { sessions: 0, types: [] } },
@@ -41,7 +42,16 @@ const PHASE_CONFIG = {
 
 **Recovery week detection:** A week is a recovery week when `weekNumber % 4 === 0` AND it is not the last pre-taper week. This matches the existing `computeWeeklyVolumes` logic exactly — no new detection mechanism is needed, just pass `isRecovery: boolean` from the volume computation through to the scheduler.
 
-**Build split:** Determined by the week's position within the Build phase. Weeks in the first half of Build (`localIndex < Math.ceil(buildLength / 2)`) are "early"; remainder are "late". For a 1-week Build (`buildLength === 1`), `localIndex === 0 < Math.ceil(1/2) === 1` always resolves to "early" — 2 sessions with tempo+intervals. This is a reasonable behavior for a short Build (still applies VO2max sharpening). If 2 quality sessions is too many for a 1-week Build with limited available days, the placement logic will simply schedule as many as fit.
+**PHASE_CONFIG lookup path:** The lookup is always two steps: (1) resolve any sub-key (`early`/`late` for Build, `first`/`rest` for Taper), then (2) resolve `normal` or `recovery`. For non-split phases (`"General Fitness"`, `"Base"`, `"Peak"`), the config object has `normal` and `recovery` directly — no sub-key step is needed. Pseudocode:
+
+```ts
+const phaseEntry = phase === "Build" ? PHASE_CONFIG["Build"][earlyOrLate]
+                 : phase === "Taper" ? PHASE_CONFIG["Taper"][firstOrRest]
+                 : PHASE_CONFIG[phase]
+const config = isRecovery ? phaseEntry.recovery : phaseEntry.normal
+```
+
+**Build split:** Determined by the week's position within the Build phase. Weeks in the first half of Build (`localIndex < Math.floor(buildLength / 2)`) are "early"; remainder are "late". Use `Math.floor` — this matches the existing code's split boundary and biases toward "early" config for odd-length Builds (e.g., 7-week Build: weeks 0–2 are early, weeks 3–6 are late). For a 1-week Build (`buildLength === 1`), `Math.floor(1/2) === 0` so `localIndex === 0` is NOT less than 0, meaning it resolves to "late" (`{ sessions: 2, types: ["tempo", "mp"] }`). This is intentional: a single Build week immediately before Peak should focus on MP entry, not VO2max sharpening.
 
 **Quality session ordering:** Within each phase, the first listed type is primary (higher priority for placement on the best available day).
 
@@ -117,13 +127,17 @@ When the selected mileage range's lower bound × 1.5 < the goal-implied peak wee
 
 **Computation:**
 
-`startingVol` is the lower bound of the selected mileage range, matching the values in `MILEAGE_RANGE_LOW` in `route.ts`:
-- `"under-40"` → 30 km
-- `"40-60"` → 40 km
-- `"60-80"` → 60 km
-- `"80-plus"` → 80 km
+`startingVol` is the lower bound of the selected mileage range. Define this constant directly in `step-weekly-mileage.tsx` (do not import from `route.ts`, which is a server-only API file):
+```ts
+const MILEAGE_RANGE_LOW: Record<string, number> = {
+  "under-40": 30,
+  "40-60": 40,
+  "60-80": 60,
+  "80-plus": 80,
+}
+```
 
-`peakWeeklyKm` is derived from `computeGoalPeakMileage(distance, goalMinutes).high`. The `.high` value is used because it represents the upper end of the recommended peak volume for that goal time — the worst-case ramp scenario. If `computeGoalPeakMileage` returns `null` (no goal time set), the warning is not shown.
+`peakWeeklyKm` is derived from `computeGoalPeakMileage(distance, goalMinutes).high`. `computeGoalPeakMileage` is exported from `@workspace/plan-engine` (see `packages/plan-engine/src/index.ts`) — it is a pure function with no Node.js dependencies and is safe to import in a `"use client"` component. The `.high` value is used because it represents the upper end of the recommended peak volume — the worst-case ramp scenario. If `computeGoalPeakMileage` returns `null` (no goal time set), the warning is not shown.
 
 The warning triggers when `peakWeeklyKm > startingVol * 1.5`.
 
@@ -145,7 +159,7 @@ The warning triggers when `peakWeeklyKm > startingVol * 1.5`.
 | `apps/web/components/onboarding/types.ts` | Add `mileageConsistency` field to `OnboardingData` |
 | `apps/web/components/onboarding/steps/step-mileage-consistency.tsx` | New step component |
 | `apps/web/components/onboarding/steps/step-weekly-mileage.tsx` | Add inline gap warning |
-| `apps/web/components/onboarding/onboarding-flow.tsx` | Insert `StepMileageConsistency` step; add `"mileageConsistency"` entry to `STEP_LABELS` |
+| `apps/web/components/onboarding/onboarding-flow.tsx` | Insert `StepMileageConsistency` step; add `"mileageConsistency"` entry to `STEP_LABELS`; add `case "mileageConsistency": return <StepMileageConsistency {...stepProps} />` to `renderStep()` switch |
 | `apps/web/app/plan/` display components | Handle `"progression"` WorkoutType in labels/descriptions |
 
 ---

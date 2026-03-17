@@ -21,7 +21,7 @@ Returns a static instructional note for each workout type. For progression runs,
 |------|------|
 | easy | "Keep it genuinely easy — conversational pace throughout." |
 | long | "Easy effort throughout. Protect your quality sessions." |
-| progression | "Last {X} at marathon pace." where X = `distanceKm * 0.25`, formatted in user units (e.g. "Last 8.0 km at marathon pace." or "Last 5.0 mi at marathon pace.") |
+| progression | "Last {X} at marathon pace." where X = `distanceKm * 0.25`, formatted using the existing `formatDistance(distanceKm * 0.25, units)` + `distanceUnit(units)` utilities (e.g. "Last 8 km at marathon pace." or "Last 5 mi at marathon pace."). Standard `formatDistance` rounding applies. |
 | medium-long | "Comfortably aerobic — slightly harder than easy." |
 | mp | "Marathon pace throughout — race-specific effort." |
 | tempo | "Comfortably hard — lactate threshold pace." |
@@ -30,7 +30,7 @@ Returns a static instructional note for each workout type. For progression runs,
 | rest | "Full recovery day." |
 | race | "Race day — execute your plan." |
 
-Progression fallback (no `distanceKm`): `"Last 25–30% at marathon pace."`
+Progression fallback (no `distanceKm`): `"Last 25–30% at marathon pace."` — used when `distanceKm` is undefined.
 
 **New function: `getHRZone(type: WorkoutType): string`**
 

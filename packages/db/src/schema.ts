@@ -7,7 +7,6 @@ import {
   integer,
   numeric,
   jsonb,
-  sql,
 } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 

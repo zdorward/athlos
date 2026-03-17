@@ -121,10 +121,13 @@ Among the best-supported performance claims in modern running research:
 
 ### Scheduling
 
-- 2x/week resistance training on easy run days (after the run, not adjacent to long run or quality sessions)
-- Reduce to 1x/week in taper
-- 0 in race week
-- Never on quality session days
+- 2×/week resistance training on easy run days (after the run; not adjacent to long run or quality sessions)
+- Reduce to 1×/week in Peak (session furthest from the long run)
+- 1×/week in Taper Week 1 only; 0 from Taper Week 2 onward
+- 0 in Race Week
+- Never on quality session days or the day immediately before or after a quality session
+
+> For full phase-by-phase programming details, see `docs/training-science/strength-training-science.md`.
 
 **Sources:**
 - [PMC11052887](https://pmc.ncbi.nlm.nih.gov/articles/PMC11052887/) — Strength training for runners meta-analysis (2024)
@@ -174,5 +177,4 @@ The 10% weekly increase rule is a useful rough heuristic but **is not scientific
 - Phase sequencing order has limited RCT evidence specifically for marathon runners. Most evidence is observational or inferred from shorter-cycle endurance studies.
 - Exact "correct" total MP mileage over 18–20 weeks is not established by controlled trials.
 - Polarized training studies primarily use cyclists or shorter-distance runners; marathon-specific RCTs are limited.
-- "After easy run, not on quality days" for strength has physiological rationale but limited direct experimental testing.
 - Whether 0 or 1 quality session on recovery weeks is optimal is practically unstudied in RCTs.

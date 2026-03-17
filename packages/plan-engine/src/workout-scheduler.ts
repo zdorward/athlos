@@ -200,9 +200,9 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
 
     // ── Race week (early exit) ──
     if (input.raceDateISO && week === totalWeeks) {
-      const praceDate = addDaysToISO(input.raceDateISO, -1)
+      const preRaceDate = addDaysToISO(input.raceDateISO, -1)
       const excludedDates = new Set(
-        weekDays.filter(d => d.date === input.raceDateISO || d.date === praceDate).map(d => d.date)
+        weekDays.filter(d => d.date === input.raceDateISO || d.date === preRaceDate).map(d => d.date)
       )
       const eligibleDays = weekDays.filter(
         d => selectedDays.includes(d.dayKey) && !excludedDates.has(d.date)

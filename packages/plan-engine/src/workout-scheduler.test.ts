@@ -637,8 +637,8 @@ describe("scheduleWorkouts — race week", () => {
 
   it("pre-race day (Sat) gets type rest", () => {
     const days = scheduleWorkouts(raceInput)
-    const praceDay = days.find(d => d.date === "2026-06-27")
-    expect(praceDay?.type).toBe("rest")
+    const preRaceDay = days.find(d => d.date === "2026-06-27")
+    expect(preRaceDay?.type).toBe("rest")
   })
 
   it("selected days except race day and pre-race day get easy runs", () => {

@@ -6,7 +6,6 @@ export {
   type PhaseEntry,
 } from "./types"
 export { buildBridgeRuns, firstMondayOnOrAfter } from "./bridge-runs"
-export * from "./adaptation"
 export {
   calculatePaceZones,
   computePhases,

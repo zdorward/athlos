@@ -108,6 +108,23 @@ describe("scheduleWorkouts — easy runs", () => {
       expect(d.distanceKm ?? 0).toBeLessThanOrEqual((week1Long?.distanceKm ?? 0) - 1 + 0.001)
     })
   })
+
+  it("easy run first day is also capped at longRunKm - 1 after remainder", () => {
+    // Use high peakWeeklyKm + few easy days to force remainder situation
+    const days = scheduleWorkouts({
+      ...baseInput,
+      totalWeeks: 1,
+      peakWeeklyKm: 200,
+      selectedDays: ["mon", "sat"], // only 1 easy day (mon) + long run (sat)
+      phases: [{ name: "General Fitness", startWeek: 1, endWeek: 1 }], // 0 quality
+      trainingStructure: { runDaysPerWeek: 2, restDaysPerWeek: 5, maxQualitySessions: 0 },
+    })
+    const longRun = days.find(d => d.type === "long")!
+    const easyRuns = days.filter(d => d.type === "easy")
+    easyRuns.forEach(d => {
+      expect(d.distanceKm ?? 0).toBeLessThanOrEqual((longRun.distanceKm ?? 0) - 1 + 0.001)
+    })
+  })
 })
 
 describe("scheduleWorkouts — total days", () => {
@@ -250,6 +267,23 @@ describe("scheduleWorkouts — quality session phase rules", () => {
     }
   })
 
+  it("Peak quality: mp is placed on an earlier calendar day than tempo", () => {
+    const days = scheduleWorkouts({
+      ...baseInput,
+      totalWeeks: 1,
+      selectedDays: ["mon", "wed", "fri", "sat"],
+      phases: [{ name: "Peak", startWeek: 1, endWeek: 1 }],
+      trainingStructure: { runDaysPerWeek: 4, restDaysPerWeek: 3, maxQualitySessions: 2 },
+      peakWeeklyKm: 80,
+    })
+    const mpDay = days.find(d => d.type === "mp")
+    const tempoDay = days.find(d => d.type === "tempo")
+    if (mpDay && tempoDay) {
+      // mp should be on an earlier or same day as tempo
+      expect(mpDay.date <= tempoDay.date).toBe(true)
+    }
+  })
+
   it("quality session dropped when no valid candidates on 2-day schedule", () => {
     const days = scheduleWorkouts({
       ...baseInput,
@@ -340,6 +374,30 @@ describe("scheduleWorkouts — strength sessions", () => {
     })
     const week1Strength = days.filter(d => d.type === "strength" && d.date >= "2026-06-01" && d.date <= "2026-06-07")
     expect(week1Strength).toHaveLength(2)
+  })
+
+  it("Peak: 2 strength in early weeks, 1 in final 2 weeks", () => {
+    // Use 5 run days so there are enough easy days (non-adjacent to long run) for strength
+    // Long run on sat → fri is adjacent, so mon/tue/wed/thu are all valid easy day candidates
+    const days = scheduleWorkouts({
+      ...baseInput,
+      totalWeeks: 4,
+      selectedDays: ["mon", "tue", "wed", "thu", "sat"],
+      phases: [{ name: "Peak", startWeek: 1, endWeek: 4 }],
+      trainingStructure: { runDaysPerWeek: 5, restDaysPerWeek: 2, maxQualitySessions: 2 },
+      peakWeeklyKm: 80,
+    })
+    // Week 1 and 2: early Peak (localIndex 0,1 < 4-2=2) → 2 strength sessions
+    const w1s = days.filter(d => d.type === "strength" && d.date >= "2026-06-01" && d.date <= "2026-06-07")
+    const w2s = days.filter(d => d.type === "strength" && d.date >= "2026-06-08" && d.date <= "2026-06-14")
+    // Week 3 and 4: final 2 weeks of Peak (localIndex 2,3 >= 4-2=2) → 1 strength session
+    const w3s = days.filter(d => d.type === "strength" && d.date >= "2026-06-15" && d.date <= "2026-06-21")
+    const w4s = days.filter(d => d.type === "strength" && d.date >= "2026-06-22" && d.date <= "2026-06-28")
+    // Can't always guarantee exactly 2 (depends on easy day availability), but final 2 weeks must have ≤ 1
+    expect(w3s.length).toBeLessThanOrEqual(1)
+    expect(w4s.length).toBeLessThanOrEqual(1)
+    // And early weeks should try for 2
+    expect(w1s.length + w2s.length).toBeGreaterThanOrEqual(2)
   })
 
   it("Taper: 1 strength in first week, 0 afterward", () => {

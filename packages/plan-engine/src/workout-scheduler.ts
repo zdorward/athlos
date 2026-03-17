@@ -229,7 +229,8 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
       const rawRemainder = Math.max(0, easyTotal - base * easyRunDays.length)
 
       easyRunDays.forEach((ed, i) => {
-        const km = round05(base + (i === 0 ? rawRemainder : 0))
+        const uncapped = base + (i === 0 ? rawRemainder : 0)
+        const km = round05(Math.min(uncapped, cap))
         assigned.set(ed.date, [{
           date: ed.date,
           type: "easy",

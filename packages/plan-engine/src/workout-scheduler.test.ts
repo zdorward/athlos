@@ -330,13 +330,14 @@ describe("scheduleWorkouts — strength sessions", () => {
   })
 
   it("Base/Build: places 2 strength sessions when schedule allows", () => {
+    // Use General Fitness (0 quality sessions) so Mon and Wed are both easy days.
+    // Both are non-adjacent to Sat (long run) and non-consecutive → 2 strength sessions.
     const days = scheduleWorkouts({
       ...baseInput,
       selectedDays: ["mon", "wed", "fri", "sat"],
-      phases: [{ name: "Base", startWeek: 1, endWeek: 4 }],
+      phases: [{ name: "General Fitness", startWeek: 1, endWeek: 4 }],
       peakWeeklyKm: 60,
     })
-    // Mon and Wed are non-adjacent to Sat (long run) and non-consecutive → 2 sessions
     const week1Strength = days.filter(d => d.type === "strength" && d.date >= "2026-06-01" && d.date <= "2026-06-07")
     expect(week1Strength).toHaveLength(2)
   })

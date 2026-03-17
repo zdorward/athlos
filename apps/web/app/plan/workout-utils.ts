@@ -117,8 +117,16 @@ export function getWorkoutNote(day: WorkoutDay, units: "km" | "miles"): string {
       return "Marathon pace throughout — race-specific effort."
     case "tempo":
       return "Comfortably hard — lactate threshold pace."
-    case "intervals":
-      return "Hard efforts with full recovery between reps."
+    case "intervals": {
+      if (day.distanceKm == null) {
+        return "800m–1km repeats at VO2max pace with 2–3 min jog recovery."
+      }
+      const reps = Math.max(3, Math.round(day.distanceKm - 2))
+      const paceStr = day.targetPace != null
+        ? ` at ${day.targetPace}`
+        : " at VO2max pace"
+      return `${reps}×1km${paceStr} with 2–3 min jog recovery. Stop the session if your pace slips — quality over quantity.`
+    }
     case "strength":
       return "Heavy resistance training after your run — compound lifts at ≥80% 1RM. Focus: squats, deadlifts, single-leg work. Plyometrics optional as a complement."
     case "rest":

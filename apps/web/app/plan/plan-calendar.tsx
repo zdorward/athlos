@@ -198,12 +198,15 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, onToggleCo
               {DAY_ORDER.map((dow) => {
                 const entries = dayMap[dow]
                 if (!entries?.length) {
-                  // Day not in plan yet (still streaming) — empty placeholder
+                  // Defensive fallback: day missing from plan data
                   return (
                     <div
                       key={dow}
-                      className="min-h-[88px] rounded-md border border-border bg-card opacity-20"
-                    />
+                      className="min-h-[88px] rounded-md border border-border bg-card p-2 opacity-40"
+                    >
+                      <p className="text-[10px] text-subtle-foreground">—</p>
+                      <p className="text-[10px] text-subtle-foreground mt-0.5">Rest Day</p>
+                    </div>
                   )
                 }
 

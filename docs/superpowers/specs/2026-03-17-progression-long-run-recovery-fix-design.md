@@ -43,12 +43,14 @@ function getLongRunType(phase: string, localIndex: number, isRecovery: boolean):
 }
 ```
 
-The call site already computes `isRecovery` on line 260:
+`isRecovery` is currently declared at line 261, after the long run assignment at line 254. It must be hoisted to before the long run block:
+
 ```ts
+// Move isRecovery declaration to before the long run assignment (currently at line 261, move to before line 247)
 const isRecovery = week % 4 === 0 && week !== preTaperWeeks
 ```
 
-Pass it through:
+Then pass it through at the call site:
 ```ts
 // Before
 type: getLongRunType(phase, localIndex),
@@ -65,7 +67,7 @@ No other changes. The modular pattern and all other logic remain unchanged.
 
 For any plan length where the modular pattern would assign a progression on a recovery week (week divisible by 4), that week now correctly produces a regular long run. Normal weeks are unaffected.
 
-For the current 21-week plan (Build W11–15, Peak W16–18): no observable change — W13 and W17 are already normal weeks. The fix closes a latent correctness bug that would surface with other plan configurations.
+For the current 21-week plan (Build W11–15, Peak W16–18): no observable change. The recovery weeks that fall within Build and Peak are W12 (`12 % 4 === 0`, localIndex 1 in Build → `1 % 3 ≠ 2`, no progression) and W16 (`16 % 4 === 0`, localIndex 0 in Peak → `0 % 2 ≠ 1`, no progression). Neither coincides with the modular progression pattern, so the fix has no effect on this plan. It closes a latent correctness bug that would surface with other plan configurations where a recovery week's localIndex does hit the modular condition.
 
 ---
 
@@ -83,4 +85,4 @@ For the current 21-week plan (Build W11–15, Peak W16–18): no observable chan
 | File | Change |
 |------|--------|
 | `packages/plan-engine/src/workout-scheduler.ts` | Add `isRecovery` parameter to `getLongRunType`; pass `isRecovery` at call site |
-| `packages/plan-engine/src/workout-scheduler.test.ts` | Add test: recovery week in Build never produces a progression long run |
+| `packages/plan-engine/src/workout-scheduler.test.ts` | Add two tests: recovery week in Build never produces a progression long run; recovery week in Peak never produces a progression long run |

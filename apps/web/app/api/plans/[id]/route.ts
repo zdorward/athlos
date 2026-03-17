@@ -99,18 +99,17 @@ export async function PATCH(
     date?: string
     type?: WorkoutType
     completed?: boolean
-    effort?: "hard" | "good" | "easy"
     update?: FieldUpdate
   }
 
   const isFieldUpdate = body.update !== undefined
-  const isCompletionOrEffort = !isFieldUpdate && (body.completed !== undefined || body.effort !== undefined)
+  const isCompletion = !isFieldUpdate && body.completed !== undefined
 
-  if (!isFieldUpdate && !isCompletionOrEffort) {
+  if (!isFieldUpdate && !isCompletion) {
     return Response.json({ error: "Bad request" }, { status: 400 })
   }
 
-  if ((isCompletionOrEffort || isFieldUpdate) && (body.date === undefined || body.type === undefined)) {
+  if ((isCompletion || isFieldUpdate) && (body.date === undefined || body.type === undefined)) {
     return Response.json({ error: "Bad request" }, { status: 400 })
   }
 
@@ -145,12 +144,6 @@ export async function PATCH(
       }
     } else {
       if (body.completed !== undefined) entry.completed = body.completed
-      if (body.effort !== undefined) {
-        if (!["hard", "good", "easy"].includes(body.effort)) {
-          return Response.json({ error: "Bad request" }, { status: 400 })
-        }
-        entry.effort = body.effort
-      }
     }
 
     await db

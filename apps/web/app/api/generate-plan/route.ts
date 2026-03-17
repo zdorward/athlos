@@ -129,6 +129,18 @@ export async function POST(req: NextRequest) {
     paceZones,
   })
 
+  // Replace any workout on race date with a race entry, or append if not scheduled
+  const raceDateISO = input.race.date
+  const raceDistanceKm = input.race.distance === "full" ? 42.2 : 21.1
+  const raceEntry = { date: raceDateISO, type: "race" as const, distanceKm: raceDistanceKm }
+  const raceDayIndex = days.findIndex(d => d.date === raceDateISO)
+  if (raceDayIndex >= 0) {
+    days[raceDayIndex] = raceEntry
+  } else {
+    days.push(raceEntry)
+    days.sort((a, b) => a.date.localeCompare(b.date))
+  }
+
   const totalKm = Math.round(days.reduce((s, d) => s + (d.distanceKm ?? 0), 0))
 
   // peakWeekKm = max of the weeklyVolumes array (not derived from days[] since

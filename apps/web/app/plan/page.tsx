@@ -103,7 +103,6 @@ export default function PlanPage() {
   const totalWeeksRef = useRef(0)
   const planRef = useRef<Partial<TrainingPlan>>({ days: [] })
   const generationStartedRef = useRef(false)
-  const abortRef = useRef<AbortController | null>(null)
 
   // Keep planRef in sync with plan state for use in callbacks
   useEffect(() => { planRef.current = plan }, [plan])
@@ -218,12 +217,9 @@ export default function PlanPage() {
     }
 
     generationStartedRef.current = true
-
-    const controller = new AbortController()
-    abortRef.current?.abort()
-    abortRef.current = controller
-
     setIsNewlyGenerated(true)
+
+    let cancelled = false
 
     async function generate() {
       let response: Response
@@ -232,15 +228,14 @@ export default function PlanPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(mapped),
-          signal: controller.signal,
         })
       } catch {
-        if (!controller.signal.aborted) setStatus("error")
+        if (!cancelled) setStatus("error")
         return
       }
 
       if (!response.ok) {
-        setStatus("error")
+        if (!cancelled) setStatus("error")
         return
       }
 
@@ -248,9 +243,11 @@ export default function PlanPage() {
       try {
         result = await response.json()
       } catch {
-        setStatus("error")
+        if (!cancelled) setStatus("error")
         return
       }
+
+      if (cancelled) return
 
       const bridgeDays = buildBridgeRuns(mapped!, result.days, new Date())
       const finalDays = bridgeDays.length > 0
@@ -270,7 +267,10 @@ export default function PlanPage() {
     }
 
     void generate()
-    return () => { abortRef.current?.abort() }
+    return () => {
+      cancelled = true
+      generationStartedRef.current = false
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionPending])
 

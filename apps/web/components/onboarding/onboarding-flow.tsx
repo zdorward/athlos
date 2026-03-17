@@ -11,7 +11,6 @@ import { StepFindRace } from "./steps/step-find-race"
 import { StepWhichDays } from "./steps/step-which-days"
 import { StepGoalTime } from "./steps/step-goal-time"
 import { StepWeeklyMileage } from "./steps/step-weekly-mileage"
-import { StepMileageConsistency } from "./steps/step-mileage-consistency"
 import { getSteps, type OnboardingData, type RaceData } from "./types"
 import { authClient } from "@/lib/auth-client"
 import { detectUnits, formatRaceDistance } from "@/lib/units"
@@ -29,7 +28,6 @@ const STEP_LABELS: Record<string, string> = {
   goalTime: "Goal time",
   whichDays: "Running days",
   weeklyMileage: "Weekly mileage",
-  mileageConsistency: "Training history",
 }
 
 interface OnboardingFlowProps {
@@ -320,7 +318,6 @@ export function OnboardingFlow({ onExit, initialData }: OnboardingFlowProps) {
       case "goalTime":           return <StepGoalTime {...stepProps} />
       case "whichDays":          return <StepWhichDays {...stepProps} />
       case "weeklyMileage":      return <StepWeeklyMileage {...stepProps} />
-      case "mileageConsistency": return <StepMileageConsistency {...stepProps} />
       default:             return null
     }
   }

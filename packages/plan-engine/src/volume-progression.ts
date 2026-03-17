@@ -20,41 +20,33 @@ export function computeWeeklyVolumes(input: VolumeProgressionInput): number[] {
   const { totalWeeks, weeklyMileageRange, peakWeeklyKm, phases } = input
 
   const taperPhase = phases.find(p => p.name === "Taper")
-  const hasTaper = !!taperPhase
+  const preTaperWeeks = taperPhase ? taperPhase.startWeek - 1 : totalWeeks
+  const startVol = WEEK1_VOLUME_KM[weeklyMileageRange]
 
   const volumes: number[] = []
 
   for (let weekNumber = 1; weekNumber <= totalWeeks; weekNumber++) {
-    const idx = weekNumber - 1
     let volume: number
 
-    // Rule 1: taper weeks
-    if (hasTaper && taperPhase && weekNumber >= taperPhase.startWeek) {
-      const taperIndex = weekNumber - taperPhase.startWeek // 0-based
+    if (taperPhase && weekNumber >= taperPhase.startWeek) {
+      // Taper: step down from peak
+      const taperIndex = weekNumber - taperPhase.startWeek
       const pct = taperIndex === 0 ? 0.8 : taperIndex === 1 ? 0.6 : 0.4
       volume = peakWeeklyKm * pct
-    }
-    // Rule 2: final non-taper week (suppresses recovery rule)
-    else if (!hasTaper && weekNumber === totalWeeks) {
-      volume = weekNumber === 1
-        ? WEEK1_VOLUME_KM[weeklyMileageRange]
-        : volumes[idx - 1]! * 1.1
-    }
-    // Rule 3: recovery weeks (weekNumber % 4 === 0, 1-indexed)
-    else if (weekNumber % 4 === 0) {
-      volume = volumes[idx - 1]! * 0.7
-    }
-    // Rule 4: week 1
-    else if (weekNumber === 1) {
-      volume = WEEK1_VOLUME_KM[weeklyMileageRange]
-    }
-    // Rule 5: all other weeks
-    else {
-      volume = volumes[idx - 1]! * 1.1
+    } else if (preTaperWeeks <= 1) {
+      volume = peakWeeklyKm
+    } else {
+      // Linear interpolation from startVol → peakWeeklyKm over preTaperWeeks.
+      // Recovery weeks (every 4th) dip to 70% of the target for that week.
+      // This guarantees peak is reached by the last pre-taper week regardless
+      // of the gap between starting volume and goal peak.
+      const t = (weekNumber - 1) / (preTaperWeeks - 1)
+      const targetVol = startVol + (peakWeeklyKm - startVol) * t
+      const isRecovery = weekNumber % 4 === 0 && weekNumber !== preTaperWeeks
+      volume = isRecovery ? targetVol * 0.7 : targetVol
     }
 
-    // Rule 6: cap (unconditional post-processing)
-    volumes.push(Math.min(volume, peakWeeklyKm))
+    volumes.push(Math.min(Math.round(volume * 10) / 10, peakWeeklyKm))
   }
 
   return volumes

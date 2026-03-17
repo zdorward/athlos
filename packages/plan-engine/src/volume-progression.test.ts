@@ -33,36 +33,57 @@ describe("computeWeeklyVolumes", () => {
     expect(computeWeeklyVolumes({ ...base, weeklyMileageRange: "80-plus" })[0]).toBe(80)
   })
 
-  it("non-recovery weeks grow by 10%", () => {
+  it("last pre-taper week reaches peakWeeklyKm", () => {
+    const peak = 100
     const vols = computeWeeklyVolumes({
-      totalWeeks: 3,
+      totalWeeks: 17,
       weeklyMileageRange: "40-60",
-      peakWeeklyKm: 200,
-      phases: noTaperPhases,
+      peakWeeklyKm: peak,
+      phases: withTaperPhases, // taper starts week 15, so last pre-taper = week 14
     })
-    expect(vols[1]).toBeCloseTo(44, 5)
-    expect(vols[2]).toBeCloseTo(48.4, 5)
+    expect(vols[13]).toBe(peak) // week 14 = index 13
   })
 
-  it("week 4 is a recovery week at 70% of week 3", () => {
+  it("last week reaches peakWeeklyKm when there is no taper", () => {
+    const peak = 100
     const vols = computeWeeklyVolumes({
-      totalWeeks: 5,
+      totalWeeks: 12,
       weeklyMileageRange: "40-60",
-      peakWeeklyKm: 200,
+      peakWeeklyKm: peak,
       phases: noTaperPhases,
     })
-    const week3 = vols[2]!
-    expect(vols[3]).toBeCloseTo(week3 * 0.7, 5)
+    expect(vols[11]).toBe(peak) // week 12 = index 11
   })
 
-  it("week 8 is a recovery week at 70% of week 7", () => {
+  it("non-recovery weeks follow linear trajectory from startVol to peak", () => {
+    const peak = 100
     const vols = computeWeeklyVolumes({
-      totalWeeks: 9,
-      weeklyMileageRange: "40-60",
-      peakWeeklyKm: 200,
-      phases: noTaperPhases,
+      totalWeeks: 14,
+      weeklyMileageRange: "40-60", // startVol = 40
+      peakWeeklyKm: peak,
+      phases: withTaperPhases, // preTaperWeeks = 14
     })
-    expect(vols[7]).toBeCloseTo(vols[6]! * 0.7, 5)
+    // t = (w-1)/13 → targetVol = 40 + 60*t
+    expect(vols[0]).toBeCloseTo(40, 1)       // week 1: t=0
+    expect(vols[6]).toBeCloseTo(40 + 60 * (6 / 13), 1) // week 7
+    expect(vols[13]).toBeCloseTo(100, 1)     // week 14: t=1
+  })
+
+  it("recovery weeks (every 4th) are 70% of their linear target", () => {
+    const peak = 100
+    const vols = computeWeeklyVolumes({
+      totalWeeks: 17,
+      weeklyMileageRange: "40-60",
+      peakWeeklyKm: peak,
+      phases: withTaperPhases, // preTaperWeeks = 14
+    })
+    // Week 4 target: 40 + 60*(3/13) ≈ 53.85; recovery = 53.85*0.7 ≈ 37.69
+    const week4Target = 40 + 60 * (3 / 13)
+    expect(vols[3]).toBeCloseTo(week4Target * 0.7, 1)
+
+    // Week 8 target: 40 + 60*(7/13) ≈ 72.31; recovery = 72.31*0.7 ≈ 50.62
+    const week8Target = 40 + 60 * (7 / 13)
+    expect(vols[7]).toBeCloseTo(week8Target * 0.7, 1)
   })
 
   it("result is capped at peakWeeklyKm", () => {
@@ -98,16 +119,6 @@ describe("computeWeeklyVolumes", () => {
     expect(vols[15]).toBe(60)
   })
 
-  it("final non-taper week suppresses recovery rule when weekNumber % 4 === 0", () => {
-    const vols = computeWeeklyVolumes({
-      totalWeeks: 12,
-      weeklyMileageRange: "40-60",
-      peakWeeklyKm: 200,
-      phases: noTaperPhases,
-    })
-    expect(vols[11]).toBeCloseTo(vols[10]! * 1.1, 5)
-  })
-
   it("taper is capped at peakWeeklyKm", () => {
     const vols = computeWeeklyVolumes({
       totalWeeks: 17,
@@ -116,5 +127,16 @@ describe("computeWeeklyVolumes", () => {
       phases: withTaperPhases,
     })
     expect(Math.max(...vols)).toBeLessThanOrEqual(50)
+  })
+
+  it("volumes increase overall from start to peak despite recovery dips", () => {
+    const vols = computeWeeklyVolumes({
+      totalWeeks: 17,
+      weeklyMileageRange: "40-60",
+      peakWeeklyKm: 100,
+      phases: withTaperPhases,
+    })
+    // Pre-taper volumes should trend upward: last pre-taper > first
+    expect(vols[13]).toBeGreaterThan(vols[0]!)
   })
 })

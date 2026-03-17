@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
   const startDate = input.startDate
     ? new Date(input.startDate + "T00:00:00Z")
     : firstMondayOnOrAfter(new Date())
-  const totalWeeks = Math.max(1, weeksBetween(startDate, raceDate))
+  const totalWeeks = Math.max(5, weeksBetween(startDate, raceDate) + 1)
 
   const goalMinutes = input.goalTime
     ? input.goalTime.hours * 60 + input.goalTime.minutes + (input.goalTime.seconds ?? 0) / 60
@@ -127,6 +127,7 @@ export async function POST(req: NextRequest) {
     trainingStructure,
     longRunTargets,
     paceZones,
+    raceDateISO: input.race.date,
   })
 
   // Replace any workout on race date with a race entry, or append if not scheduled

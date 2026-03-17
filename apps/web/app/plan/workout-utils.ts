@@ -11,6 +11,7 @@ export const WORKOUT_NAMES: Record<WorkoutType, string> = {
   strength:      "Strength",
   rest:          "Rest Day",
   race:          "Race Day",
+  shakeout:      "Shakeout",
 }
 
 // Tailwind class for text color. Use getWorkoutColor() for oklch values.
@@ -26,6 +27,7 @@ export const WORKOUT_TEXT_CLASS: Record<WorkoutType, string> = {
   strength:      "",
   rest:          "text-subtle-foreground",
   race:          "text-primary",
+  shakeout:      "text-muted-foreground",
 }
 
 // Inline color style for types that can't be expressed as Tailwind classes.
@@ -123,6 +125,8 @@ export function getWorkoutNote(day: WorkoutDay, units: "km" | "miles"): string {
       return "Full recovery day."
     case "race":
       return "Race day — execute your plan."
+    case "shakeout":
+      return "Short shakeout to activate your legs. Keep it easy — you're not training today."
   }
 }
 
@@ -136,7 +140,8 @@ export function getHRZone(type: WorkoutType): string {
     case "tempo":       return "Zone 3–4"
     case "intervals":   return "Zone 4–5"
     case "strength":
-    case "rest":
-    case "race":        return "—"
+    case "rest":        return "—"
+    case "race":        return "Zone 3"
+    case "shakeout":    return "Zone 1"
   }
 }

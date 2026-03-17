@@ -1,86 +1,145 @@
 import { type NextRequest } from "next/server"
-import { getProvider, type PlanGenerationInput } from "@workspace/plan-engine"
-import { getRatelimit } from "@/lib/rate-limit"
+import {
+  type PlanGenerationInput,
+  calculatePaceZones,
+  computePhases,
+  computeGoalPeakMileage,
+  computeTrainingStructure,
+  computeLongRunTargets,
+  computeWeeklyVolumes,
+  scheduleWorkouts,
+  firstMondayOnOrAfter,
+} from "@workspace/plan-engine"
+
+const MILEAGE_RANGE_HIGH: Record<string, number> = {
+  "under-40": 40,
+  "40-60": 60,
+  "60-80": 80,
+  "80-plus": 120,
+}
+
+const MILEAGE_RANGE_LOW: Record<string, number> = {
+  "under-40": 30,
+  "40-60": 40,
+  "60-80": 60,
+  "80-plus": 80,
+}
+
+function weeksBetween(start: Date, end: Date): number {
+  return Math.floor((end.getTime() - start.getTime()) / (7 * 24 * 60 * 60 * 1000))
+}
 
 export async function POST(req: NextRequest) {
-  // Rate limiting — skipped in development
-  if (process.env.NODE_ENV === "production") {
-    const ip =
-      req.headers.get("x-real-ip") ??
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      "anonymous"
-
-    try {
-      const { success, reset } = await getRatelimit().limit(ip)
-      if (!success) {
-        return new Response(JSON.stringify({ error: "Too many requests" }), {
-          status: 429,
-          headers: {
-            "Content-Type": "application/json",
-            "Retry-After": String(Math.ceil((reset - Date.now()) / 1000)),
-          },
-        })
-      }
-    } catch {
-      // Upstash unavailable or env vars missing — fail open
-    }
-  }
-
   let input: PlanGenerationInput
   try {
     input = (await req.json()) as PlanGenerationInput
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    })
+    return Response.json({ error: "Invalid JSON body" }, { status: 400 })
   }
 
-  // Ensure parsed body is a plain object
   if (typeof input !== "object" || input === null || Array.isArray(input)) {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    })
+    return Response.json({ error: "Invalid JSON body" }, { status: 400 })
   }
 
+  // Precondition validation
   if (!input.goal || !input.selectedDays?.length || !input.longRunDay) {
-    return new Response(JSON.stringify({ error: "Missing required fields" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    })
+    return Response.json({ error: "Missing required fields" }, { status: 400 })
   }
-
   if (input.goal !== "race") {
-    return new Response(JSON.stringify({ error: "Invalid goal value" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    })
+    return Response.json({ error: "Invalid goal value" }, { status: 400 })
+  }
+  if (input.selectedDays.length < 2) {
+    return Response.json({ error: "At least 2 running days required" }, { status: 400 })
+  }
+  if (!input.selectedDays.includes(input.longRunDay)) {
+    return Response.json({ error: "longRunDay must be in selectedDays" }, { status: 400 })
   }
 
-  const provider = getProvider()
-  const encoder = new TextEncoder()
+  // Derive plan parameters
+  const raceDate = new Date(input.race.date + "T00:00:00Z")
+  const startDate = input.startDate
+    ? new Date(input.startDate + "T00:00:00Z")
+    : firstMondayOnOrAfter(new Date())
+  const totalWeeks = Math.max(1, weeksBetween(startDate, raceDate))
 
-  const stream = new ReadableStream({
-    async start(controller) {
-      try {
-        for await (const line of provider.streamPlan(input)) {
-          controller.enqueue(encoder.encode(line + "\n"))
-        }
-        controller.close()
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Stream error"
-        controller.enqueue(encoder.encode(JSON.stringify({ error: message }) + "\n"))
-        controller.close()
-      }
-    },
+  const goalMinutes = input.goalTime
+    ? input.goalTime.hours * 60 + input.goalTime.minutes + (input.goalTime.seconds ?? 0) / 60
+    : null
+
+  const peakMileage = goalMinutes
+    ? computeGoalPeakMileage(input.race.distance, goalMinutes)
+    : null
+  const peakWeeklyKm = peakMileage?.high ?? MILEAGE_RANGE_HIGH[input.weeklyMileageRange] ?? 60
+
+  const lowerBound = MILEAGE_RANGE_LOW[input.weeklyMileageRange] ?? 40
+  if (lowerBound > peakWeeklyKm) {
+    return Response.json({ error: "Starting volume exceeds peak weekly km" }, { status: 400 })
+  }
+
+  const phases = computePhases(totalWeeks, input.race.distance)
+
+  // Compute pace zones from goal time; fall back to estimate if no goal time
+  let paceZones = input.goalTime
+    ? calculatePaceZones(
+        {
+          hours: input.goalTime.hours,
+          minutes: input.goalTime.minutes,
+          seconds: input.goalTime.seconds ?? 0,
+          distance: input.race.distance,
+          context: "active",
+        },
+        "goal-time",
+      )
+    : null
+
+  if (!paceZones) {
+    // Estimate from peakWeeklyKm: 60 km/week ≈ 4:00 marathon (240 min)
+    const estimatedMinutes = Math.round(240 * (60 / peakWeeklyKm))
+    const hours = Math.floor(estimatedMinutes / 60)
+    const minutes = estimatedMinutes % 60
+    paceZones = calculatePaceZones(
+      { hours, minutes, seconds: 0, distance: "full", context: "active" },
+      "goal-time",
+    )
+  }
+
+  if (!paceZones) {
+    return Response.json({ error: "Could not compute pace zones" }, { status: 400 })
+  }
+
+  const trainingStructure = computeTrainingStructure(
+    goalMinutes,
+    input.race.distance,
+    input.selectedDays.length,
+    input.weeklyMileageRange,
+  )
+
+  const longRunTargets = computeLongRunTargets(input.race.distance, peakMileage)
+
+  const days = scheduleWorkouts({
+    startDate: startDate.toISOString().slice(0, 10),
+    selectedDays: input.selectedDays,
+    longRunDay: input.longRunDay,
+    weeklyMileageRange: input.weeklyMileageRange,
+    phases,
+    totalWeeks,
+    peakWeeklyKm,
+    trainingStructure,
+    longRunTargets,
+    paceZones,
   })
 
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "text/plain; charset=utf-8",
-      "X-Accel-Buffering": "no",
-      "Cache-Control": "no-cache",
-    },
+  const totalKm = Math.round(days.reduce((s, d) => s + (d.distanceKm ?? 0), 0))
+
+  // peakWeekKm = max of the weeklyVolumes array (not derived from days[] since
+  // strength entries add extra rows per date, making slice-by-7 unreliable)
+  const weeklyVolumes = computeWeeklyVolumes({
+    totalWeeks,
+    weeklyMileageRange: input.weeklyMileageRange,
+    peakWeeklyKm,
+    phases,
   })
+  const peakWeekKm = Math.round(Math.max(...weeklyVolumes))
+
+  return Response.json({ days, totalWeeks, totalKm, peakWeekKm, phases })
 }

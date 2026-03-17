@@ -46,7 +46,7 @@ const slot = localIndex < Math.ceil(buildLength * 0.6)
 | Plan | Build | Early (before) | Early (after) | Intervals (before → after) |
 |------|-------|----------------|---------------|---------------------------|
 | 16-week | 4 wks | 2 wks (W7–8, W8=recovery) | 3 wks (W7–9) | 1 → 2 |
-| 18-week | 5 wks | 2 wks (W8–9, W8=recovery) | 3 wks (W8–10) | 1 → 2 |
+| 18-week | 5 wks | 2 wks (W8=recovery, W9 only productive week) | 3 wks (W8–10, W8=recovery) | 1 → 2 |
 | 20-week | 6 wks | 3 wks (W9–11) | 4 wks (W9–12, W12=recovery) | 3 → 3 |
 | 21-week | 5 wks | 2 wks (W11–12, W12=recovery) | 3 wks (W11–13) | 1 → 2 |
 | 24-week | 6 wks | 3 wks (W13–15) | 4 wks (W13–16, W16=recovery) | 3 → 3 |
@@ -69,12 +69,47 @@ A single interval session cannot constitute a sharpening stimulus. The 60% split
 
 ---
 
+---
+
+## Interval Workout Note
+
+**File:** `apps/web/app/plan/workout-utils.ts` — `getWorkoutNote`
+
+The current intervals note is generic: `"Hard efforts with full recovery between reps."` It should prescribe a concrete session structure using the workout's distance and target pace.
+
+### Formula
+
+Rep count: `Math.max(3, Math.round(distanceKm - 2))` — subtracts ~2km overhead for warmup/cooldown, rounds to nearest rep, floored at 3.
+
+Rep distance: 1km (standard VO2max stimulus for marathon training).
+
+### Output
+
+When `distanceKm` is defined and `targetPace` is defined:
+> `"[N]×1km at [targetPace] with 2–3 min jog recovery. Stop the session if your pace slips — quality over quantity."`
+
+When `distanceKm` is defined but `targetPace` is not:
+> `"[N]×1km at VO2max pace with 2–3 min jog recovery. Stop the session if your pace slips — quality over quantity."`
+
+When `distanceKm` is undefined (fallback):
+> `"800m–1km repeats at VO2max pace with 2–3 min jog recovery."`
+
+### Examples
+
+| `distanceKm` | `targetPace` | Note |
+|---|---|---|
+| 10 | `"4:30–4:45/km"` | `"8×1km at 4:30–4:45/km with 2–3 min jog recovery. Stop the session if your pace slips — quality over quantity."` |
+| 6 | `"4:30–4:45/km"` | `"4×1km at 4:30–4:45/km with 2–3 min jog recovery. Stop the session if your pace slips — quality over quantity."` |
+| undefined | — | `"800m–1km repeats at VO2max pace with 2–3 min jog recovery."` |
+
+---
+
 ## Out of Scope
 
 - No changes to recovery week policy (still 1 tempo on recovery weeks in Build)
 - No changes to late Build session types (still `["tempo", "mp"]`)
 - No changes to `computePhases` or phase durations
-- No UI changes
+- No changes to interval HR zone (`"Zone 4–5"` stays)
 
 ---
 
@@ -83,4 +118,5 @@ A single interval session cannot constitute a sharpening stimulus. The 60% split
 | File | Change |
 |------|--------|
 | `packages/plan-engine/src/workout-scheduler.ts` | Change `Math.floor(buildLength / 2)` to `Math.ceil(buildLength * 0.6)` in `getQualityConfig` |
-| `packages/plan-engine/src/workout-scheduler.test.ts` | Update/add tests verifying interval session counts for 16, 18, and 21-week plans |
+| `packages/plan-engine/src/workout-scheduler.test.ts` | Update/add tests verifying interval session counts for 16, 18, and 21-week plans; update existing "Build early half" and "Build second half" test comments that reference the old `Math.floor(buildLength / 2)` formula |
+| `apps/web/app/plan/workout-utils.ts` | Update `getWorkoutNote` for `"intervals"` to compute and include rep count, rep distance, and target pace |

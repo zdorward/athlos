@@ -257,6 +257,7 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
     }])
 
     // ── 2. Quality sessions ──
+    const longIdx = DAY_INDEX[longRunDay] ?? 0
     const isRecovery = week % 4 === 0 && week !== preTaperWeeks
     const { sessions, types } = getQualityConfig(week, phase, phases, isRecovery)
     const count = Math.min(sessions, trainingStructure.maxQualitySessions)
@@ -276,7 +277,9 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
       )
 
       const candidate = [...candidates].sort(
-        (a, b) => (DAY_INDEX[a.dayKey] ?? 0) - (DAY_INDEX[b.dayKey] ?? 0)
+        (a, b) =>
+          circularDist(DAY_INDEX[b.dayKey] ?? 0, longIdx) -
+          circularDist(DAY_INDEX[a.dayKey] ?? 0, longIdx)
       )[0]
 
       if (!candidate) continue
@@ -325,7 +328,6 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
     }
 
     // ── 4. Strength sessions ──
-    const longIdx = DAY_INDEX[longRunDay] ?? 0
     const sCount = strengthCount(week, phase, phases)
 
     if (sCount > 0) {

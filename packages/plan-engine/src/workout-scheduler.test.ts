@@ -273,7 +273,10 @@ describe("scheduleWorkouts — quality session phase rules", () => {
     }
   })
 
-  it("Peak quality: mp is placed on an earlier calendar day than tempo", () => {
+  it("Peak quality: mp placed on furthest day from long run, tempo on next", () => {
+    // Long run on sat (idx 5). Eligible days: mon (dist 2), wed (dist 3) [fri adj to sat].
+    // mp is scheduled first → lands on wed (dist 3, furthest).
+    // tempo is scheduled second → lands on mon (dist 2, next best).
     const days = scheduleWorkouts({
       ...baseInput,
       totalWeeks: 1,
@@ -285,9 +288,26 @@ describe("scheduleWorkouts — quality session phase rules", () => {
     const mpDay = days.find(d => d.type === "mp")
     const tempoDay = days.find(d => d.type === "tempo")
     if (mpDay && tempoDay) {
-      // mp should be on an earlier or same day as tempo
-      expect(mpDay.date <= tempoDay.date).toBe(true)
+      expect(dayKeyOf(mpDay.date)).toBe("wed")
+      expect(dayKeyOf(tempoDay.date)).toBe("mon")
     }
+  })
+
+  it("quality session lands on furthest day from long run (Wed for Mon–Fri + Sun)", () => {
+    // Wed (dist 3 from Sun) beats Tue and Thu (dist 2) and is farthest eligible day.
+    // Mon is adjacent to Sun (circular dist 1) so it is excluded from quality candidates.
+    const days = scheduleWorkouts({
+      ...baseInput,
+      selectedDays: ["mon", "tue", "wed", "thu", "fri", "sun"],
+      longRunDay: "sun",
+      phases: [{ name: "Base", startWeek: 1, endWeek: 1 }],
+      totalWeeks: 1,
+      trainingStructure: { runDaysPerWeek: 6, restDaysPerWeek: 1, maxQualitySessions: 1 },
+      peakWeeklyKm: 80,
+    })
+    const tempo = days.find(d => d.type === "tempo")
+    expect(tempo).toBeDefined()
+    expect(dayKeyOf(tempo!.date)).toBe("wed")
   })
 
   it("quality session dropped when no valid candidates on 2-day schedule", () => {
@@ -348,8 +368,8 @@ describe("scheduleWorkouts — strength sessions", () => {
   })
 
   it("no strength session is adjacent to any quality session in the same week", () => {
-    // Base phase: 1 tempo per week placed on earliest valid non-adjacent-to-sat day (Mon).
-    // After placement, strength must not land on Tue (adjacent to Mon).
+    // Base phase: 1 tempo per week placed on furthest non-adjacent day from Sat (Tue, dist 3).
+    // After placement, strength must not land on Mon or Wed (adjacent to Tue).
     const days = scheduleWorkouts({
       ...baseInput,
       selectedDays: ["mon", "tue", "wed", "thu", "fri", "sat"],
@@ -409,7 +429,7 @@ describe("scheduleWorkouts — strength sessions", () => {
 
   it("Peak: 2 strength in early weeks, 1 in final 2 weeks", () => {
     // Use 5 run days with 1 quality session so easy days remain for strength.
-    // Long run on sat → fri is adjacent. Quality lands on Mon (earliest valid).
+    // Long run on sat → fri is adjacent. Quality lands on Tue (dist 3 from Sat, tied with Wed — Tue wins by DAY_ORDER stability).
     // Wed and Thu are non-adjacent to Mon quality and non-adjacent to Sat → 2 strength candidates.
     const days = scheduleWorkouts({
       ...baseInput,

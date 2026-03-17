@@ -35,7 +35,7 @@ const DAY_INDEX: Record<string, number> = {
 }
 
 function round05(km: number): number {
-  return Math.round(km * 2) / 2
+  return Math.round(km)
 }
 
 const RACE_WEEK_TRAINING_RATIO = 0.20

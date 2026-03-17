@@ -122,6 +122,7 @@
     --animate-shimmer-slide: shimmer-slide var(--speed) ease-in-out infinite alternate;
     --animate-spin-around: spin-around calc(var(--speed) * 2) infinite linear;
     --animate-dot-pulse: dot-pulse 1.2s ease-in-out infinite;
+    --animate-fade-in: fade-in 0.3s ease-out;
   @keyframes shimmer-slide {
   to {
     transform: translate(calc(100cqw - 100%), 0);
@@ -145,6 +146,11 @@
     0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
     40%           { opacity: 1;   transform: scale(1);   }
   }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
 }
 
 @layer base {

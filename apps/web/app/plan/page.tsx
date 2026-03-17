@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { buildBridgeRuns, peakStrengthDay, firstMondayOnOrAfter } from "@workspace/plan-engine"
+import { buildBridgeRuns } from "@workspace/plan-engine"
 import type { PlanGenerationInput, TrainingPlan, WorkoutDay, WorkoutType, PhaseEntry } from "@workspace/plan-engine"
 import { authClient } from "@/lib/auth-client"
 import { PlanHeader } from "./plan-header"
@@ -13,52 +13,6 @@ import { SignInSheet } from "./sign-in-sheet"
 const SESSION_KEY = "athlos_onboarding"
 const PLAN_KEY = "athlos_plan"
 const PLAN_SAVED_KEY = "athlos_plan_saved"
-
-const VALID_WORKOUT_TYPES = new Set([
-  "easy", "long", "medium-long", "mp", "tempo", "intervals", "rest", "race", "strength",
-])
-
-const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const
-
-function mergeStrengthDays(
-  days: WorkoutDay[],
-  strengthDays: string[],
-  longRunDay: string,
-  startDate: Date,
-  endDate: Date,
-  phases: PhaseEntry[] | undefined,
-): WorkoutDay[] {
-  if (strengthDays.length === 0) return days
-
-  const msPerWeek = 7 * 24 * 60 * 60 * 1000
-
-  function activeDaysForWeek(weekNum: number): Set<string> {
-    const phase = phases?.find(p => weekNum >= p.startWeek && weekNum <= p.endWeek)
-    const name = phase?.name?.toLowerCase() ?? ""
-    if (name === "taper") return new Set()
-    if (name === "peak") {
-      const best = peakStrengthDay(strengthDays, longRunDay)
-      return best ? new Set([best]) : new Set()
-    }
-    // General Fitness, Base, Build, or no phases available: all days
-    return new Set(strengthDays)
-  }
-
-  const result = [...days]
-  const d = new Date(startDate.getTime())
-  while (d <= endDate) {
-    const weekNum = Math.floor((d.getTime() - startDate.getTime()) / msPerWeek) + 1
-    const key = DAY_KEYS[d.getDay()]
-    if (key && activeDaysForWeek(weekNum).has(key)) {
-      const dateStr = d.toLocaleDateString("en-CA")
-      if (!result.some((e) => e.date === dateStr && e.type === "strength")) {
-        result.push({ date: dateStr, type: "strength", description: "Strength training" })
-      }
-    }
-    d.setDate(d.getDate() + 1)
-  }
-  return result
-}
 
 interface SavedPlanSnapshot {
   input: PlanGenerationInput
@@ -79,7 +33,6 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
   if (goal !== "race" || !raw["race"]) return null
 
   const race = raw["race"] as Record<string, unknown>
-  const strengthDays = raw["strengthDays"] as string[] | undefined
   const input: PlanGenerationInput = {
     goal: "race",
     race: {
@@ -93,8 +46,6 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
     // To add a units setting: add a "units" step to onboarding and store the value in
     // sessionStorage under SESSION_KEY. This line will pick it up automatically.
     units: (raw["units"] === "miles" ? "miles" : "km") as "km" | "miles",
-    strengthTraining: Array.isArray(strengthDays) && strengthDays.length > 0,
-    strengthDays,
     weeklyMileageRange: "40-60",  // default; overwritten below
   }
 
@@ -135,7 +86,7 @@ export default function PlanPage() {
 
   const [plan, setPlan] = useState<Partial<TrainingPlan>>({ days: [] })
   const [status, setStatus] = useState<"generating" | "complete" | "error" | "rate-limited">("generating")
-  const [generatingWeek, setGeneratingWeek] = useState(1)
+  const [isNewlyGenerated, setIsNewlyGenerated] = useState(false)
   const [input, setInput] = useState<PlanGenerationInput | null>(null)
 
   const [phases, setPhases] = useState<PhaseEntry[]>([])
@@ -148,12 +99,11 @@ export default function PlanPage() {
   const [showSignInSheet, setShowSignInSheet] = useState(false)
   const [planSaved, setPlanSaved] = useState(false)
 
-  // Refs to avoid stale closures inside the async stream loop
+  // Refs
   const totalWeeksRef = useRef(0)
-  const dayCountRef = useRef(0)
-  const startDateRef = useRef<string | null>(null)
   const planRef = useRef<Partial<TrainingPlan>>({ days: [] })
   const streamStartedRef = useRef(false)
+  const abortRef = useRef<AbortController | null>(null)
 
   // Keep planRef in sync with plan state for use in callbacks
   useEffect(() => { planRef.current = plan }, [plan])
@@ -226,14 +176,10 @@ export default function PlanPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionData?.session?.id])
 
-  // ── Streaming ─────────────────────────────────────────────────────────────
+  // ── Plan generation ───────────────────────────────────────────────────────
   useEffect(() => {
     const raw = sessionStorage.getItem(SESSION_KEY)
     if (!raw) {
-      // No onboarding data in this tab. Check if we're returning from a magic
-      // link click (which opens in a new tab, so sessionStorage is empty).
-      // If a fresh plan snapshot exists in localStorage, don't redirect —
-      // the auto-save effect will handle saving once the session resolves.
       const planRaw = localStorage.getItem(PLAN_KEY)
       if (planRaw) {
         try {
@@ -241,7 +187,7 @@ export default function PlanPage() {
           const TEN_MINUTES = 10 * 60 * 1000
           if (snap.savedAt && Date.now() - snap.savedAt <= TEN_MINUTES) {
             streamStartedRef.current = true
-            setInput(snap.input) // render the plan while auto-save fires
+            setInput(snap.input)
             return
           }
         } catch {}
@@ -261,162 +207,71 @@ export default function PlanPage() {
 
     const mapped = mapToInput(parsed)
     if (!mapped) { router.replace("/"); return }
-    const planInput: PlanGenerationInput = mapped
     setInput(mapped)
 
-    // Prevent double-execution when sessionPending changes
     if (streamStartedRef.current) return
 
-    // If athlos_plan exists in localStorage, we may be returning from OAuth.
-    // Wait until session state is resolved before deciding.
     if (localStorage.getItem(PLAN_KEY)) {
-      if (sessionPending) return // wait — re-effect runs when sessionPending changes
-      if (sessionData?.session) return // session confirmed, auto-save effect handles it
-      // Session resolved to null — clear stale snapshot and stream normally.
+      if (sessionPending) return
+      if (sessionData?.session) return
       localStorage.removeItem(PLAN_KEY)
     }
 
     streamStartedRef.current = true
 
-    async function stream() {
+    const controller = new AbortController()
+    abortRef.current?.abort()
+    abortRef.current = controller
+
+    setIsNewlyGenerated(true)
+
+    async function generate() {
       let response: Response
       try {
         response = await fetch("/api/generate-plan", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(planInput),
+          body: JSON.stringify(mapped),
+          signal: controller.signal,
         })
+      } catch {
+        if (!controller.signal.aborted) setStatus("error")
+        return
+      }
+
+      if (!response.ok) {
+        setStatus("error")
+        return
+      }
+
+      let result: { days: WorkoutDay[]; totalWeeks: number; totalKm: number; peakWeekKm: number; phases: PhaseEntry[] }
+      try {
+        result = await response.json()
       } catch {
         setStatus("error")
         return
       }
 
-      if (!response.ok || !response.body) {
-        setStatus(response.status === 429 ? "rate-limited" : "error")
-        return
-      }
+      const bridgeDays = buildBridgeRuns(mapped!, result.days, new Date())
+      const finalDays = bridgeDays.length > 0
+        ? [...bridgeDays, ...result.days].sort((a, b) => a.date.localeCompare(b.date))
+        : result.days
 
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ""
-      const localDays: WorkoutDay[] = []
-      let localPhases: PhaseEntry[] = []
-
-      while (true) {
-        let done: boolean
-        let value: Uint8Array | undefined
-        try {
-          ;({ done, value } = await reader.read())
-        } catch {
-          setStatus("error")
-          return
-        }
-
-        if (done) {
-          if (totalWeeksRef.current === 0 || dayCountRef.current === 0) {
-            setStatus("error")
-          } else {
-            const bridgeDays = buildBridgeRuns(planInput, localDays, new Date())
-            let finalDays: WorkoutDay[] = bridgeDays.length > 0
-              ? [...bridgeDays, ...localDays].sort((a, b) => a.date.localeCompare(b.date))
-              : localDays
-
-            // Inject strength days — LLM no longer outputs them
-            if (planInput.strengthDays?.length && localDays.length > 0) {
-              finalDays = mergeStrengthDays(
-                finalDays,
-                planInput.strengthDays,
-                planInput.longRunDay,
-                new Date(localDays[0]!.date + "T00:00:00"),
-                new Date(localDays[localDays.length - 1]!.date + "T00:00:00"),
-                localPhases,
-              )
-            }
-
-            const newTotalKm = finalDays.reduce((sum, d) => sum + (d.distanceKm ?? 0), 0)
-            setPlan((p) => ({ ...p, days: finalDays, totalKm: newTotalKm }))
-            setStatus("complete")
-          }
-          break
-        }
-
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split("\n")
-        buffer = lines.pop() ?? ""
-
-        for (const line of lines) {
-          if (!line.trim()) continue
-          try {
-            const parsed = JSON.parse(line) as Record<string, unknown>
-
-            if ("error" in parsed) {
-              setStatus("error")
-              break
-            } else if (parsed["_meta"] === true) {
-              const tw = Number(parsed["totalWeeks"] ?? 0)
-              totalWeeksRef.current = tw
-              const metaPhases = Array.isArray(parsed["phases"])
-                ? (parsed["phases"] as PhaseEntry[])
-                : []
-              setPhases(metaPhases)
-              localPhases = metaPhases
-              // Pre-populate strength days immediately so they appear during streaming
-              if (planInput.strengthDays?.length) {
-                const planStart = planInput.startDate
-                  ? new Date(planInput.startDate + "T00:00:00Z")
-                  : firstMondayOnOrAfter(new Date())
-                const planEnd = new Date(planInput.race.date + "T00:00:00Z")
-                const earlyStrengthDays = mergeStrengthDays(
-                  [],
-                  planInput.strengthDays,
-                  planInput.longRunDay,
-                  planStart,
-                  planEnd,
-                  metaPhases,
-                )
-                if (earlyStrengthDays.length > 0) {
-                  setPlan((p) => ({ ...p, days: [...(p.days ?? []), ...earlyStrengthDays] }))
-                }
-              }
-              setPlan((p) => ({
-                ...p,
-                totalWeeks: tw,
-                totalKm:    Number(parsed["totalKm"]    ?? 0),
-                peakWeekKm: Number(parsed["peakWeekKm"] ?? 0),
-                phases:     metaPhases,
-              }))
-            } else {
-              const day = parsed as unknown as WorkoutDay
-              if (typeof day.date !== "string" || !VALID_WORKOUT_TYPES.has(day.type)) continue
-              const localIdx = localDays.findIndex((d) => d.date === day.date && d.type === day.type)
-              if (localIdx >= 0) { localDays[localIdx] = day } else { localDays.push(day) }
-              dayCountRef.current += 1
-              if (!startDateRef.current) startDateRef.current = day.date
-              const weekNum =
-                Math.floor(
-                  (new Date(day.date).getTime() - new Date(startDateRef.current).getTime()) /
-                    (7 * 24 * 60 * 60 * 1000)
-                ) + 1
-              setGeneratingWeek(weekNum)
-              setPlan((p) => {
-                const existing = p.days ?? []
-                const idx = existing.findIndex((d) => d.date === day.date && d.type === day.type)
-                const days = idx >= 0
-                  ? existing.map((d, i) => (i === idx ? day : d))
-                  : [...existing, day]
-                return { ...p, days }
-              })
-            }
-          } catch {
-            // skip malformed lines
-          }
-        }
-      }
+      totalWeeksRef.current = result.totalWeeks
+      setPhases(result.phases ?? [])
+      setPlan({
+        days: finalDays,
+        totalWeeks: result.totalWeeks,
+        totalKm: result.totalKm,
+        peakWeekKm: result.peakWeekKm,
+        phases: result.phases,
+      })
+      setStatus("complete")
     }
 
-    void stream()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionPending]) // re-run when session loading state resolves
+    void generate()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionPending])
 
   // ── Save helpers ──────────────────────────────────────────────────────────
 
@@ -481,7 +336,10 @@ export default function PlanPage() {
       current.totalKm ?? 0,
       current.peakWeekKm ?? 0,
     ).then((saved) => {
-      if (saved) router.push("/dashboard")
+      if (saved) {
+        setIsNewlyGenerated(false)
+        router.push("/dashboard")
+      }
     })
   }
 
@@ -499,7 +357,6 @@ export default function PlanPage() {
         totalKm={plan.totalKm ?? 0}
         units={input.units}
         status={status}
-        generatingWeek={generatingWeek}
         goalTimeLabel={goalTimeLabel(input)}
         saveProps={saveProps}
       />
@@ -514,6 +371,7 @@ export default function PlanPage() {
           phases={phases}
           selectedKey={selectedKey}
           onSelectedKeyChange={setSelectedKey}
+          isNewlyGenerated={isNewlyGenerated}
         />
       </div>
 
@@ -527,6 +385,7 @@ export default function PlanPage() {
           phases={phases}
           selectedKey={selectedKey}
           onSelectedKeyChange={setSelectedKey}
+          isNewlyGenerated={isNewlyGenerated}
         />
       </div>
 

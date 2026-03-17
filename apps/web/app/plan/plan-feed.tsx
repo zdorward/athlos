@@ -35,9 +35,10 @@ interface PlanFeedProps {
   selectedKey: { date: string; type: WorkoutType } | null
   onSelectedKeyChange: (key: { date: string; type: WorkoutType } | null) => void
   phases?: PhaseEntry[]
+  isNewlyGenerated?: boolean
 }
 
-export function PlanFeed({ days, units, totalWeeks, raceDistance, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange, phases }: PlanFeedProps) {
+export function PlanFeed({ days, units, totalWeeks, raceDistance, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange, phases, isNewlyGenerated }: PlanFeedProps) {
   // Derive the live WorkoutDay from days so the detail sheet always reflects current state
   const selectedDay = selectedKey
     ? (days.find((d) => d.date === selectedKey.date && d.type === selectedKey.type) ?? null)
@@ -68,7 +69,14 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, onToggleComple
             : ""
 
           return (
-            <div key={weekIdx}>
+            <div
+              key={weekIdx}
+              className={isNewlyGenerated ? "animate-fade-in" : undefined}
+              style={isNewlyGenerated ? {
+                animationDelay: `${weekIdx * 30}ms`,
+                animationFillMode: "both",
+              } : undefined}
+            >
               {/* Week divider */}
               <div className="flex items-center justify-between py-3">
                 <div>

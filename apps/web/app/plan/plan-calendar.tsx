@@ -61,9 +61,10 @@ interface PlanCalendarProps {
   selectedKey: { date: string; type: WorkoutType } | null
   onSelectedKeyChange: (key: { date: string; type: WorkoutType } | null) => void
   phases?: PhaseEntry[]
+  isNewlyGenerated?: boolean
 }
 
-export function PlanCalendar({ days, units, totalWeeks, raceDistance, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange, phases }: PlanCalendarProps) {
+export function PlanCalendar({ days, units, totalWeeks, raceDistance, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange, phases, isNewlyGenerated }: PlanCalendarProps) {
   // Derive the live WorkoutDay from the days prop so the detail panel always reflects current state
   const selectedDay = selectedKey
     ? (days.find((d) => d.date === selectedKey.date && d.type === selectedKey.type) ?? null)
@@ -156,7 +157,14 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, onToggleCo
           const weeklyKm = weekDays.reduce((sum, d) => sum + (d.distanceKm ?? 0), 0)
 
           return (
-            <div key={weekIdx}>
+            <div
+              key={weekIdx}
+              className={isNewlyGenerated ? "animate-fade-in" : undefined}
+              style={isNewlyGenerated ? {
+                animationDelay: `${weekIdx * 30}ms`,
+                animationFillMode: "both",
+              } : undefined}
+            >
               {showPhaseHeader && (
                 <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1 mt-3">
                   <div />

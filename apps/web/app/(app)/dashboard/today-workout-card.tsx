@@ -42,11 +42,6 @@ export function TodayWorkoutCard({ entry, units, onComplete, variant = "today" }
                 </span>
               )}
             </p>
-            {entry.effort && (
-              <p className="text-xs text-green-600/60 dark:text-green-500/60 mt-0.5">
-                {entry.effort === "hard" ? "😓 Hard" : entry.effort === "good" ? "😊 Good" : "⚡ Easy"}
-              </p>
-            )}
           </div>
         </div>
       </div>

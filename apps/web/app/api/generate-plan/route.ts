@@ -133,7 +133,13 @@ export async function POST(req: NextRequest) {
   // Replace any workout on race date with a race entry, or append if not scheduled
   const raceDateISO = input.race.date
   const raceDistanceKm = input.race.distance === "full" ? 42.2 : 21.1
-  const raceEntry = { date: raceDateISO, type: "race" as const, distanceKm: raceDistanceKm }
+  const raceEntry = {
+    date: raceDateISO,
+    type: "race" as const,
+    distanceKm: raceDistanceKm,
+    targetPace: paceZones.mp,
+    targetHR: "Zone 3",
+  }
   const raceDayIndex = days.findIndex(d => d.date === raceDateISO)
   if (raceDayIndex >= 0) {
     days[raceDayIndex] = raceEntry

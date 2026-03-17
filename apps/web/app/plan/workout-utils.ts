@@ -124,7 +124,7 @@ export function getWorkoutNote(day: WorkoutDay, units: "km" | "miles"): string {
     case "rest":
       return "Full recovery day."
     case "race":
-      return "Race day — execute your plan."
+      return "Race day. Start conservative — first half at goal pace, finish strong if you have it."
     case "shakeout":
       return "Short shakeout to activate your legs. Keep it easy — you're not training today."
   }

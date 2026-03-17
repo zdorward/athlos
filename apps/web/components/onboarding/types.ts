@@ -34,6 +34,7 @@ export interface OnboardingData {
   selectedDays?: Day[]
   longRunDay?: Day
   weeklyMileageRange?: "under-40" | "40-60" | "60-80" | "80-plus"
+  mileageConsistency?: "lt-4w" | "4-12w" | "3-6m" | "6m-plus"
   units?: "km" | "miles"
 }
 
@@ -48,5 +49,6 @@ export function getSteps(): readonly string[] {
     "goalTime",
     "whichDays",
     "weeklyMileage",
+    "mileageConsistency",
   ]
 }

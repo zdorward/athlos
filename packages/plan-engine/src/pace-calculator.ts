@@ -1,4 +1,4 @@
-import type { PhaseEntry } from "./types"
+import type { PhaseEntry, WeeklyMileageRange } from "./types"
 
 export interface PaceInput {
   hours: number
@@ -105,6 +105,19 @@ function getTaperMin(distance: string): number {
   return distance === "5k" || distance === "10k" ? 2 : 3
 }
 
+function getPeakMin(distance: string): number {
+  if (distance === "5k" || distance === "10k") return 2
+  if (distance === "half") return 3
+  return 4  // full, ultra, unknown
+}
+
+const GF_CAP: Record<string, number> = {
+  "under-40": 12,
+  "40-60":    10,
+  "60-80":     8,
+  "80-plus":   6,
+}
+
 /**
  * Compute the phase schedule for a training plan.
  *
@@ -113,11 +126,14 @@ function getTaperMin(distance: string): number {
  *
  * Taper minimum is always respected. Phases with 0 weeks are omitted.
  */
-export function computePhases(totalWeeks: number, distance: string): PhaseEntry[] {
+export function computePhases(
+  totalWeeks: number,
+  distance: string,
+  weeklyMileageRange: WeeklyMileageRange = "40-60",
+): PhaseEntry[] {
   const taperMin = getTaperMin(distance)
   const taper = taperMin
-  // Peak follows the same minimum rule as taper (2 weeks for 5k/10k, 3 for half/full)
-  const peakMin = taperMin
+  const peakMin = getPeakMin(distance)
   let remaining = totalWeeks - taper - peakMin
 
   const result: PhaseEntry[] = []
@@ -142,13 +158,14 @@ export function computePhases(totalWeeks: number, distance: string): PhaseEntry[
     pushPhase("Build", build)
     pushPhase("Peak",  peak)
   } else {
-    // 5-phase
-    const gf    = Math.min(remaining, Math.max(1, Math.round(totalWeeks * 0.20)))
-    remaining -= gf
+    // 5-phase: Base and Build are sized first, GF fills the remainder up to the
+    // mileage-bracket cap, Peak gets any overflow above the cap.
     const base  = Math.min(remaining, Math.max(1, Math.round(totalWeeks * 0.30)))
     remaining -= base
-    const build = Math.min(remaining, Math.max(1, Math.round(totalWeeks * 0.25)))
+    const build = Math.min(remaining, Math.max(1, Math.round(totalWeeks * 0.30)))
     remaining -= build
+    const gf    = Math.min(remaining, GF_CAP[weeklyMileageRange] ?? 10)
+    remaining -= gf
     const peak  = peakMin + Math.max(0, remaining)
 
     pushPhase("General Fitness", gf)

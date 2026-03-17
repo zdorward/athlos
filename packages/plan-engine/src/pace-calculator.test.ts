@@ -152,10 +152,10 @@ describe("computePhases — 28 week full marathon (5-phase)", () => {
     }
   })
 
-  it("matches spec example: GF=6, Base=8, Build=7, Peak=4, Taper=3", () => {
-    expect(phases[0]).toEqual({ name: "General Fitness", startWeek: 1, endWeek: 6 })
-    expect(phases[1]).toEqual({ name: "Base", startWeek: 7, endWeek: 14 })
-    expect(phases[2]).toEqual({ name: "Build", startWeek: 15, endWeek: 21 })
+  it("matches expected: GF=5, Base=8, Build=8, Peak=4, Taper=3", () => {
+    expect(phases[0]).toEqual({ name: "General Fitness", startWeek: 1, endWeek: 5 })
+    expect(phases[1]).toEqual({ name: "Base", startWeek: 6, endWeek: 13 })
+    expect(phases[2]).toEqual({ name: "Build", startWeek: 14, endWeek: 21 })
     expect(phases[3]).toEqual({ name: "Peak", startWeek: 22, endWeek: 25 })
     expect(phases[4]).toEqual({ name: "Taper", startWeek: 26, endWeek: 28 })
   })
@@ -219,9 +219,9 @@ describe("computePhases — 22 week full marathon: peak >= 3 weeks", () => {
     expect(total).toBe(22)
   })
 
-  it("peak is at least 3 weeks", () => {
+  it("peak is at least 4 weeks for full marathon", () => {
     const peak = phases.find(p => p.name === "Peak")!
-    expect(peak.endWeek - peak.startWeek + 1).toBeGreaterThanOrEqual(3)
+    expect(peak.endWeek - peak.startWeek + 1).toBeGreaterThanOrEqual(4)
   })
 
   it("taper is exactly 3 weeks", () => {
@@ -229,11 +229,11 @@ describe("computePhases — 22 week full marathon: peak >= 3 weeks", () => {
     expect(taper.endWeek - taper.startWeek + 1).toBe(3)
   })
 
-  it("matches expected: GF=4, Base=7, Build=5, Peak=3, Taper=3", () => {
-    expect(phases[0]).toEqual({ name: "General Fitness", startWeek: 1, endWeek: 4 })
-    expect(phases[1]).toEqual({ name: "Base", startWeek: 5, endWeek: 11 })
-    expect(phases[2]).toEqual({ name: "Build", startWeek: 12, endWeek: 16 })
-    expect(phases[3]).toEqual({ name: "Peak", startWeek: 17, endWeek: 19 })
+  it("matches expected: GF=1, Base=7, Build=7, Peak=4, Taper=3", () => {
+    expect(phases[0]).toEqual({ name: "General Fitness", startWeek: 1, endWeek: 1 })
+    expect(phases[1]).toEqual({ name: "Base", startWeek: 2, endWeek: 8 })
+    expect(phases[2]).toEqual({ name: "Build", startWeek: 9, endWeek: 15 })
+    expect(phases[3]).toEqual({ name: "Peak", startWeek: 16, endWeek: 19 })
     expect(phases[4]).toEqual({ name: "Taper", startWeek: 20, endWeek: 22 })
   })
 })
@@ -267,6 +267,45 @@ describe("computePhases — exactly 20 weeks (last 4-phase case)", () => {
   it("taper is at least 3 weeks for half", () => {
     const taper = phases.find(p => p.name === "Taper")!
     expect(taper.endWeek - taper.startWeek + 1).toBeGreaterThanOrEqual(3)
+  })
+})
+
+describe("computePhases — 29 week full marathon: GF fills gap", () => {
+  it("under-40: GF=4, Base=9, Build=9, Peak=4, Taper=3", () => {
+    const phases = computePhases(29, "full", "under-40")
+    expect(phases[0]).toEqual({ name: "General Fitness", startWeek: 1, endWeek: 4 })
+    expect(phases[1]).toEqual({ name: "Base", startWeek: 5, endWeek: 13 })
+    expect(phases[2]).toEqual({ name: "Build", startWeek: 14, endWeek: 22 })
+    expect(phases[3]).toEqual({ name: "Peak", startWeek: 23, endWeek: 26 })
+    expect(phases[4]).toEqual({ name: "Taper", startWeek: 27, endWeek: 29 })
+  })
+
+  it("80-plus: GF cap does not bite at 29 weeks — same layout as under-40", () => {
+    const phases = computePhases(29, "full", "80-plus")
+    expect(phases[0]).toEqual({ name: "General Fitness", startWeek: 1, endWeek: 4 })
+    expect(phases[3]).toEqual({ name: "Peak", startWeek: 23, endWeek: 26 })
+  })
+})
+
+describe("computePhases — 52 week full marathon: GF capped by mileage range", () => {
+  it("under-40: GF is capped at 12 weeks", () => {
+    const phases = computePhases(52, "full", "under-40")
+    const gf = phases.find(p => p.name === "General Fitness")!
+    expect(gf.endWeek - gf.startWeek + 1).toBe(12)
+  })
+
+  it("80-plus: GF is capped at 6 weeks", () => {
+    const phases = computePhases(52, "full", "80-plus")
+    const gf = phases.find(p => p.name === "General Fitness")!
+    expect(gf.endWeek - gf.startWeek + 1).toBe(6)
+  })
+})
+
+describe("computePhases — full marathon peakMin is 4 weeks", () => {
+  it("21-week full: peak >= 4", () => {
+    const phases = computePhases(21, "full")
+    const peak = phases.find(p => p.name === "Peak")!
+    expect(peak.endWeek - peak.startWeek + 1).toBeGreaterThanOrEqual(4)
   })
 })
 

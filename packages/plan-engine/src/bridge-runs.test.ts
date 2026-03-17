@@ -26,31 +26,35 @@ describe("buildBridgeRuns", () => {
     expect(result).toEqual([])
   })
 
-  it("returns [] when selected day is not in the gap", () => {
-    // gap is Wed 18 – Sun 22; "mon" is not in that range
+  it("returns only rest entries when selected day is not in the gap", () => {
+    // gap is Wed 18 – Sun 22; "mon" is not in that range → all 5 days are rest
     const input = { ...BASE_INPUT, selectedDays: ["mon"] }
     const wednesday = new Date("2026-03-18T00:00:00Z")
     const result = buildBridgeRuns(input, [], wednesday)
-    expect(result).toEqual([])
+    expect(result).toHaveLength(5)
+    expect(result.every(d => d.type === "rest")).toBe(true)
   })
 
-  it("returns one bridge run when one selected day falls in the gap", () => {
-    // today = Wed 18, selectedDays = ["wed"] → one run on 2026-03-18
+  it("returns easy for selected day plus rest for non-selected days in the gap", () => {
+    // today = Wed 18, selectedDays = ["wed"] → Wed easy + Thu/Fri/Sat/Sun rest = 5 entries
     const input = { ...BASE_INPUT, selectedDays: ["wed"] }
     const wednesday = new Date("2026-03-18T00:00:00Z")
     const result = buildBridgeRuns(input, [], wednesday)
-    expect(result).toHaveLength(1)
+    expect(result).toHaveLength(5)
     expect(result[0]!.date).toBe("2026-03-18")
     expect(result[0]!.type).toBe("easy")
+    expect(result.slice(1).every(d => d.type === "rest")).toBe(true)
   })
 
-  it("returns multiple bridge runs for multiple selected days in the gap", () => {
-    // today = Wed 18, selectedDays = ["wed", "fri"] → runs on Wed 18 and Fri 20
+  it("returns easy runs for selected days and rest for non-selected days in the gap", () => {
+    // today = Wed 18, selectedDays = ["wed", "fri"] → Wed easy, Thu rest, Fri easy, Sat rest, Sun rest
     const wednesday = new Date("2026-03-18T00:00:00Z")
     const result = buildBridgeRuns(BASE_INPUT, [], wednesday)
-    expect(result).toHaveLength(2)
+    expect(result).toHaveLength(5)
     expect(result[0]!.date).toBe("2026-03-18")
-    expect(result[1]!.date).toBe("2026-03-20")
+    expect(result[0]!.type).toBe("easy")
+    expect(result[2]!.date).toBe("2026-03-20")
+    expect(result[2]!.type).toBe("easy")
   })
 
   it("computes distanceKm as average of week-1 easy runs", () => {
@@ -101,10 +105,48 @@ describe("buildBridgeRuns", () => {
     expect(result[0]!.date).toBe("2026-03-22")
   })
 
-  it("returns [] on Sunday when Sunday is not selected", () => {
+  it("returns a rest entry on Sunday when Sunday is not selected", () => {
     const sunday = new Date("2026-03-22T00:00:00Z")
     const input = { ...BASE_INPUT, selectedDays: ["mon", "wed"] }
     const result = buildBridgeRuns(input, [], sunday)
-    expect(result).toEqual([])
+    expect(result).toHaveLength(1)
+    expect(result[0]!.type).toBe("rest")
+  })
+})
+
+describe("buildBridgeRuns — rest days for non-selected days", () => {
+  it("emits rest entries for non-selected days in the gap", () => {
+    // today = Thu 2026-03-19, selectedDays = ["wed"] only
+    // gap: Thu 19, Fri 20, Sat 21, Sun 22 → Wed is not in gap, so no easy runs
+    // All 4 days should be rest
+    const input = { ...BASE_INPUT, selectedDays: ["wed"] }
+    const thursday = new Date("2026-03-19T00:00:00Z")
+    const result = buildBridgeRuns(input, [], thursday)
+    expect(result.length).toBe(4) // Thu–Sun
+    expect(result.every(d => d.type === "rest")).toBe(true)
+  })
+
+  it("emits rest for non-selected days and easy for selected days in the same gap", () => {
+    // today = Wed 2026-03-18, selectedDays = ["wed", "fri"]
+    // gap: Wed 18, Thu 19, Fri 20, Sat 21, Sun 22
+    // Wed 18 → easy, Thu 19 → rest, Fri 20 → easy, Sat 21 → rest, Sun 22 → rest
+    const input = { ...BASE_INPUT, selectedDays: ["wed", "fri"] }
+    const wednesday = new Date("2026-03-18T00:00:00Z")
+    const result = buildBridgeRuns(input, [], wednesday)
+    expect(result.length).toBe(5)
+    expect(result.find(d => d.date === "2026-03-18")?.type).toBe("easy")
+    expect(result.find(d => d.date === "2026-03-19")?.type).toBe("rest")
+    expect(result.find(d => d.date === "2026-03-20")?.type).toBe("easy")
+    expect(result.find(d => d.date === "2026-03-21")?.type).toBe("rest")
+    expect(result.find(d => d.date === "2026-03-22")?.type).toBe("rest")
+  })
+
+  it("rest entries have no distanceKm", () => {
+    const input = { ...BASE_INPUT, selectedDays: ["wed"] }
+    const thursday = new Date("2026-03-19T00:00:00Z")
+    const result = buildBridgeRuns(input, [], thursday)
+    result.forEach(d => {
+      if (d.type === "rest") expect(d.distanceKm).toBeUndefined()
+    })
   })
 })

@@ -81,6 +81,8 @@ export function buildBridgeRuns(
         distanceKm,
         ...(targetPace !== undefined && { targetPace }),
       })
+    } else {
+      results.push({ date: toISO(cursor), type: "rest" })
     }
     cursor.setUTCDate(cursor.getUTCDate() + 1)
   }

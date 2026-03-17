@@ -259,12 +259,6 @@ export function PlanDayDetail({ day, units, onClose, onToggleComplete, onSaveEdi
         </h2>
       </div>
 
-      {day.type !== "rest" && (
-        <p className="text-sm text-muted-foreground">
-          {getWorkoutNote(day, units)}
-        </p>
-      )}
-
       {day.distanceKm != null && (
         <div>
           <span
@@ -275,6 +269,12 @@ export function PlanDayDetail({ day, units, onClose, onToggleComplete, onSaveEdi
           </span>
           <span className="ml-2 text-lg text-muted-foreground">{distanceUnit(units)}</span>
         </div>
+      )}
+
+      {day.type !== "rest" && (
+        <p className="text-sm text-muted-foreground">
+          {getWorkoutNote(day, units)}
+        </p>
       )}
 
       <div>

@@ -278,12 +278,7 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
     // ── 5. Rest days ──
     for (const { date, dayKey } of weekDays) {
       if (!assigned.has(date)) {
-        if (!selectedDays.includes(dayKey)) {
-          assigned.set(date, [{ date, type: "rest" }])
-        } else {
-          // Selected day that got no workout (e.g. all quality slots filled)
-          assigned.set(date, [{ date, type: "rest" }])
-        }
+        assigned.set(date, [{ date, type: "rest" }])
       }
     }
 

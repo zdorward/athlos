@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: "Starting volume exceeds peak weekly km" }, { status: 400 })
   }
 
-  const phases = computePhases(totalWeeks, input.race.distance)
+  const phases = computePhases(totalWeeks, input.race.distance, input.weeklyMileageRange)
 
   // Compute pace zones from goal time; fall back to estimate if no goal time
   let paceZones = input.goalTime

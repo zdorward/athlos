@@ -24,27 +24,28 @@ Two bugs in the training plan generator:
 ### Solution
 
 **`apps/web/app/api/generate-plan/route.ts`**
-- Change `totalWeeks = weeksBetween(startDate, raceDate) + 1`
-- Pass `raceDateISO: input.race.date` in the `SchedulerInput`
+- Change `totalWeeks = weeksBetween(startDate, raceDate) + 1`. This assignment must happen before `computePhases` and `scheduleWorkouts` are called — both must receive the updated `totalWeeks` so the phase boundaries and volume progression cover the race week.
+- Pass `raceDateISO: input.race.date` in the `SchedulerInput`.
+- Add minimum guard: `totalWeeks = Math.max(5, weeksBetween(startDate, raceDate) + 1)` to ensure there are enough weeks for `computePhases` to allocate valid phases (full/half marathon requires at least 3 taper + 3 peak + 1 other = 7, but 5 is a safe lower bound given existing validation that the race must be far enough out).
 
 **`packages/plan-engine/src/workout-scheduler.ts`**
-- Add `raceDateISO: string` to `SchedulerInput`
-- Detect the race week as `week === totalWeeks` (since `totalWeeks = weeksBetween + 1`, the race always falls in the last week)
+- Add `raceDateISO: string` to `SchedulerInput`.
+- Detect the race week as `week === totalWeeks` (since `totalWeeks = weeksBetween + 1`, the race always falls in the last scheduled week).
+- Derive `raceDayOfWeek` inside the race week loop by finding which entry in `weekDays` has `date === raceDateISO`. This is the date that must be excluded from easy run assignment.
 - In the race week:
-  - Skip the long run entirely (do not assign one to `longRunDay`). Without this, a long run falls 1–7 days before the race, which may be 1–2 days prior — not acceptable.
-  - Skip quality sessions (already 0 for taper weeks, but make it explicit)
-  - Distribute the remaining easy volume across all selected days except the race day
-  - Race day gets assigned a rest entry, which the API route's existing race injection replaces with the race entry
+  - Skip the long run entirely. Without this, a long run lands on `longRunDay`, which may be 1–2 days before the race.
+  - Skip quality sessions (explicit — do not rely solely on the taper phase config).
+  - Distribute easy volume across selected days **excluding race day and the day immediately before race day** (running the day before a marathon is not acceptable).
+  - Assign a `{ type: "rest" }` entry to race day. The API route's existing race injection (`days[raceDayIndex] = raceEntry`) will replace this rest with the race entry.
+  - Non-selected days and the day before race day get rest entries as normal.
 
-### Why this works naturally
+### Volume in race week
 
-With `totalWeeks + 1`, `computePhases` assigns the last week to the Taper phase (taperIndex 2), giving it 40% of peak weekly volume (~40km for a 100km/week plan). Distributed across 4–5 selected days as easy runs (~6–8km each), this is correct race week tapering per the science doc ("Taper W2+: easy only").
-
-The existing race entry injection in `route.ts` already replaces the race day workout with the race entry — no changes needed there.
+With `totalWeeks + 1`, `computePhases` allocates taper with `endWeek = totalWeeks` (3 weeks for full/half). The race week is the 4th taper week (taperIndex = 3). In `computeWeeklyVolumes`, the `else` branch in the taper logic (`pct = taperIndex === 0 ? 0.8 : taperIndex === 1 ? 0.6 : 0.4`) returns 0.4 for any `taperIndex >= 2`, including 3. So race week volume = 40% of peak, e.g. ~40km for a 100km/week plan. After excluding race day and the pre-race day, this distributes across 3–4 selected days as ~6–8km easy runs each — correct for race week.
 
 ### Impact on peakWeekKm
 
-`peakWeekKm = Math.max(...weeklyVolumes)` takes the maximum across all weeks. The race week volume (~40km) is lower than peak training weeks, so it does not affect this value.
+`peakWeekKm = Math.max(...weeklyVolumes)` is unaffected — race week volume (~40km) is below peak training weeks.
 
 ---
 
@@ -55,15 +56,17 @@ The existing race entry injection in `route.ts` already replaces the race day wo
 Two separate places:
 
 1. **`buildBridgeRuns`** only iterates `selectedDays`. Non-selected days in the bridge period are skipped entirely, leaving gaps in `days[]`.
-2. **`plan-calendar.tsx`** renders an empty `<div>` when `dayMap[dow]` is undefined — a leftover from streaming-era code. It should show a rest day cell.
+2. **`plan-calendar.tsx`** renders a bare `<div>` when `dayMap[dow]` is undefined — a leftover from streaming-era code that should show a rest day cell.
 
 ### Solution
 
 **`packages/plan-engine/src/bridge-runs.ts`**
-- For each day in the bridge period that is NOT in `selectedDays`, emit a `{ date, type: "rest" }` entry (same as the scheduler does for plan days).
+- For each day in the bridge period that is NOT in `selectedDays`, emit a `{ date, type: "rest" }` entry — same as the scheduler does for plan days.
 
 **`apps/web/app/plan/plan-calendar.tsx`**
-- Replace the empty placeholder `<div>` (rendered when `!entries?.length`) with a styled rest day cell showing "Rest Day" at `opacity-40`. This matches how assigned rest days are already styled.
+- Replace the empty `<div>` placeholder (rendered when `!entries?.length`) with a non-interactive `<div>` styled identically to assigned rest day cells: `opacity-40`, border, date number visible, "Rest Day" label. Do not use a `<button>` — there is no workout to select.
+- Retain this branch as a defensive fallback even after both upstream fixes are applied, since future changes could reintroduce gaps.
+- The comment `"// Day not in plan yet (still streaming)"` is vestigial — update it to `"// Defensive fallback: day missing from plan data"`.
 
 ---
 
@@ -71,10 +74,10 @@ Two separate places:
 
 | File | Change |
 |------|--------|
-| `apps/web/app/api/generate-plan/route.ts` | `totalWeeks + 1`; pass `raceDateISO` |
+| `apps/web/app/api/generate-plan/route.ts` | `totalWeeks + 1` with minimum guard; pass `raceDateISO` |
 | `packages/plan-engine/src/workout-scheduler.ts` | Add `raceDateISO` to input; race week logic |
 | `packages/plan-engine/src/bridge-runs.ts` | Emit rest for non-selected bridge days |
-| `apps/web/app/plan/plan-calendar.tsx` | Show "Rest Day" for missing days |
+| `apps/web/app/plan/plan-calendar.tsx` | Show "Rest Day" `<div>` for missing days |
 
 ---
 
@@ -88,8 +91,11 @@ Two separate places:
 
 ## Testing
 
-- Unit test: race week (last week) contains 3–5 easy runs + no long run + no quality sessions
-- Unit test: race day in race week gets a rest entry (replaced by race injection)
-- Unit test: bridge runs include rest entries for non-selected days
+- Unit test: race week (last week) contains no long run and no quality sessions
+- Unit test: race day and the day immediately before race day in race week both get `type: "rest"` entries
+- Unit test: easy runs in race week are distributed only across selected days excluding race day and pre-race day
+- Unit test: race week total running volume (excluding the race entry) ≈ `peakWeeklyKm * 0.4` (within 2km rounding tolerance)
+- Unit test: bridge runs include `type: "rest"` entries for non-selected days in bridge period
+- Unit test: race on Monday — Sunday (day before race) is not assigned an easy run
 - Integration: regenerate plan, verify last week has easy runs before race day
 - Visual: verify no blank cells in bridge week or race week

@@ -26,8 +26,6 @@ These rules govern when strength sessions may be placed. They apply across all p
   - Taper Week 1: 1×/week
   - Taper Week 2 onward and Race Week: 0
 
-> **Divergence from `modern-marathon-science.md`:** The parent doc states "reduce to 1x/week in taper" without a W1/W2 distinction, and does not mention Peak reduction. This document is the authoritative source; the parent doc should be updated to match.
-
 ---
 
 ## Why Strength Training Improves Marathon Performance

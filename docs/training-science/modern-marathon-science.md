@@ -121,7 +121,7 @@ Among the best-supported performance claims in modern running research:
 
 ### Scheduling
 
-- 2×/week resistance training on easy run days (after the run; not adjacent to long run or quality sessions)
+- 2×/week resistance training on easy run days (after the run; not the day before the long run; not adjacent to quality sessions)
 - Reduce to 1×/week in Peak (session furthest from the long run)
 - 1×/week in Taper Week 1 only; 0 from Taper Week 2 onward
 - 0 in Race Week

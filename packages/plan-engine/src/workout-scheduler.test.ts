@@ -779,8 +779,7 @@ describe("scheduleWorkouts — race week", () => {
     const easyKm = days
       .filter(d => d.type === "easy")
       .reduce((s, d) => s + (d.distanceKm ?? 0), 0)
-    expect(easyKm).toBeGreaterThan(18)
-    expect(easyKm).toBeLessThanOrEqual(20)
+    expect(easyKm).toBeCloseTo(19.5, 1)
   })
 
   it("race week easy runs are short jogs (≤ 7 km each)", () => {

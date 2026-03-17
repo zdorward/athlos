@@ -51,7 +51,7 @@ const slot = localIndex < Math.ceil(buildLength * 0.6)
 | 21-week | 5 wks | 2 wks (W11–12, W12=recovery) | 3 wks (W11–13) | 1 → 2 |
 | 24-week | 6 wks | 3 wks (W13–15) | 4 wks (W13–16, W16=recovery) | 3 → 3 |
 
-20-week and 24-week plans are unaffected — their recovery weeks already fell outside the old 50% boundary. The fix only changes behavior for plans where a recovery week was the last early-Build week.
+For 20-week and 24-week plans the early/late boundary shifts from 3 to 4 weeks, but the interval count stays at 3 because the newly included 4th week is a recovery week in both cases (W12 for 20-week, W16 for 24-week). The fix only increases interval session counts for plan lengths where a recovery week was consuming the last productive early-Build week (16, 18, 21-week).
 
 ### MP volume tradeoff
 
@@ -120,3 +120,4 @@ When `distanceKm` is undefined (fallback):
 | `packages/plan-engine/src/workout-scheduler.ts` | Change `Math.floor(buildLength / 2)` to `Math.ceil(buildLength * 0.6)` in `getQualityConfig` |
 | `packages/plan-engine/src/workout-scheduler.test.ts` | Update/add tests verifying interval session counts for 16, 18, and 21-week plans; update existing "Build early half" and "Build second half" test comments that reference the old `Math.floor(buildLength / 2)` formula |
 | `apps/web/app/plan/workout-utils.ts` | Update `getWorkoutNote` for `"intervals"` to compute and include rep count, rep distance, and target pace |
+| `apps/web/app/plan/workout-utils.test.ts` | Create new test file; add tests for the updated `getWorkoutNote` intervals case covering all three branches (distanceKm + targetPace defined, distanceKm only, distanceKm undefined) |

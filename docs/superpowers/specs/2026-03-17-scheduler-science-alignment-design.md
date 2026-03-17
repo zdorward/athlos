@@ -25,23 +25,23 @@ Replace the imperative switch with a declarative `PHASE_CONFIG` constant:
 
 ```ts
 const PHASE_CONFIG = {
-  "General Fitness": { sessions: 0, types: [] },
-  "Base":            { sessions: 1, types: ["tempo"] },
+  "General Fitness": { normal: { sessions: 0, types: [] },    recovery: { sessions: 0, types: [] } },
+  "Base":            { normal: { sessions: 1, types: ["tempo"] }, recovery: { sessions: 1, types: ["tempo"] } },
   "Build":           {
-    early: { sessions: 2, types: ["tempo", "intervals"] },
-    late:  { sessions: 2, types: ["tempo", "mp"] },
+    early: { normal: { sessions: 2, types: ["tempo", "intervals"] }, recovery: { sessions: 1, types: ["tempo"] } },
+    late:  { normal: { sessions: 2, types: ["tempo", "mp"] },        recovery: { sessions: 1, types: ["tempo"] } },
   },
-  "Peak":            { sessions: 2, types: ["mp", "tempo"] },
+  "Peak":            { normal: { sessions: 2, types: ["mp", "tempo"] }, recovery: { sessions: 0, types: [] } },
   "Taper":           {
-    first: { sessions: 1, types: ["tempo"] },
-    rest:  { sessions: 0, types: [] },
+    first: { normal: { sessions: 1, types: ["tempo"] }, recovery: { sessions: 0, types: [] } },
+    rest:  { normal: { sessions: 0, types: [] },        recovery: { sessions: 0, types: [] } },
   },
 }
 ```
 
-**Build split:** Determined by the week's position within the Build phase. Weeks in the first half of Build are "early"; second half are "late". This implements the threshold-first, VO2max-as-sharpener, then MP-enters-late-Build arc from the science doc.
+**Recovery week detection:** A week is a recovery week when `weekNumber % 4 === 0` AND it is not the last pre-taper week. This matches the existing `computeWeeklyVolumes` logic exactly — no new detection mechanism is needed, just pass `isRecovery: boolean` from the volume computation through to the scheduler.
 
-**Recovery weeks:** Advanced runners (Athlos target) get 1 short quality session (tempo) on recovery weeks during Base and early/late Build. Recovery weeks in Peak and Taper get 0 quality sessions.
+**Build split:** Determined by the week's position within the Build phase. Weeks in the first half of Build (`localIndex < Math.ceil(buildLength / 2)`) are "early"; remainder are "late". For a 1-week Build (`buildLength === 1`), `localIndex === 0 < Math.ceil(1/2) === 1` always resolves to "early" — 2 sessions with tempo+intervals. This is a reasonable behavior for a short Build (still applies VO2max sharpening). If 2 quality sessions is too many for a 1-week Build with limited available days, the placement logic will simply schedule as many as fit.
 
 **Quality session ordering:** Within each phase, the first listed type is primary (higher priority for placement on the best available day).
 
@@ -113,9 +113,19 @@ When the selected mileage range's lower bound × 1.5 < the goal-implied peak wee
 
 > "Your goal time implies peak training weeks of ~{X} km — about {Y}× your current volume. Your plan will ramp gradually, but this is an ambitious build. Consider extending your plan start date for more ramp time."
 
-The user can proceed; this is advisory only.
+**Auto-advance interaction:** `StepWeeklyMileage` currently auto-advances 150ms after a selection (no confirm button). When the warning condition is met, this auto-advance behavior must be suppressed: instead of calling `onNext` after the timeout, render the inline warning and a "Continue" button that the user must tap to proceed. When there is no warning, the existing auto-advance behavior is preserved. This is the only change to the component's interaction model.
 
-**Computation:** `peakWeeklyKm` is derived from `computeGoalPeakMileage(distance, goalMinutes)`. The warning triggers when `startingVol * 1.5 < peakWeeklyKm`.
+**Computation:**
+
+`startingVol` is the lower bound of the selected mileage range, matching the values in `MILEAGE_RANGE_LOW` in `route.ts`:
+- `"under-40"` → 30 km
+- `"40-60"` → 40 km
+- `"60-80"` → 60 km
+- `"80-plus"` → 80 km
+
+`peakWeeklyKm` is derived from `computeGoalPeakMileage(distance, goalMinutes).high`. The `.high` value is used because it represents the upper end of the recommended peak volume for that goal time — the worst-case ramp scenario. If `computeGoalPeakMileage` returns `null` (no goal time set), the warning is not shown.
+
+The warning triggers when `peakWeeklyKm > startingVol * 1.5`.
 
 ### Files affected
 
@@ -135,7 +145,7 @@ The user can proceed; this is advisory only.
 | `apps/web/components/onboarding/types.ts` | Add `mileageConsistency` field to `OnboardingData` |
 | `apps/web/components/onboarding/steps/step-mileage-consistency.tsx` | New step component |
 | `apps/web/components/onboarding/steps/step-weekly-mileage.tsx` | Add inline gap warning |
-| `apps/web/components/onboarding/onboarding-flow.tsx` | Insert `StepMileageConsistency` step |
+| `apps/web/components/onboarding/onboarding-flow.tsx` | Insert `StepMileageConsistency` step; add `"mileageConsistency"` entry to `STEP_LABELS` |
 | `apps/web/app/plan/` display components | Handle `"progression"` WorkoutType in labels/descriptions |
 
 ---

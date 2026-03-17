@@ -283,7 +283,10 @@ describe("computePhases — 29 week full marathon: GF fills gap", () => {
   it("80-plus: GF cap does not bite at 29 weeks — same layout as under-40", () => {
     const phases = computePhases(29, "full", "80-plus")
     expect(phases[0]).toEqual({ name: "General Fitness", startWeek: 1, endWeek: 4 })
+    expect(phases[1]).toEqual({ name: "Base", startWeek: 5, endWeek: 13 })
+    expect(phases[2]).toEqual({ name: "Build", startWeek: 14, endWeek: 22 })
     expect(phases[3]).toEqual({ name: "Peak", startWeek: 23, endWeek: 26 })
+    expect(phases[4]).toEqual({ name: "Taper", startWeek: 27, endWeek: 29 })
   })
 })
 

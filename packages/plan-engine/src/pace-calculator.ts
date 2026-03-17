@@ -111,7 +111,7 @@ function getPeakMin(distance: string): number {
   return 4  // full, ultra, unknown
 }
 
-const GF_CAP: Record<string, number> = {
+const GF_CAP: Record<WeeklyMileageRange, number> = {
   "under-40": 12,
   "40-60":    10,
   "60-80":     8,
@@ -164,7 +164,7 @@ export function computePhases(
     remaining -= base
     const build = Math.min(remaining, Math.max(1, Math.round(totalWeeks * 0.30)))
     remaining -= build
-    const gf    = Math.min(remaining, GF_CAP[weeklyMileageRange] ?? 10)
+    const gf    = Math.min(remaining, GF_CAP[weeklyMileageRange])
     remaining -= gf
     const peak  = peakMin + Math.max(0, remaining)
 

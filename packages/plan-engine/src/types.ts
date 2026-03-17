@@ -1,6 +1,7 @@
 export type WorkoutType =
   | "easy"
   | "long"
+  | "progression"
   | "medium-long"
   | "mp"
   | "tempo"

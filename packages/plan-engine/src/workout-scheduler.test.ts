@@ -1,7 +1,11 @@
 import { describe, it, expect } from "vitest"
 import { scheduleWorkouts } from "./workout-scheduler"
-import type { PhaseEntry } from "./types"
+import type { PhaseEntry, WorkoutType } from "./types"
 import type { PaceZones } from "./pace-calculator"
+
+// Type-level test: "progression" must be a valid WorkoutType
+const _progressionTypeCheck: WorkoutType = "progression"
+void _progressionTypeCheck
 
 const paceZones: PaceZones = {
   easy: "6:00–6:30/km",

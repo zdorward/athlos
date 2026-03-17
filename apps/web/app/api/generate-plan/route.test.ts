@@ -31,9 +31,13 @@ describe("POST /api/generate-plan", () => {
     expect(typeof body.totalKm).toBe("number")
     expect(typeof body.peakWeekKm).toBe("number")
     expect(body.phases).toBeInstanceOf(Array)
+    expect(body.totalWeeks).toBeGreaterThan(0)
+    expect(body.totalKm).toBeGreaterThan(0)
+    expect(body.peakWeekKm).toBeGreaterThan(0)
+    expect(body.phases.length).toBeGreaterThan(0)
   })
 
-  it("days contain only valid WorkoutTypes", () => {
+  it("days contain only valid WorkoutTypes", async () => {
     const VALID_TYPES = new Set([
       "easy",
       "long",
@@ -45,11 +49,10 @@ describe("POST /api/generate-plan", () => {
       "race",
       "strength",
     ])
-    return POST(makeRequest(validInput)).then(async (res) => {
-      const body = await res.json()
-      body.days.forEach((d: { type: string }) => {
-        expect(VALID_TYPES.has(d.type)).toBe(true)
-      })
+    const res = await POST(makeRequest(validInput))
+    const body = await res.json()
+    body.days.forEach((d: { type: string }) => {
+      expect(VALID_TYPES.has(d.type)).toBe(true)
     })
   })
 
@@ -73,6 +76,7 @@ describe("POST /api/generate-plan", () => {
     expect(res.status).toBe(400)
   })
 
+  // "80-plus" requires >=80 km/week; a 6h marathon goal time implies ~45 km/week peak → 400
   it("returns 400 when weeklyMileageRange lower bound exceeds peakWeeklyKm", async () => {
     const res = await POST(
       makeRequest({

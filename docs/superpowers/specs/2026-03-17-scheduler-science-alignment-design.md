@@ -15,8 +15,9 @@ Align the training plan scheduler with modern marathon science as documented in 
 
 The current `qualityCountAndTypes` function in `workout-scheduler.ts` uses an imperative switch/case that does not correctly implement the evidence-based periodization arc:
 
-- Early Build should have **tempo + intervals** (VO2max as sharpener) but currently assigns tempo only
-- Build/Base recovery weeks have **no quality session** but science supports 1 short session for advanced runners
+- Early Build assigns **tempo only** (current code: `localIndex % 2 === 0 ? ["intervals"] : ["tempo"]` — alternating, not cumulative) but should be **tempo + intervals together** (VO2max as sharpener)
+- Base always assigns 1 quality session regardless of whether it's a recovery week; recovery week policy should be explicit but Base behavior coincidentally aligns with science
+- Build recovery weeks have no explicit handling — the scheduler assigns sessions based on phase only, ignoring the recovery week signal entirely
 - Peak correctly prioritizes MP but the code path is fragile and not clearly grounded in the phase config
 - Recovery weeks in Peak should have 1 short tempo session (not 0) — science doc explicitly states "0 in taper recovery, 1 short in Base/Build recovery"; Peak is adjacent to Build, not Taper
 
@@ -46,7 +47,7 @@ const PHASE_CONFIG = {
 const isRecovery = weekNumber % 4 === 0 && weekNumber !== preTaperWeeks
 ```
 
-where `preTaperWeeks` is computed the same way as in `computeWeeklyVolumes`: `taperPhase ? taperPhase.startWeek - 1 : totalWeeks`.
+where `preTaperWeeks` is computed the same way as in `computeWeeklyVolumes`: `taperPhase ? taperPhase.startWeek - 1 : totalWeeks`. Note: `preTaperWeeks` is both the *count* of pre-taper weeks and the *number* of the last pre-taper week (1-indexed), because `startWeek - 1` happens to equal both. The comparison `weekNumber !== preTaperWeeks` prevents the peak week from being treated as a recovery week even if it falls on a multiple of 4.
 
 **PHASE_CONFIG lookup path:** The lookup is always two steps: (1) resolve any sub-key (`early`/`late` for Build, `first`/`rest` for Taper), then (2) resolve `normal` or `recovery`. For non-split phases (`"General Fitness"`, `"Base"`, `"Peak"`), the config object has `normal` and `recovery` directly — no sub-key step is needed. Pseudocode:
 
@@ -59,7 +60,7 @@ const config = isRecovery ? phaseEntry.recovery : phaseEntry.normal
 
 **Build split:** Determined by the week's position within the Build phase. Weeks in the first half of Build (`localIndex < Math.floor(buildLength / 2)`) are "early"; remainder are "late". Use `Math.floor` — this biases toward "early" config for odd-length Builds (e.g., 7-week Build: weeks 0–2 are early, weeks 3–6 are late).
 
-**1-week Build edge case (behavioral change):** The existing code handles `buildLength === 1` as a special case returning `{ count: 1, types: ["tempo"] }`. The new `PHASE_CONFIG` replaces this: `Math.floor(1/2) === 0` means `localIndex === 0 >= 0` → "late" → `{ sessions: 2, types: ["tempo", "mp"] }`. This is a deliberate behavioral change: a single Build week immediately before Peak should focus on MP entry, not generic tempo. If the available running days cannot fit 2 quality sessions, the placement logic will schedule as many as fit.
+**1-week Build edge case (behavioral change):** The existing code handles `buildLength === 1` as a special case returning `{ count: 1, types: ["tempo"] }`. The new `PHASE_CONFIG` replaces this: `localIndex < Math.floor(1/2)` evaluates to `localIndex < 0`, which is never true, so all weeks fall into "late" → `{ sessions: 2, types: ["tempo", "mp"] }`. This is a deliberate behavioral change: a single Build week immediately before Peak should focus on MP entry, not generic tempo. If the available running days cannot fit 2 quality sessions, the placement logic will schedule as many as fit.
 
 **Quality session ordering:** Within each phase, the first listed type is primary (higher priority for placement on the best available day).
 
@@ -96,7 +97,7 @@ Currently, all long runs are scheduled as generic `"long"` type. Runners have no
 ### Implementation Notes
 
 - `WorkoutType` union in `packages/plan-engine/src/types.ts` adds `"progression"`
-- `scheduleWorkouts` in `workout-scheduler.ts` tracks `longRunLocalIndex` per phase and applies the rule
+- `scheduleWorkouts` in `workout-scheduler.ts` tracks `longRunLocalIndex` **per phase** — the counter resets to 0 at the start of each new phase. When the phase name changes during the week loop, reset `longRunLocalIndex = 0`. Apply the progression rule using this phase-local count.
 - Plan display components (`PlanCalendar`, `PlanFeed`, day detail) handle `"progression"` type with appropriate label and description
 
 ---
@@ -125,6 +126,8 @@ Options:
 
 This is stored as `mileageConsistency: "lt-4w" | "4-12w" | "3-6m" | "6m-plus"` in `OnboardingData`. It is metadata only for now — future adaptive logic can use it to adjust ramp rate or flag high-risk plans.
 
+**`StepMileageConsistency` UX:** Auto-advances on selection (same behavior as all other option-list steps — 150ms delay then `onNext`). No confirm button needed. The component receives `Pick<StepProps, "formData" | "onNext">`. Heading: "How long have you been training at this weekly mileage?" (no subheading). `STEP_LABELS` entry in `onboarding-flow.tsx`: `"mileageConsistency": "Training history"`.
+
 **Inline mileage gap warning in `StepWeeklyMileage`**
 
 When the selected mileage range's lower bound × 1.5 < the goal-implied peak weekly km, show an inline warning (yellow/amber, not blocking):
@@ -146,7 +149,16 @@ const MILEAGE_RANGE_LOW_KM: Record<string, number> = {
 }
 ```
 
-`peakWeeklyKm` is derived from `computeGoalPeakMileage(distance, goalMinutes).high`. `computeGoalPeakMileage` is exported from `@workspace/plan-engine` (see `packages/plan-engine/src/index.ts`) — it is a pure function with no Node.js dependencies and is safe to import in a `"use client"` component. The `.high` value is used because it represents the upper end of the recommended peak volume — the worst-case ramp scenario. If `computeGoalPeakMileage` returns `null` (no goal time set), the warning is not shown.
+`peakWeeklyKm` is derived from `computeGoalPeakMileage(distance, goalMinutes).high`. Full signature (from `packages/plan-engine/src/pace-calculator.ts`):
+
+```ts
+function computeGoalPeakMileage(
+  distance: "5k" | "10k" | "half" | "full" | "ultra",
+  goalTotalMinutes: number,
+): { low: number; high: number } | null
+```
+
+Returns `null` when `goalTotalMinutes <= 0`. The function is exported from `@workspace/plan-engine` and is a pure calculation with no Node.js dependencies — safe to import in a `"use client"` component. Use `.high` because it represents the upper end of the recommended peak volume — the worst-case ramp scenario. If the return value is `null` (no goal time set), the warning is not shown.
 
 The warning triggers when `peakWeeklyKm > startingVol * 1.5`.
 

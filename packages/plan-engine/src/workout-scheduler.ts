@@ -152,6 +152,12 @@ function strengthCount(weekNumber: number, phase: string, phases: PhaseEntry[]):
   }
 }
 
+function getLongRunType(phase: string, localIndex: number): "long" | "progression" {
+  if (phase === "Build" && localIndex % 3 === 2) return "progression"
+  if (phase === "Peak"  && localIndex % 2 === 1) return "progression"
+  return "long"
+}
+
 function circularDist(a: number, b: number): number {
   const diff = Math.abs(a - b)
   return Math.min(diff, 7 - diff)
@@ -178,6 +184,8 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
   for (let week = 1; week <= totalWeeks; week++) {
     const weeklyKm = weeklyVolumes[week - 1]!
     const phase = phaseForWeek(week, phases)
+    const phaseEntry = phases.find(p => p.name === phase)
+    const localIndex = phaseEntry ? week - phaseEntry.startWeek : 0
     const weekOffset = (week - 1) * 7
 
     // Build date→dayKey map for this week
@@ -197,7 +205,7 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
 
     assigned.set(longRunEntry.date, [{
       date: longRunEntry.date,
-      type: "long",
+      type: getLongRunType(phase, localIndex),
       distanceKm: longRunKm,
       targetPace: paceZones.longRun,
     }])

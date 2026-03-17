@@ -543,3 +543,58 @@ describe("phase config — quality session types", () => {
     expect(taper23Quality).toHaveLength(0)
   })
 })
+
+describe("progression long runs", () => {
+  it("Build week 3 (localIndex 2) gets a progression run", () => {
+    // 6-week Build starting week 1; localIndex 2 → 2 % 3 === 2 → progression
+    // startDate "2026-06-01" (Mon); week 3 Sat = offset 19 = "2026-06-20"
+    const phases: PhaseEntry[] = [{ name: "Build", startWeek: 1, endWeek: 6 }]
+    const days = scheduleWorkouts(makeInput(phases, 6))
+    const thirdSat = days.find(d => d.date === "2026-06-20") // week 3 Saturday
+    expect(thirdSat?.type).toBe("progression")
+  })
+
+  it("Build weeks 1 and 2 get regular long runs", () => {
+    // Week 1 (localIndex 0): 0 % 3 = 0 ≠ 2 → long
+    // Week 2 (localIndex 1): 1 % 3 = 1 ≠ 2 → long
+    const phases: PhaseEntry[] = [{ name: "Build", startWeek: 1, endWeek: 6 }]
+    const days = scheduleWorkouts(makeInput(phases, 6))
+    const sat1 = days.find(d => d.date === "2026-06-06") // week 1 Sat
+    const sat2 = days.find(d => d.date === "2026-06-13") // week 2 Sat
+    expect(sat1?.type).toBe("long")
+    expect(sat2?.type).toBe("long")
+  })
+
+  it("Peak odd-indexed weeks get progression runs", () => {
+    // 4-week Peak; localIndex 1 and 3 → progression (% 2 === 1)
+    const phases: PhaseEntry[] = [{ name: "Peak", startWeek: 1, endWeek: 4 }]
+    const days = scheduleWorkouts(makeInput(phases, 4))
+    const sat2 = days.find(d => d.date === "2026-06-13") // week 2, localIndex 1
+    const sat4 = days.find(d => d.date === "2026-06-27") // week 4, localIndex 3
+    expect(sat2?.type).toBe("progression")
+    expect(sat4?.type).toBe("progression")
+  })
+
+  it("Peak even-indexed weeks get regular long runs", () => {
+    const phases: PhaseEntry[] = [{ name: "Peak", startWeek: 1, endWeek: 4 }]
+    const days = scheduleWorkouts(makeInput(phases, 4))
+    const sat1 = days.find(d => d.date === "2026-06-06") // week 1, localIndex 0
+    const sat3 = days.find(d => d.date === "2026-06-20") // week 3, localIndex 2
+    expect(sat1?.type).toBe("long")
+    expect(sat3?.type).toBe("long")
+  })
+
+  it("Base long runs are always type long", () => {
+    const phases: PhaseEntry[] = [{ name: "Base", startWeek: 1, endWeek: 6 }]
+    const days = scheduleWorkouts(makeInput(phases, 6))
+    const longRuns = days.filter(d => d.type === "long" || d.type === "progression")
+    expect(longRuns.every(d => d.type === "long")).toBe(true)
+  })
+
+  it("progression run has same pace as long run", () => {
+    const phases: PhaseEntry[] = [{ name: "Build", startWeek: 1, endWeek: 6 }]
+    const days = scheduleWorkouts(makeInput(phases, 6))
+    const progression = days.find(d => d.type === "progression")
+    expect(progression?.targetPace).toBe(paceZones.longRun)
+  })
+})

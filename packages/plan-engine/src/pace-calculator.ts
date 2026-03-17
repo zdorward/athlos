@@ -249,7 +249,7 @@ export function computeTrainingStructure(
   distance: string,
   selectedDaysCount: number,
   weeklyMileageRange: string,
-): { runDaysPerWeek: number; restDaysPerWeek: number; maxQualityPerWeek: number } {
+): { runDaysPerWeek: number; restDaysPerWeek: number; maxQualitySessions: number } {
   let run: number
   let rest: number
   let quality: number
@@ -301,7 +301,7 @@ export function computeTrainingStructure(
   run = Math.min(run, selectedDaysCount)
   // restDaysPerWeek is intentionally not adjusted: rest placement is the LLM's responsibility given the available day count
 
-  return { runDaysPerWeek: run, restDaysPerWeek: rest, maxQualityPerWeek: quality }
+  return { runDaysPerWeek: run, restDaysPerWeek: rest, maxQualitySessions: quality }
 }
 
 // ─── Long run targets ────────────────────────────────────────────────────────

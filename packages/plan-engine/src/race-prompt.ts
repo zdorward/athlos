@@ -310,7 +310,7 @@ export function buildPrompt(input: PlanGenerationInput): { system: string; user:
   lines.push("Prescribed training structure (Pfitzinger-based — treat as hard constraints):")
   lines.push(`  Running days per week: ${trainingStructure.runDaysPerWeek}`)
   lines.push(`  Rest days per week: ${trainingStructure.restDaysPerWeek} (place on the day that best aids recovery — typically before a quality session or after the long run; never designate the long run day as rest)`)
-  lines.push(`  Max quality sessions per week: ${trainingStructure.maxQualityPerWeek}`)
+  lines.push(`  Max quality sessions per week: ${trainingStructure.maxQualitySessions}`)
 
   // 5c. Long run targets
   lines.push("")

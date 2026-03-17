@@ -120,7 +120,7 @@ function getQualityConfig(
     return isRecovery ? slot.recovery : slot.normal
   }
 
-  const config = (PHASE_CONFIG as Record<string, { normal: PhaseSlot; recovery: PhaseSlot }>)[phase]
+  const config = (PHASE_CONFIG as unknown as Record<string, { normal: PhaseSlot; recovery: PhaseSlot }>)[phase]
     ?? PHASE_CONFIG["Base"]
   return isRecovery ? config.recovery : config.normal
 }

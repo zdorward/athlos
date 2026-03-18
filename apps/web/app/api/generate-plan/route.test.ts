@@ -108,3 +108,47 @@ describe("POST /api/generate-plan", () => {
     })
   })
 })
+
+describe("POST /api/generate-plan — bridge runs and planStartDate", () => {
+  it("returns planStartDate as a valid ISO date string", async () => {
+    const res = await POST(makeRequest(validInput))
+    const body = await res.json()
+    expect(typeof body.planStartDate).toBe("string")
+    expect(body.planStartDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
+
+  it("planStartDate is a Monday", async () => {
+    const res = await POST(makeRequest(validInput))
+    const body = await res.json()
+    const dow = new Date(body.planStartDate + "T00:00:00Z").getUTCDay()
+    expect(dow).toBe(1) // 1 = Monday
+  })
+
+  it("when today is provided, days before planStartDate are bridge days", async () => {
+    // today = 2026-03-18 (Wednesday); plan starts Monday 2026-03-24
+    const input = {
+      ...validInput,
+      today: "2026-03-18",
+      selectedDays: ["wed", "sat"],
+      longRunDay: "sat",
+    }
+    const res = await POST(makeRequest(input))
+    const body = await res.json()
+    const bridgeDays = body.days.filter((d: { date: string }) => d.date < body.planStartDate)
+    expect(bridgeDays.length).toBeGreaterThan(0)
+    // All dates before planStartDate are in the Wed–Sun gap
+    bridgeDays.forEach((d: { date: string }) => {
+      expect(d.date >= "2026-03-18").toBe(true)
+      expect(d.date < body.planStartDate).toBe(true)
+    })
+  })
+
+  it("when today equals planStartDate (Monday), no bridge days are prepended", async () => {
+    // today = 2026-03-23 (Monday) — plan also starts this Monday → no gap
+    const input = { ...validInput, today: "2026-03-23" }
+    const res = await POST(makeRequest(input))
+    const body = await res.json()
+    const bridgeDays = body.days.filter((d: { date: string }) => d.date < body.planStartDate)
+    expect(bridgeDays.length).toBe(0)
+  })
+})

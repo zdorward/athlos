@@ -8,6 +8,7 @@ import {
   computeLongRunTargets,
   computeWeeklyVolumes,
   scheduleWorkouts,
+  buildBridgeRuns,
   firstMondayOnOrAfter,
 } from "@workspace/plan-engine"
 
@@ -160,5 +161,12 @@ export async function POST(req: NextRequest) {
   })
   const peakWeekKm = Math.round(Math.max(...weeklyVolumes))
 
-  return Response.json({ days, totalWeeks, totalKm, peakWeekKm, phases })
+  const planStartDate = days[0]?.date ?? startDate.toISOString().slice(0, 10)
+  const todayISO = input.today ?? new Date().toISOString().slice(0, 10)
+  const bridgeDays = buildBridgeRuns(input, days, new Date(todayISO + "T00:00:00Z"))
+  const finalDays = bridgeDays.length > 0
+    ? [...bridgeDays, ...days].sort((a, b) => a.date.localeCompare(b.date))
+    : days
+
+  return Response.json({ days: finalDays, planStartDate, totalWeeks, totalKm, peakWeekKm, phases })
 }

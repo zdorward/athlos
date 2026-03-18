@@ -50,4 +50,5 @@ export interface PlanGenerationInput {
   units: "km" | "miles"
   startDate?: string
   weeklyMileageRange: WeeklyMileageRange
+  today?: string  // ISO date sent by client to avoid server-clock/timezone mismatch
 }

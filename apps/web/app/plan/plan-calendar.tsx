@@ -140,8 +140,8 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
             {prePlanDates.map((dateISO) => {
               const isToday = dateISO === todayISO
               const isPast = dateISO < todayISO
-              // Task 2 will fix this when the callback is rewritten for WorkoutDay[]
-              const bridgeDay = bridgeDayMap.get(dateISO) as WorkoutDay | undefined
+              // Task 2 will replace this entire callback with full multi-entry rendering
+              const bridgeDay = bridgeDayMap.get(dateISO)?.[0]
               const isRest = !bridgeDay || bridgeDay.type === "rest"
               const isSelected = selectedDay?.date === dateISO && selectedDay?.type === bridgeDay?.type
 

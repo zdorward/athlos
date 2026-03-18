@@ -331,7 +331,6 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                 const isRest = entries.every((d) => d.type === "rest")
                 const isSelected = selectedDay?.date === primary.date && selectedDay?.type === primary.type
                 const isFullyComplete = !isRest && entries.filter((e) => e.type !== "rest").every((e) => e.completed === true)
-                const isLongRun = !isRace && primary.type === "long"
                 const isToday = primary.date === todayISO
                 const distColor = getWorkoutColor(primary.type)
 
@@ -347,10 +346,6 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                         ? "bg-green-500/10 border-green-500/50"
                         : isFullyComplete
                         ? "bg-green-500/10 border-green-500/30"
-                        : isLongRun && isSelected
-                        ? "bg-muted border-primary/40"
-                        : isLongRun
-                        ? "bg-primary/[0.08] border-primary/40"
                         : isSelected
                         ? "bg-muted border-primary/40"
                         : "bg-card border-border hover:border-primary/25",

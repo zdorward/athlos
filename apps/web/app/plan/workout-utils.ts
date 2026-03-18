@@ -1,10 +1,9 @@
-import type { WorkoutType, WorkoutDay, PhaseEntry } from "@workspace/plan-engine"
+import type { WorkoutType, WorkoutDay, PhaseEntry, PlanGenerationInput } from "@workspace/plan-engine"
 
 export const WORKOUT_NAMES: Record<WorkoutType, string> = {
   easy:          "Easy Run",
   long:          "Long Run",
   progression:   "Progression Run",
-  "medium-long": "Medium-Long",
   mp:            "Race Pace",
   tempo:         "Tempo Run",
   intervals:     "Intervals",
@@ -20,7 +19,6 @@ export const WORKOUT_TEXT_CLASS: Record<WorkoutType, string> = {
   easy:          "text-muted-foreground",
   long:          "text-primary",
   progression:   "text-primary/70",
-  "medium-long": "text-primary/70",
   mp:            "",  // color applied via getWorkoutColor() (warm amber oklch)
   tempo:         "",
   intervals:     "",
@@ -69,7 +67,7 @@ export function groupDaysByWeek(days: WorkoutDay[]): WorkoutDay[][] {
 }
 
 export const RUN_TYPES = new Set<WorkoutType>([
-  "easy", "long", "progression", "medium-long", "mp", "tempo", "intervals", "race", "shakeout",
+  "easy", "long", "progression", "mp", "tempo", "intervals", "race", "shakeout",
 ])
 
 export function groupDaysByDate(days: WorkoutDay[]): Map<string, WorkoutDay[]> {
@@ -125,8 +123,6 @@ export function getWorkoutNote(day: WorkoutDay, units: "km" | "miles"): string {
       const mpKm = day.distanceKm * 0.25
       return `Last ${formatDistance(mpKm, units)} ${distanceUnit(units)} at marathon pace.`
     }
-    case "medium-long":
-      return "Comfortably aerobic — slightly harder than easy."
     case "mp":
       return "Marathon pace throughout — race-specific effort."
     case "tempo":
@@ -157,7 +153,6 @@ export function getHRZone(type: WorkoutType): string {
     case "easy":        return "Zone 1"
     case "long":        return "Zone 1"
     case "progression": return "Zone 1 / Zone 3 finish"
-    case "medium-long": return "Zone 1–2"
     case "mp":          return "Zone 3"
     case "tempo":       return "Zone 3–4"
     case "intervals":   return "Zone 4–5"
@@ -166,4 +161,11 @@ export function getHRZone(type: WorkoutType): string {
     case "race":        return "Zone 3"
     case "shakeout":    return "Zone 1"
   }
+}
+
+export function formatGoalTime(input: Pick<PlanGenerationInput, "goalTime">): string | undefined {
+  if (!input.goalTime) return undefined
+  const { hours, minutes, seconds } = input.goalTime
+  const base = `${hours}:${minutes.toString().padStart(2, "0")}`
+  return (seconds ?? 0) > 0 ? `${base}:${seconds!.toString().padStart(2, "0")}` : base
 }

@@ -4,7 +4,7 @@ import { useMemo } from "react"
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-type WorkoutType = "easy" | "tempo" | "long" | "strength" | "rest" | "medium-long" | "intervals"
+type WorkoutType = "easy" | "tempo" | "long" | "strength" | "rest" | "intervals"
 
 type WorkoutStyle = { color: string; bg?: string; border?: string }
 
@@ -14,7 +14,6 @@ const WORKOUT_STYLES: Record<WorkoutType, WorkoutStyle | null> = {
   long:           { color: "rgba(147,197,253,0.85)", bg: "rgba(80,130,255,0.07)", border: "rgba(100,160,255,0.2)" },
   strength:       { color: "oklch(0.65 0.15 300 / 0.85)" },
   rest:           null,
-  "medium-long":  { color: "rgba(120,200,255,0.80)" },
   intervals:      { color: "oklch(0.72 0.18 40 / 0.90)" },
 }
 
@@ -41,7 +40,7 @@ const WEEK_TEMPLATES: Array<{
       { type: "easy",         title: "Easy Run",     km: "10 km", desc: "Easy aerobic run." },
       { type: "strength",     title: "Strength Training", km: "",      desc: "Strength training." },
       { type: "easy",         title: "Easy Run",     km: "12 km", desc: "Easy aerobic run." },
-      { type: "medium-long",  title: "Medium-Long",  km: "16 km", desc: "16 km medium-long run." },
+      { type: "easy",         title: "Easy Run",     km: "16 km", desc: "16 km easy run." },
       { type: "easy",         title: "Easy Run",     km: "10 km", desc: "Easy run with strides." },
       { type: "rest",         title: "Rest Day",     km: "",      desc: "" },
       { type: "long",         title: "Long Run",     km: "24 km", desc: "24 km long run at easy pace." },
@@ -54,7 +53,7 @@ const WEEK_TEMPLATES: Array<{
       { type: "easy",         title: "Easy Run",     km: "12 km", desc: "Easy recovery run." },
       { type: "intervals",    title: "Intervals",    km: "14 km", desc: "6 × 1 km at 5K pace." },
       { type: "strength",     title: "Strength Training", km: "",      desc: "Strength training." },
-      { type: "medium-long",  title: "Medium-Long",  km: "18 km", desc: "18 km medium-long run." },
+      { type: "easy",         title: "Easy Run",     km: "18 km", desc: "18 km easy run." },
       { type: "easy",         title: "Easy Run",     km: "10 km", desc: "Easy recovery run." },
       { type: "easy",         title: "Easy Run",     km: "8 km",  desc: "Easy shakeout run." },
       { type: "long",         title: "Long Run",     km: "28 km", desc: "28 km long run — last 8 km at marathon pace." },

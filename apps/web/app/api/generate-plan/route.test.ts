@@ -42,7 +42,6 @@ describe("POST /api/generate-plan", () => {
       "easy",
       "long",
       "progression",
-      "medium-long",
       "mp",
       "tempo",
       "intervals",

@@ -39,7 +39,7 @@ const WEEK_TEMPLATES: Array<{
     km: "72 km",
     days: [
       { type: "easy",         title: "Easy Run",     km: "10 km", desc: "Easy aerobic run." },
-      { type: "strength",     title: "Strength",     km: "",      desc: "Strength training." },
+      { type: "strength",     title: "Strength Training", km: "",      desc: "Strength training." },
       { type: "easy",         title: "Easy Run",     km: "12 km", desc: "Easy aerobic run." },
       { type: "medium-long",  title: "Medium-Long",  km: "16 km", desc: "16 km medium-long run." },
       { type: "easy",         title: "Easy Run",     km: "10 km", desc: "Easy run with strides." },
@@ -53,7 +53,7 @@ const WEEK_TEMPLATES: Array<{
     days: [
       { type: "easy",         title: "Easy Run",     km: "12 km", desc: "Easy recovery run." },
       { type: "intervals",    title: "Intervals",    km: "14 km", desc: "6 × 1 km at 5K pace." },
-      { type: "strength",     title: "Strength",     km: "",      desc: "Strength training." },
+      { type: "strength",     title: "Strength Training", km: "",      desc: "Strength training." },
       { type: "medium-long",  title: "Medium-Long",  km: "18 km", desc: "18 km medium-long run." },
       { type: "easy",         title: "Easy Run",     km: "10 km", desc: "Easy recovery run." },
       { type: "easy",         title: "Easy Run",     km: "8 km",  desc: "Easy shakeout run." },

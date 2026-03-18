@@ -1,7 +1,7 @@
 # Calendar "Now" Week Polish
 
 **Date:** 2026-03-17
-**Status:** Draft
+**Status:** Approved
 
 ## Problem
 

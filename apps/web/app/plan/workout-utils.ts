@@ -35,7 +35,7 @@ export function getWorkoutColor(type: WorkoutType): string {
     // easy is intentionally neutral (muted) — too common to warrant a color
     long:        "oklch(0.72 0.17 150)",
     progression: "oklch(0.72 0.17 150)",
-    shakeout:    "oklch(0.72 0.17 150)",
+    // shakeout intentionally omitted — neutral like easy run
     // Zone 3 — Threshold (amber)
     mp:          "oklch(0.76 0.17 75)",
     tempo:       "oklch(0.76 0.17 75)",

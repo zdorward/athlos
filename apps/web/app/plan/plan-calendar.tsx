@@ -48,7 +48,7 @@ function WorkoutCellContent({
   const textClass = WORKOUT_TEXT_CLASS[primary.type]
   const hasStrength = secondaryEntries.some((e) => e.type === "strength")
   // When complete or easy run, use muted label — green cell communicates done, zone color not needed
-  const isEasy = primary.type === "easy"
+  const isEasy = primary.type === "easy" || primary.type === "shakeout"
   const labelMuted = isFullyComplete || isEasy
   return (
     <div>

@@ -36,48 +36,33 @@ function PhaseHeader({ label }: { label: string }) {
 function WorkoutCellContent({
   primary,
   secondaryEntries,
-  units,
+  isRace = false,
 }: {
   primary: WorkoutDay
   secondaryEntries: WorkoutDay[]
-  units: "km" | "miles"
+  isRace?: boolean
 }) {
   const color = getWorkoutColor(primary.type)
   const textClass = WORKOUT_TEXT_CLASS[primary.type]
-  const unit = distanceUnit(units)
+  const hasStrength = secondaryEntries.some((e) => e.type === "strength")
   return (
-    <>
+    <div className="absolute bottom-2 left-2 right-2">
       <p
-        className={`text-[10px] font-semibold leading-snug ${textClass}`}
+        className={`text-[10px] font-semibold leading-snug flex items-center gap-1 ${textClass}`}
         style={color ? { color } : undefined}
       >
-        {primary.distanceKm != null && (
-          <>
-            <span className="text-sm font-bold tabular-nums">
-              {formatDistance(primary.distanceKm, units)}
-            </span>
-            <span className="text-[9px] font-normal text-muted-foreground ml-0.5">
-              {unit}
-            </span>
-            {" · "}
-          </>
-        )}
+        {isRace && <Star className="h-[9px] w-[9px] fill-current shrink-0" />}
         {WORKOUT_NAMES[primary.type]}
       </p>
-      {secondaryEntries.map((entry) => {
-        const secColor = getWorkoutColor(entry.type)
-        const secTextClass = WORKOUT_TEXT_CLASS[entry.type]
-        return (
-          <p
-            key={`${entry.date}-${entry.type}`}
-            className={`text-[10px] mt-0.5 font-medium ${secTextClass}`}
-            style={secColor ? { color: secColor } : undefined}
-          >
-            {WORKOUT_NAMES[entry.type]}
-          </p>
-        )
-      })}
-    </>
+      {hasStrength && (
+        <p
+          className="text-[9px] font-medium mt-0.5"
+          style={{ color: "oklch(0.65 0.15 300)" }}
+        >
+          + Strength
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -243,7 +228,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                   {isToday && (
                     <div className="w-1 h-1 rounded-full bg-primary mt-1" />
                   )}
-                  <WorkoutCellContent primary={primary} secondaryEntries={secondaryEntries} units={units} />
+                  <WorkoutCellContent primary={primary} secondaryEntries={secondaryEntries} />
                 </button>
               )
             })}
@@ -354,7 +339,6 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                     <WorkoutCellContent
                       primary={primary}
                       secondaryEntries={entries.filter((e) => e.type !== primary.type && e.type !== "rest")}
-                      units={units}
                     />
                   </button>
                 )

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { getWorkoutNote, groupDaysByDate } from "./workout-utils"
+import { getWorkoutNote, groupDaysByDate, WORKOUT_NAMES } from "./workout-utils"
 import type { WorkoutDay } from "@workspace/plan-engine"
 
 describe("getWorkoutNote — intervals", () => {
@@ -68,5 +68,11 @@ describe("groupDaysByDate", () => {
 
   it("handles an empty array", () => {
     expect(groupDaysByDate([]).size).toBe(0)
+  })
+})
+
+describe("WORKOUT_NAMES", () => {
+  it('strength displays as "Strength Training"', () => {
+    expect(WORKOUT_NAMES["strength"]).toBe("Strength Training")
   })
 })

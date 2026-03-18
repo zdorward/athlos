@@ -8,7 +8,7 @@ export const WORKOUT_NAMES: Record<WorkoutType, string> = {
   mp:            "Race Pace",
   tempo:         "Tempo Run",
   intervals:     "Intervals",
-  strength:      "Strength",
+  strength:      "Strength Training",
   rest:          "Rest Day",
   race:          "Race Day",
   shakeout:      "Shakeout",

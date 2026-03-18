@@ -41,6 +41,7 @@ describe("POST /api/generate-plan", () => {
     const VALID_TYPES = new Set([
       "easy",
       "long",
+      "progression",
       "medium-long",
       "mp",
       "tempo",
@@ -48,6 +49,7 @@ describe("POST /api/generate-plan", () => {
       "rest",
       "race",
       "strength",
+      "shakeout",
     ])
     const res = await POST(makeRequest(validInput))
     const body = await res.json()

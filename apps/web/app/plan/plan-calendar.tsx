@@ -6,6 +6,7 @@ import type { WorkoutDay, WorkoutType, PhaseEntry } from "@workspace/plan-engine
 import { PlanDayDetail } from "./plan-day-detail"
 import {
   groupDaysByWeek,
+  groupDaysByDate,
   getPhaseLabel,
   getTaperWeeks,
   WORKOUT_NAMES,
@@ -82,11 +83,11 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
   const currentWeekMonday = getMondayOfWeek(todayISO)
   const showPrePlanWeek = planFirstMonday !== null && currentWeekMonday < planFirstMonday
   const prePlanDates = showPrePlanWeek ? getWeekDates(currentWeekMonday) : []
-  // Bridge days are pre-plan gap runs; build a lookup for the pre-plan row
-  const bridgeDayMap = new Map(
-    days
-      .filter(d => planFirstMonday && d.date < planFirstMonday)
-      .map(d => [d.date, d])
+  // First plan week's phase label — shown above the "Now" row
+  const firstPhase = totalWeeks > 0 ? getPhaseLabel(1, totalWeeks, taperWeeks, phases) : ""
+  // Bridge days grouped by date (supports multiple entries per day, e.g. run + strength)
+  const bridgeDayMap = groupDaysByDate(
+    days.filter(d => planFirstMonday && d.date < planFirstMonday)
   )
 
   if (weeks.length === 0) {
@@ -118,7 +119,19 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
         <div className="px-4 pb-4">
         {/* Pre-plan current week — shown when plan hasn't started yet */}
         {showPrePlanWeek && (
-          <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1">
+          <>
+            {firstPhase && (
+              <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1 mt-3">
+                <div />
+                <div className="col-span-7 flex items-center gap-3">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground whitespace-nowrap">
+                    {firstPhase}
+                  </span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+              </div>
+            )}
+            <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1">
             <div className="flex flex-col justify-center pr-2">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-subtle-foreground opacity-40">
                 Now
@@ -127,7 +140,8 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
             {prePlanDates.map((dateISO) => {
               const isToday = dateISO === todayISO
               const isPast = dateISO < todayISO
-              const bridgeDay = bridgeDayMap.get(dateISO)
+              // Task 2 will fix this when the callback is rewritten for WorkoutDay[]
+              const bridgeDay = bridgeDayMap.get(dateISO) as WorkoutDay | undefined
               const isRest = !bridgeDay || bridgeDay.type === "rest"
               const isSelected = selectedDay?.date === dateISO && selectedDay?.type === bridgeDay?.type
 
@@ -186,7 +200,8 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                 </button>
               )
             })}
-          </div>
+            </div>
+          </>
         )}
         {weeks.map((weekDays, weekIdx) => {
           if (!weekDays) return null

@@ -3,7 +3,7 @@ import type { WorkoutType, WorkoutDay, PhaseEntry, PlanGenerationInput } from "@
 export const WORKOUT_NAMES: Record<WorkoutType, string> = {
   easy:          "Easy Run",
   long:          "Long Run",
-  progression:   "Progression Run",
+  progression:   "MP Finish",
   mp:            "Race Pace",
   tempo:         "Tempo Run",
   intervals:     "Intervals",
@@ -16,26 +16,33 @@ export const WORKOUT_NAMES: Record<WorkoutType, string> = {
 // Tailwind class for text color. Use getWorkoutColor() for oklch values.
 // Types with an empty string here rely on getWorkoutColor() for their inline oklch style instead.
 export const WORKOUT_TEXT_CLASS: Record<WorkoutType, string> = {
-  easy:          "text-muted-foreground",
-  long:          "text-primary",
-  progression:   "text-primary/70",
-  mp:            "",  // color applied via getWorkoutColor() (warm amber oklch)
+  easy:          "",
+  long:          "",
+  progression:   "",
+  mp:            "",
   tempo:         "",
   intervals:     "",
   strength:      "",
   rest:          "text-subtle-foreground",
   race:          "text-primary",
-  shakeout:      "text-muted-foreground",
+  shakeout:      "",
 }
 
 // Inline color style for types that can't be expressed as Tailwind classes.
 export function getWorkoutColor(type: WorkoutType): string {
   const map: Partial<Record<WorkoutType, string>> = {
-    progression:   "oklch(0.72 0.12 220)",
-    mp:            "oklch(0.78 0.15 55)",   // warm amber — between easy and tempo
-    tempo:         "oklch(0.78 0.15 80)",
-    intervals:     "oklch(0.75 0.18 30)",
-    strength:      "oklch(0.65 0.15 300)",
+    // Zone 1 — Aerobic (green)
+    easy:        "oklch(0.72 0.17 150)",
+    long:        "oklch(0.72 0.17 150)",
+    progression: "oklch(0.72 0.17 150)",
+    shakeout:    "oklch(0.72 0.17 150)",
+    // Zone 3 — Threshold (amber)
+    mp:          "oklch(0.76 0.17 75)",
+    tempo:       "oklch(0.76 0.17 75)",
+    // Zone 4–5 — VO2max / Hard (red)
+    intervals:   "oklch(0.68 0.20 25)",
+    // Accessory (purple)
+    strength:    "oklch(0.70 0.14 285)",
   }
   return map[type] ?? ""
 }

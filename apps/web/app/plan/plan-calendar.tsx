@@ -13,6 +13,7 @@ import {
   getWorkoutColor,
   formatDistance,
   distanceUnit,
+  RUN_TYPES,
 } from "./workout-utils"
 
 const DAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -261,7 +262,6 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                 }
 
                 // Primary entry for selection: prefer run types over strength/rest
-                const RUN_TYPES = new Set(["easy", "long", "progression", "medium-long", "mp", "tempo", "intervals", "race", "shakeout"])
                 const primary = entries.find((d) => RUN_TYPES.has(d.type)) ?? entries[0]!
                 const isRace = entries.some((d) => d.type === "race")
                 const isRest = entries.every((d) => d.type === "rest")
@@ -299,33 +299,48 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                       <Star className="h-3 w-3 fill-primary text-primary mb-1" />
                     )}
 
-                    {entries.map((entry) => {
-                      // Don't show "Rest Day" label when other workouts are present on the same day
-                      if (entry.type === "rest" && entries.length > 1) return null
-                      const color = getWorkoutColor(entry.type)
-                      const textClass = WORKOUT_TEXT_CLASS[entry.type]
-                      return (
-                        <div key={entry.type}>
-                          {entry.distanceKm != null && (
-                            <p
-                              className={`text-sm font-bold tabular-nums ${textClass}`}
-                              style={color ? { color } : undefined}
-                            >
-                              {formatDistance(entry.distanceKm, units)}
-                              <span className="text-[9px] font-normal ml-0.5 text-muted-foreground">
-                                {unit}
-                              </span>
-                            </p>
-                          )}
-                          <p
-                            className={`text-[10px] mt-0.5 ${textClass}`}
-                            style={color ? { color } : undefined}
-                          >
-                            {WORKOUT_NAMES[entry.type]}
-                          </p>
-                        </div>
+                    {(() => {
+                      const primaryEntry = entries.find((e) => RUN_TYPES.has(e.type)) ?? entries[0]!
+                      const secondaryEntries = entries.filter(
+                        (e) => e.type !== primaryEntry.type && e.type !== "rest"
                       )
-                    })}
+                      const primColor = getWorkoutColor(primaryEntry.type)
+                      const primTextClass = WORKOUT_TEXT_CLASS[primaryEntry.type]
+                      return (
+                        <>
+                          <p
+                            className={`text-[10px] font-semibold leading-snug ${primTextClass}`}
+                            style={primColor ? { color: primColor } : undefined}
+                          >
+                            {primaryEntry.distanceKm != null && (
+                              <>
+                                <span className="text-sm font-bold tabular-nums">
+                                  {formatDistance(primaryEntry.distanceKm, units)}
+                                </span>
+                                <span className="text-[9px] font-normal text-muted-foreground ml-0.5">
+                                  {unit}
+                                </span>
+                                {" · "}
+                              </>
+                            )}
+                            {WORKOUT_NAMES[primaryEntry.type]}
+                          </p>
+                          {secondaryEntries.map((entry) => {
+                            const secColor = getWorkoutColor(entry.type)
+                            const secTextClass = WORKOUT_TEXT_CLASS[entry.type]
+                            return (
+                              <p
+                                key={`${entry.date}-${entry.type}`}
+                                className={`text-[10px] mt-0.5 font-medium ${secTextClass}`}
+                                style={secColor ? { color: secColor } : undefined}
+                              >
+                                {WORKOUT_NAMES[entry.type]}
+                              </p>
+                            )
+                          })}
+                        </>
+                      )
+                    })()}
                   </button>
                 )
               })}

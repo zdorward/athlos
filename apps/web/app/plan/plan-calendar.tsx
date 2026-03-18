@@ -56,7 +56,7 @@ function WorkoutCellContent({
         className={`text-[10px] font-semibold leading-snug flex items-center gap-1 ${labelMuted ? "text-muted-foreground" : textClass}`}
         style={!labelMuted && color ? { color } : undefined}
       >
-        {isRace && <Star className="h-[9px] w-[9px] fill-current shrink-0" />}
+        {isRace && <Star className="h-2.25 w-2.25 fill-current shrink-0" />}
         {WORKOUT_NAMES[primary.type]}
       </p>
       {hasStrength && (
@@ -190,7 +190,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                   <div
                     key={dateISO}
                     className={[
-                      "min-h-[88px] flex flex-col justify-between rounded-md border bg-card border-border p-2",
+                      "min-h-22 flex flex-col justify-between rounded-md border bg-card border-border p-2",
                       isPast ? "opacity-25" : "opacity-40",
                     ].join(" ")}
                   >
@@ -223,7 +223,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                     )
                   }
                   className={[
-                    "min-h-[88px] flex flex-col justify-between rounded-md border p-2 text-left transition-colors cursor-pointer",
+                    "min-h-22 flex flex-col justify-between rounded-md border p-2 text-left transition-colors cursor-pointer",
                     isFullyComplete
                       ? ""
                       : isSelected
@@ -248,11 +248,11 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                         {format(parseISO(dateISO), "d")}
                       </span>
                       {isFullyComplete && (
-                        <Check className="h-[10px] w-[10px] text-green-500" />
+                        <Check className="h-2.5 w-2.5 text-green-500" />
                       )}
                     </div>
                     {primary.distanceKm != null && (
-                      <div className="flex items-baseline gap-[1px]">
+                      <div className="flex items-baseline gap-px">
                         <span
                           className={`text-base font-bold tabular-nums ${isFullyComplete ? "text-muted-foreground" : WORKOUT_TEXT_CLASS[primary.type]}`}
                           style={!isFullyComplete && distColor ? { color: distColor } : undefined}
@@ -331,7 +331,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                   return (
                     <div
                       key={dow}
-                      className="min-h-[88px] flex flex-col justify-between rounded-md border border-border bg-card p-2 opacity-40"
+                      className="min-h-22 flex flex-col justify-between rounded-md border border-border bg-card p-2 opacity-40"
                     >
                       <div className="flex items-start justify-between">
                         <span className="text-[10px] text-subtle-foreground">—</span>
@@ -355,7 +355,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                     key={dow}
                     onClick={() => onSelectedKeyChange(isSelected ? null : { date: primary.date, type: primary.type })}
                     className={[
-                      "min-h-[88px] flex flex-col justify-between rounded-md border p-2 text-left transition-colors cursor-pointer",
+                      "min-h-22 flex flex-col justify-between rounded-md border p-2 text-left transition-colors cursor-pointer",
                       isRace
                         ? "bg-primary/12 border-primary"
                         : isFullyComplete
@@ -382,11 +382,11 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                           {format(parseISO(primary.date), "d")}
                         </span>
                         {isFullyComplete && (
-                          <Check className="h-[10px] w-[10px] text-green-500" />
+                          <Check className="h-2.5 w-2.5 text-green-500" />
                         )}
                       </div>
                       {!isRest && primary.distanceKm != null && (
-                        <div className="flex items-baseline gap-[1px]">
+                        <div className="flex items-baseline gap-px">
                           <span
                             className={`text-base font-bold tabular-nums ${isFullyComplete ? "text-muted-foreground" : WORKOUT_TEXT_CLASS[primary.type]}`}
                             style={!isFullyComplete && distColor ? { color: distColor } : undefined}

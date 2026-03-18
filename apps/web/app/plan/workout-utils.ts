@@ -175,5 +175,6 @@ export function formatGoalTime(input: Pick<PlanGenerationInput, "goalTime">): st
   if (!input.goalTime) return undefined
   const { hours, minutes, seconds } = input.goalTime
   const base = `${hours}:${minutes.toString().padStart(2, "0")}`
-  return (seconds ?? 0) > 0 ? `${base}:${seconds!.toString().padStart(2, "0")}` : base
+  const s = seconds ?? 0
+  return s > 0 ? `${base}:${s.toString().padStart(2, "0")}` : base
 }

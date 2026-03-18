@@ -46,7 +46,7 @@ function WorkoutCellContent({
   const textClass = WORKOUT_TEXT_CLASS[primary.type]
   const hasStrength = secondaryEntries.some((e) => e.type === "strength")
   return (
-    <div className="absolute bottom-2 left-2 right-2">
+    <div>
       <p
         className={`text-[10px] font-semibold leading-snug flex items-center gap-1 ${textClass}`}
         style={color ? { color } : undefined}
@@ -185,7 +185,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                   <div
                     key={dateISO}
                     className={[
-                      "relative min-h-[88px] rounded-md border bg-card border-border p-2",
+                      "min-h-[88px] flex flex-col justify-between rounded-md border bg-card border-border p-2",
                       isPast ? "opacity-25" : "opacity-40",
                     ].join(" ")}
                   >
@@ -197,9 +197,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                       </span>
                     </div>
                     {!isPast && (
-                      <div className="absolute bottom-2 left-2 right-2">
-                        <p className="text-[10px] font-semibold text-subtle-foreground">{WORKOUT_NAMES["rest"]}</p>
-                      </div>
+                      <p className="text-[10px] font-semibold text-subtle-foreground">{WORKOUT_NAMES["rest"]}</p>
                     )}
                   </div>
                 )
@@ -219,7 +217,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                     )
                   }
                   className={[
-                    "relative min-h-[88px] rounded-md border p-2 text-left transition-colors cursor-pointer",
+                    "min-h-[88px] flex flex-col justify-between rounded-md border p-2 text-left transition-colors cursor-pointer",
                     isSelected
                       ? "bg-muted border-primary/40"
                       : "bg-card border-border hover:border-primary/25",
@@ -227,7 +225,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                   ].join(" ")}
                 >
                   {/* Top row: date + check left, distance right */}
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between">
                     <div className="flex items-center gap-1">
                       <span
                         className={`text-[10px] font-medium ${isToday ? "text-primary" : "text-subtle-foreground"}`}
@@ -317,14 +315,12 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                   return (
                     <div
                       key={dow}
-                      className="relative min-h-[88px] rounded-md border border-border bg-card p-2 opacity-40"
+                      className="min-h-[88px] flex flex-col justify-between rounded-md border border-border bg-card p-2 opacity-40"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-start justify-between">
                         <span className="text-[10px] text-subtle-foreground">—</span>
                       </div>
-                      <div className="absolute bottom-2 left-2 right-2">
-                        <p className="text-[10px] font-semibold text-subtle-foreground">{WORKOUT_NAMES["rest"]}</p>
-                      </div>
+                      <p className="text-[10px] font-semibold text-subtle-foreground">{WORKOUT_NAMES["rest"]}</p>
                     </div>
                   )
                 }
@@ -344,7 +340,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                     key={dow}
                     onClick={() => onSelectedKeyChange(isSelected ? null : { date: primary.date, type: primary.type })}
                     className={[
-                      "relative min-h-[88px] rounded-md border p-2 text-left transition-colors cursor-pointer",
+                      "min-h-[88px] flex flex-col justify-between rounded-md border p-2 text-left transition-colors cursor-pointer",
                       isRace
                         ? "bg-primary/12 border-primary"
                         : isFullyComplete && isSelected
@@ -362,7 +358,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                     ].join(" ")}
                   >
                     {/* Top row: date + check left, distance right */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-start justify-between">
                       <div className="flex items-center gap-1">
                         <span
                           className={`text-[10px] font-medium ${isToday ? "text-primary" : "text-subtle-foreground"}`}
@@ -388,9 +384,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
 
                     {/* Bottom zone */}
                     {isRest ? (
-                      <div className="absolute bottom-2 left-2 right-2">
-                        <p className="text-[10px] font-semibold text-subtle-foreground">{WORKOUT_NAMES["rest"]}</p>
-                      </div>
+                      <p className="text-[10px] font-semibold text-subtle-foreground">{WORKOUT_NAMES["rest"]}</p>
                     ) : (
                       <WorkoutCellContent
                         primary={primary}

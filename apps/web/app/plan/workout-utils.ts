@@ -43,6 +43,7 @@ export function getWorkoutColor(type: WorkoutType): string {
     intervals:   "oklch(0.68 0.20 25)",
     // Accessory (purple)
     strength:    "oklch(0.70 0.14 285)",
+    // rest and race intentionally omitted — rest is muted/uncolored, race uses the primary accent via WORKOUT_TEXT_CLASS
   }
   return map[type] ?? ""
 }

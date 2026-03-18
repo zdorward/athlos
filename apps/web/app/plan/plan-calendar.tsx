@@ -57,7 +57,7 @@ function WorkoutCellContent({
       {hasStrength && (
         <p
           className="text-[9px] font-medium mt-0.5"
-          style={{ color: "oklch(0.65 0.15 300)" }}
+          style={{ color: getWorkoutColor("strength") }}
         >
           + Strength
         </p>

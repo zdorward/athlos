@@ -7,15 +7,13 @@ export {
   type WeeklyMileageRange,
 } from "./types"
 export { buildBridgeRuns, firstMondayOnOrAfter } from "./bridge-runs"
+export { calculatePaceZones, calculateRawGoalPace, type PaceZones } from "./pace-calculator"
+export { computePhases } from "./phase-planner"
 export {
-  calculatePaceZones,
-  computePhases,
   computeGoalPeakMileage,
   computeTrainingStructure,
   computeLongRunTargets,
-  calculateRawGoalPace,
-  type PaceZones,
-} from "./pace-calculator"
+} from "./training-parameters"
 export { computeWeeklyVolumes, type VolumeProgressionInput } from "./volume-progression"
 export {
   scheduleWorkouts,

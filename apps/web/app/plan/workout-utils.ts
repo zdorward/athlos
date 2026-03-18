@@ -32,7 +32,7 @@ export const WORKOUT_TEXT_CLASS: Record<WorkoutType, string> = {
 export function getWorkoutColor(type: WorkoutType): string {
   const map: Partial<Record<WorkoutType, string>> = {
     // Zone 1 — Aerobic (green)
-    easy:        "oklch(0.72 0.17 150)",
+    // easy is intentionally neutral (muted) — too common to warrant a color
     long:        "oklch(0.72 0.17 150)",
     progression: "oklch(0.72 0.17 150)",
     shakeout:    "oklch(0.72 0.17 150)",

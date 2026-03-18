@@ -37,19 +37,24 @@ function WorkoutCellContent({
   primary,
   secondaryEntries,
   isRace = false,
+  isFullyComplete = false,
 }: {
   primary: WorkoutDay
   secondaryEntries: WorkoutDay[]
   isRace?: boolean
+  isFullyComplete?: boolean
 }) {
   const color = getWorkoutColor(primary.type)
   const textClass = WORKOUT_TEXT_CLASS[primary.type]
   const hasStrength = secondaryEntries.some((e) => e.type === "strength")
+  // When complete or easy run, use muted label — green cell communicates done, zone color not needed
+  const isEasy = primary.type === "easy"
+  const labelMuted = isFullyComplete || isEasy
   return (
     <div>
       <p
-        className={`text-[10px] font-semibold leading-snug flex items-center gap-1 ${textClass}`}
-        style={color ? { color } : undefined}
+        className={`text-[10px] font-semibold leading-snug flex items-center gap-1 ${labelMuted ? "text-muted-foreground" : textClass}`}
+        style={!labelMuted && color ? { color } : undefined}
       >
         {isRace && <Star className="h-[9px] w-[9px] fill-current shrink-0" />}
         {WORKOUT_NAMES[primary.type]}
@@ -219,15 +224,20 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                   }
                   className={[
                     "min-h-[88px] flex flex-col justify-between rounded-md border p-2 text-left transition-colors cursor-pointer",
-                    isFullyComplete && isSelected
-                      ? "bg-green-500/20 border-green-500/50"
-                      : isFullyComplete
-                      ? "bg-green-500/15 border-green-500/40"
+                    isFullyComplete
+                      ? ""
                       : isSelected
                       ? "bg-muted border-primary/40"
                       : "bg-card border-border hover:border-primary/25",
                     isPast ? "opacity-25" : "",
                   ].join(" ")}
+                  style={
+                    isFullyComplete && isSelected
+                      ? { backgroundColor: "oklch(0.22 0.05 150)", borderColor: "oklch(0.34 0.08 150)" }
+                      : isFullyComplete
+                      ? { backgroundColor: "oklch(0.19 0.03 150)", borderColor: "oklch(0.30 0.06 150)" }
+                      : undefined
+                  }
                 >
                   {/* Top row: date + check left, distance right */}
                   <div className="flex items-start justify-between">
@@ -244,8 +254,8 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                     {primary.distanceKm != null && (
                       <div className="flex items-baseline gap-[1px]">
                         <span
-                          className={`text-base font-bold tabular-nums ${WORKOUT_TEXT_CLASS[primary.type]}`}
-                          style={distColor ? { color: distColor } : undefined}
+                          className={`text-base font-bold tabular-nums ${isFullyComplete ? "text-muted-foreground" : WORKOUT_TEXT_CLASS[primary.type]}`}
+                          style={!isFullyComplete && distColor ? { color: distColor } : undefined}
                         >
                           {formatDistance(primary.distanceKm, units)}
                         </span>
@@ -258,6 +268,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                   <WorkoutCellContent
                     primary={primary}
                     secondaryEntries={secondaryEntries}
+                    isFullyComplete={isFullyComplete}
                   />
                 </button>
               )
@@ -347,15 +358,20 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                       "min-h-[88px] flex flex-col justify-between rounded-md border p-2 text-left transition-colors cursor-pointer",
                       isRace
                         ? "bg-primary/12 border-primary"
-                        : isFullyComplete && isSelected
-                        ? "bg-green-500/20 border-green-500/50"
                         : isFullyComplete
-                        ? "bg-green-500/15 border-green-500/40"
+                        ? ""
                         : isSelected
                         ? "bg-muted border-primary/40"
                         : "bg-card border-border hover:border-primary/25",
                       isRest ? "opacity-40" : "",
                     ].join(" ")}
+                    style={
+                      !isRace && isFullyComplete && isSelected
+                        ? { backgroundColor: "oklch(0.22 0.05 150)", borderColor: "oklch(0.34 0.08 150)" }
+                        : !isRace && isFullyComplete
+                        ? { backgroundColor: "oklch(0.19 0.03 150)", borderColor: "oklch(0.30 0.06 150)" }
+                        : undefined
+                    }
                   >
                     {/* Top row: date + check left, distance right */}
                     <div className="flex items-start justify-between">
@@ -372,8 +388,8 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                       {!isRest && primary.distanceKm != null && (
                         <div className="flex items-baseline gap-[1px]">
                           <span
-                            className={`text-base font-bold tabular-nums ${WORKOUT_TEXT_CLASS[primary.type]}`}
-                            style={distColor ? { color: distColor } : undefined}
+                            className={`text-base font-bold tabular-nums ${isFullyComplete ? "text-muted-foreground" : WORKOUT_TEXT_CLASS[primary.type]}`}
+                            style={!isFullyComplete && distColor ? { color: distColor } : undefined}
                           >
                             {formatDistance(primary.distanceKm, units)}
                           </span>
@@ -392,6 +408,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                           (e) => e.type !== primary.type && e.type !== "rest"
                         )}
                         isRace={isRace}
+                        isFullyComplete={isFullyComplete}
                       />
                     )}
                   </button>

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { buildBridgeRuns } from "@workspace/plan-engine"
 import type { PlanGenerationInput, TrainingPlan, WorkoutDay, WorkoutType, PhaseEntry } from "@workspace/plan-engine"
 import { authClient } from "@/lib/auth-client"
 import { PlanHeader } from "./plan-header"
@@ -20,8 +19,9 @@ interface SavedPlanSnapshot {
   totalWeeks: number
   totalKm: number
   peakWeekKm: number
-  phases?: PhaseEntry[]  // optional for backward compatibility with snapshots saved before this change
-  savedAt: number  // Date.now() timestamp for staleness check
+  phases?: PhaseEntry[]
+  planStartDate?: string  // optional for backward compat with snapshots saved before this change
+  savedAt: number
 }
 
 function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
@@ -153,6 +153,10 @@ export default function PlanPage() {
     generationStartedRef.current = true
     setInput(snapshot.input)
     setPhases(snapshot.phases ?? [])
+    const restoredPlanStartDate = snapshot.planStartDate
+      ?? snapshot.days.find(d => new Date(d.date + "T00:00:00Z").getUTCDay() === 1)?.date
+      ?? null
+    setPlanStartDate(restoredPlanStartDate)
     setPlan({
       days:       snapshot.days,
       totalWeeks: snapshot.totalWeeks,
@@ -228,7 +232,7 @@ export default function PlanPage() {
         response = await fetch("/api/generate-plan", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(mapped),
+          body: JSON.stringify({ ...mapped, today: new Date().toLocaleDateString("en-CA") }),
         })
       } catch {
         if (!cancelled) setStatus("error")
@@ -240,7 +244,7 @@ export default function PlanPage() {
         return
       }
 
-      let result: { days: WorkoutDay[]; totalWeeks: number; totalKm: number; peakWeekKm: number; phases: PhaseEntry[] }
+      let result: { days: WorkoutDay[]; totalWeeks: number; totalKm: number; peakWeekKm: number; phases: PhaseEntry[]; planStartDate: string }
       try {
         result = await response.json()
       } catch {
@@ -250,16 +254,11 @@ export default function PlanPage() {
 
       if (cancelled) return
 
-      const bridgeDays = buildBridgeRuns(mapped!, result.days, new Date())
-      const finalDays = bridgeDays.length > 0
-        ? [...bridgeDays, ...result.days].sort((a, b) => a.date.localeCompare(b.date))
-        : result.days
-
       totalWeeksRef.current = result.totalWeeks
       setPhases(result.phases ?? [])
-      setPlanStartDate(result.days[0]?.date ?? null)
+      setPlanStartDate(result.planStartDate)
       setPlan({
-        days: finalDays,
+        days: result.days,
         totalWeeks: result.totalWeeks,
         totalKm: result.totalKm,
         peakWeekKm: result.peakWeekKm,
@@ -314,12 +313,13 @@ export default function PlanPage() {
     if (!input) return
     const snapshot: SavedPlanSnapshot = {
       input,
-      days:       current.days       ?? [],
-      totalWeeks: current.totalWeeks ?? 0,
-      totalKm:    current.totalKm    ?? 0,
-      peakWeekKm: current.peakWeekKm ?? 0,
-      phases:     current.phases     ?? [],
-      savedAt:    Date.now(),
+      days:           current.days       ?? [],
+      totalWeeks:     current.totalWeeks ?? 0,
+      totalKm:        current.totalKm    ?? 0,
+      peakWeekKm:     current.peakWeekKm ?? 0,
+      phases:         current.phases     ?? [],
+      planStartDate:  planStartDate ?? undefined,
+      savedAt:        Date.now(),
     }
     localStorage.setItem(PLAN_KEY, JSON.stringify(snapshot))
   }

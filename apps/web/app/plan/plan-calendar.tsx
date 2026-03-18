@@ -21,7 +21,7 @@ const DAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 function PhaseHeader({ label }: { label: string }) {
   return (
-    <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1 mt-3">
+    <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-2 mt-5">
       <div />
       <div className="col-span-7 flex items-center gap-3">
         <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground whitespace-nowrap">

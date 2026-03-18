@@ -182,6 +182,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                     isSelected
                       ? "bg-muted border-primary/40"
                       : "bg-card border-border hover:border-primary/25",
+                    isPast ? "opacity-25" : "",
                   ].join(" ")}
                 >
                   <p className={`text-[10px] font-medium ${isToday ? "text-primary" : "text-subtle-foreground"}`}>

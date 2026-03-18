@@ -13,6 +13,8 @@ import {
   getWorkoutColor,
   formatDistance,
   distanceUnit,
+  groupDaysByDate,
+  RUN_TYPES,
 } from "./workout-utils"
 
 interface PlanFeedProps {
@@ -99,30 +101,36 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, planStartDate,
 
               {/* Day cards */}
               <div className="space-y-1.5">
-                {weekDays.map((day) => {
-                  const isRest = day.type === "rest"
-                  const isRace = day.type === "race"
-                  const isSelected = selectedKey?.date === day.date && selectedKey?.type === day.type
-                  const color = getWorkoutColor(day.type)
-                  const textClass = WORKOUT_TEXT_CLASS[day.type]
+                {Array.from(groupDaysByDate(weekDays).values()).map((entries) => {
+                  const primary = entries.find((e) => RUN_TYPES.has(e.type)) ?? entries[0]!
+                  const secondaryEntries = entries.filter((e) => e !== primary && e.type !== "rest")
+                  const isRest = entries.every((e) => e.type === "rest")
+                  const isRace = entries.some((e) => e.type === "race")
+                  const isSelected =
+                    selectedKey?.date === primary.date && selectedKey?.type === primary.type
+                  const isComplete =
+                    !isRest && entries.filter((e) => e.type !== "rest").every((e) => e.completed === true)
+                  const color = getWorkoutColor(primary.type)
+                  const textClass = WORKOUT_TEXT_CLASS[primary.type]
 
                   const borderStyle = color
                     ? { borderLeftColor: color }
-                    : day.type === "long" || day.type === "race"
+                    : primary.type === "long" || primary.type === "race"
                     ? { borderLeftColor: "var(--primary)" }
-                    : day.type === "rest"
+                    : primary.type === "rest"
                     ? { borderLeftColor: "var(--subtle-foreground)" }
                     : { borderLeftColor: "var(--muted-foreground)" }
 
-                  const isComplete = !isRest && day.completed === true
                   const effectiveBorderStyle = isComplete
                     ? { borderLeftColor: "#22c55e" }
                     : borderStyle
 
                   return (
                     <button
-                      key={`${day.date}-${day.type}`}
-                      onClick={() => onSelectedKeyChange(isSelected ? null : { date: day.date, type: day.type })}
+                      key={`${primary.date}-${primary.type}`}
+                      onClick={() =>
+                        onSelectedKeyChange(isSelected ? null : { date: primary.date, type: primary.type })
+                      }
                       className={[
                         "w-full rounded-lg border border-l-4 p-3 text-left transition-colors cursor-pointer",
                         isRace
@@ -140,10 +148,10 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, planStartDate,
                         {/* Date */}
                         <div className="flex flex-col items-center w-10 shrink-0">
                           <p className="text-lg font-bold tabular-nums leading-none">
-                            {format(parseISO(day.date), "d")}
+                            {format(parseISO(primary.date), "d")}
                           </p>
                           <p className="text-[9px] font-semibold uppercase tracking-widest text-subtle-foreground">
-                            {format(parseISO(day.date), "EEE")}
+                            {format(parseISO(primary.date), "EEE")}
                           </p>
                         </div>
 
@@ -155,18 +163,35 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, planStartDate,
                           >
                             {isRace && <Star className="h-3.5 w-3.5 fill-primary text-primary" />}
                             {isComplete && <Check className="h-4 w-4 text-green-600" />}
-                            {WORKOUT_NAMES[day.type]}
+                            {WORKOUT_NAMES[primary.type]}
                           </p>
+                          {secondaryEntries.length > 0 && (
+                            <div className="mt-1.5 pt-1.5 border-t border-border/[0.06]">
+                              {secondaryEntries.map((entry) => {
+                                const secColor = getWorkoutColor(entry.type)
+                                const secTextClass = WORKOUT_TEXT_CLASS[entry.type]
+                                return (
+                                  <p
+                                    key={entry.type}
+                                    className={`text-xs font-medium ${secTextClass}`}
+                                    style={secColor ? { color: secColor } : undefined}
+                                  >
+                                    {WORKOUT_NAMES[entry.type]}
+                                  </p>
+                                )
+                              })}
+                            </div>
+                          )}
                         </div>
 
                         {/* Distance */}
-                        {day.distanceKm != null && (
+                        {primary.distanceKm != null && (
                           <div className="text-right shrink-0">
                             <p
                               className={`text-lg font-bold tabular-nums ${textClass}`}
                               style={color ? { color } : undefined}
                             >
-                              {formatDistance(day.distanceKm, units)}
+                              {formatDistance(primary.distanceKm, units)}
                             </p>
                             <p className="text-[10px] text-muted-foreground">{unit}</p>
                           </div>

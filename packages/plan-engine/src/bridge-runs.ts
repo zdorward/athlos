@@ -105,5 +105,20 @@ export function buildBridgeRuns(
     cursor.setUTCDate(cursor.getUTCDate() + 1)
   }
 
+  // Add strength training on easy-run days (2 per week, furthest from long run, non-consecutive)
+  const easyEntries = results.filter(r => r.type === "easy")
+  if (easyEntries.length > 0) {
+    const circDist = (a: number, b: number) => { const d = Math.abs(a - b); return Math.min(d, 7 - d) }
+    const withDow = easyEntries.map(r => ({ date: r.date, dow: new Date(r.date + "T00:00:00Z").getUTCDay() }))
+    const sorted = [...withDow].sort((a, b) => circDist(b.dow, longRunUTCDay) - circDist(a.dow, longRunUTCDay))
+    const chosen: Array<{ date: string; dow: number }> = []
+    for (const candidate of sorted) {
+      if (chosen.length >= 2) break
+      if (chosen.every(s => circDist(s.dow, candidate.dow) > 1)) chosen.push(candidate)
+    }
+    for (const { date } of chosen) results.push({ date, type: "strength" })
+    results.sort((a, b) => a.date.localeCompare(b.date))
+  }
+
   return results
 }

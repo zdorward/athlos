@@ -148,10 +148,8 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                   <div
                     key={dateISO}
                     className={[
-                      "min-h-[88px] rounded-md border p-2",
-                      isPast
-                        ? "bg-muted/10 border-border/20 opacity-25"
-                        : "bg-muted/30 border-border/40",
+                      "min-h-[88px] rounded-md border bg-card border-border p-2",
+                      isPast ? "opacity-25" : "opacity-40",
                     ].join(" ")}
                   >
                     <p className={`text-[10px] font-medium ${isToday ? "text-primary" : "text-subtle-foreground"}`}>

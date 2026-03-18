@@ -15,6 +15,7 @@ interface PlanHeaderProps {
   backHref?: string
   saveProps?: SaveProps
   onNewPlan?: () => void
+  variant?: "generation" | "saved"
 }
 
 export function PlanHeader({
@@ -27,6 +28,7 @@ export function PlanHeader({
   backHref = "/",
   saveProps,
   onNewPlan,
+  variant = "generation",
 }: PlanHeaderProps) {
   const totalDisplay = formatDistance(totalKm, units)
   const unit = distanceUnit(units)
@@ -36,6 +38,27 @@ export function PlanHeader({
     totalKm > 0 ? `${totalDisplay} ${unit}` : null,
     goalTimeLabel ? `Goal ${goalTimeLabel}` : null,
   ].filter(Boolean)
+
+  if (variant === "saved") {
+    return (
+      <div className="flex items-center justify-between px-6 py-5">
+        <div>
+          <h1 className="text-base font-semibold tracking-tight">{planName}</h1>
+          {metaParts.length > 0 && (
+            <p className="text-xs text-muted-foreground mt-0.5">{metaParts.join(" · ")}</p>
+          )}
+        </div>
+        {onNewPlan && (
+          <button
+            onClick={onNewPlan}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          >
+            New plan
+          </button>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="border-b border-border">

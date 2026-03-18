@@ -177,6 +177,7 @@ export default function PlanViewPage({ params }: PageProps) {
         goalTimeLabel={goalTimeLabel}
         backHref="/dashboard"
         onNewPlan={() => void handleStartNewPlan()}
+        variant="saved"
       />
 
       {/* Desktop: calendar */}

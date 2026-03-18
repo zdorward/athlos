@@ -221,6 +221,15 @@ export function DashboardClient({
           </Link>
         </div>
 
+        <div className="pt-4 text-center">
+          <Link
+            href="/settings"
+            className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+          >
+            Settings
+          </Link>
+        </div>
+
       </div>
 
     </main>

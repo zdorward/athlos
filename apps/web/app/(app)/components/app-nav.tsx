@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
-import { LayoutDashboard, CalendarDays, Settings, User } from "lucide-react"
+import { LayoutDashboard, CalendarDays, User } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
 import { Wordmark } from "@/components/wordmark"
 import {
@@ -32,7 +32,6 @@ export function AppNav({ user, planHref }: AppNavProps) {
   const tabs = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, activePrefix: "/dashboard" },
     { label: "Plan", href: planHref, icon: CalendarDays, activePrefix: "/plan" },
-    { label: "Settings", href: "/settings", icon: Settings, activePrefix: "/settings" },
   ]
 
   function isActive(prefix: string) {

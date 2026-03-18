@@ -300,22 +300,21 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                     )}
 
                     {(() => {
-                      const primaryEntry = entries.find((e) => RUN_TYPES.has(e.type)) ?? entries[0]!
                       const secondaryEntries = entries.filter(
-                        (e) => e.type !== primaryEntry.type && e.type !== "rest"
+                        (e) => e.type !== primary.type && e.type !== "rest"
                       )
-                      const primColor = getWorkoutColor(primaryEntry.type)
-                      const primTextClass = WORKOUT_TEXT_CLASS[primaryEntry.type]
+                      const primColor = getWorkoutColor(primary.type)
+                      const primTextClass = WORKOUT_TEXT_CLASS[primary.type]
                       return (
                         <>
                           <p
                             className={`text-[10px] font-semibold leading-snug ${primTextClass}`}
                             style={primColor ? { color: primColor } : undefined}
                           >
-                            {primaryEntry.distanceKm != null && (
+                            {primary.distanceKm != null && (
                               <>
                                 <span className="text-sm font-bold tabular-nums">
-                                  {formatDistance(primaryEntry.distanceKm, units)}
+                                  {formatDistance(primary.distanceKm, units)}
                                 </span>
                                 <span className="text-[9px] font-normal text-muted-foreground ml-0.5">
                                   {unit}
@@ -323,7 +322,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                                 {" · "}
                               </>
                             )}
-                            {WORKOUT_NAMES[primaryEntry.type]}
+                            {WORKOUT_NAMES[primary.type]}
                           </p>
                           {secondaryEntries.map((entry) => {
                             const secColor = getWorkoutColor(entry.type)

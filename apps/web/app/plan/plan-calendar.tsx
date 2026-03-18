@@ -206,6 +206,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
               const primary = entries.find(e => RUN_TYPES.has(e.type)) ?? entries[0]!
               const secondaryEntries = entries.filter(e => e.type !== primary.type && e.type !== "rest")
               const isSelected = selectedDay?.date === primary.date && selectedDay?.type === primary.type
+              const isFullyComplete = entries.filter(e => e.type !== "rest").every(e => e.completed === true)
               const distColor = getWorkoutColor(primary.type)
 
               return (
@@ -218,7 +219,11 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                   }
                   className={[
                     "min-h-[88px] flex flex-col justify-between rounded-md border p-2 text-left transition-colors cursor-pointer",
-                    isSelected
+                    isFullyComplete && isSelected
+                      ? "bg-green-500/20 border-green-500/50"
+                      : isFullyComplete
+                      ? "bg-green-500/15 border-green-500/40"
+                      : isSelected
                       ? "bg-muted border-primary/40"
                       : "bg-card border-border hover:border-primary/25",
                     isPast ? "opacity-25" : "",
@@ -232,7 +237,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                       >
                         {format(parseISO(dateISO), "d")}
                       </span>
-                      {primary.completed && (
+                      {isFullyComplete && (
                         <Check className="h-[10px] w-[10px] text-green-500" />
                       )}
                     </div>
@@ -343,9 +348,9 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                       isRace
                         ? "bg-primary/12 border-primary"
                         : isFullyComplete && isSelected
-                        ? "bg-green-500/10 border-green-500/50"
+                        ? "bg-green-500/20 border-green-500/50"
                         : isFullyComplete
-                        ? "bg-green-500/10 border-green-500/30"
+                        ? "bg-green-500/15 border-green-500/40"
                         : isSelected
                         ? "bg-muted border-primary/40"
                         : "bg-card border-border hover:border-primary/25",
@@ -401,7 +406,13 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
 
       {/* Detail side panel */}
       <div className="w-72 border-l border-border bg-card overflow-y-auto shrink-0">
-        <PlanDayDetail day={selectedDay} units={units} onToggleComplete={onToggleComplete} onSaveEdit={onSaveEdit} />
+        <PlanDayDetail
+          day={selectedDay}
+          secondaryDays={selectedKey ? days.filter(d => d.date === selectedKey.date && d.type !== selectedKey.type && d.type !== "rest") : undefined}
+          units={units}
+          onToggleComplete={onToggleComplete}
+          onSaveEdit={onSaveEdit}
+        />
       </div>
     </div>
   )

@@ -25,6 +25,7 @@ type EditForm = {
 
 interface PlanDayDetailProps {
   day: WorkoutDay | null
+  secondaryDays?: WorkoutDay[]
   units: "km" | "miles"
   onClose?: () => void
   onToggleComplete?: (date: string, type: WorkoutType, completed: boolean) => void
@@ -40,7 +41,7 @@ interface PlanDayDetailProps {
   ) => void
 }
 
-export function PlanDayDetail({ day, units, onClose, onToggleComplete, onSaveEdit }: PlanDayDetailProps) {
+export function PlanDayDetail({ day, secondaryDays, units, onClose, onToggleComplete, onSaveEdit }: PlanDayDetailProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [formState, setFormState] = useState<EditForm>({
     type: "easy",
@@ -309,6 +310,35 @@ export function PlanDayDetail({ day, units, onClose, onToggleComplete, onSaveEdi
           </button>
         )
       )}
+
+      {secondaryDays && secondaryDays.length > 0 && secondaryDays.map((secondary) => (
+        <div key={secondary.type} className="border-t border-border pt-4 space-y-3">
+          <h3
+            className="text-sm font-semibold"
+            style={{ color: getWorkoutColor(secondary.type) ?? undefined }}
+          >
+            {WORKOUT_NAMES[secondary.type]}
+          </h3>
+          {onToggleComplete && (
+            secondary.completed ? (
+              <button
+                onClick={() => onToggleComplete(secondary.date, secondary.type, false)}
+                className="flex items-center gap-1.5 text-sm font-semibold text-green-600 hover:opacity-50 transition-opacity cursor-pointer"
+              >
+                <Check className="h-4 w-4" />
+                Completed
+              </button>
+            ) : (
+              <button
+                onClick={() => onToggleComplete(secondary.date, secondary.type, true)}
+                className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                Mark as complete
+              </button>
+            )
+          )}
+        </div>
+      ))}
     </div>
   )
 }

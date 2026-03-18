@@ -8,6 +8,7 @@ import { PlanHeader } from "./plan-header"
 import { PlanCalendar } from "./plan-calendar"
 import { PlanFeed } from "./plan-feed"
 import { SignInSheet } from "./sign-in-sheet"
+import { formatGoalTime } from "./workout-utils"
 
 const SESSION_KEY = "athlos_onboarding"
 const PLAN_KEY = "athlos_plan"
@@ -68,12 +69,6 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
   return input
 }
 
-function goalTimeLabel(input: PlanGenerationInput): string | undefined {
-  if (!input.goalTime) return undefined
-  const { hours, minutes, seconds } = input.goalTime
-  const base = `${hours}:${minutes.toString().padStart(2, "0")}`
-  return (seconds ?? 0) > 0 ? `${base}:${seconds!.toString().padStart(2, "0")}` : base
-}
 
 function planName(input: PlanGenerationInput): string {
   if (input.goal === "race" && input.race) return input.race.name
@@ -360,7 +355,7 @@ export default function PlanPage() {
         totalKm={plan.totalKm ?? 0}
         units={input.units}
         status={status}
-        goalTimeLabel={goalTimeLabel(input)}
+        goalTimeLabel={formatGoalTime(input)}
         saveProps={saveProps}
       />
 

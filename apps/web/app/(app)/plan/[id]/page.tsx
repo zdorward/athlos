@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation"
 import { ChevronLeft } from "lucide-react"
 import Link from "next/link"
 import { authClient } from "@/lib/auth-client"
-import type { WorkoutDay, WorkoutType, PlanGenerationInput } from "@workspace/plan-engine"
+import type { WorkoutDay, WorkoutType, PlanGenerationInput, PhaseEntry } from "@workspace/plan-engine"
+import { computePhases } from "@workspace/plan-engine"
 import { PlanHeader } from "@/app/plan/plan-header"
+import { formatGoalTime } from "@/app/plan/workout-utils"
 import { PlanCalendar } from "@/app/plan/plan-calendar"
 import { PlanFeed } from "@/app/plan/plan-feed"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -32,6 +34,8 @@ export default function PlanViewPage({ params }: PageProps) {
 
   const [plan, setPlan] = useState<Plan | null | "not-found">(null)
   const [days, setDays] = useState<WorkoutDay[]>([])
+  const [phases, setPhases] = useState<PhaseEntry[]>([])
+  const [planStartDate, setPlanStartDate] = useState<string | undefined>(undefined)
   const [selectedKey, setSelectedKey] = useState<{ date: string; type: WorkoutType } | null>(null)
   const [fetching, setFetching] = useState(false)
 
@@ -51,6 +55,8 @@ export default function PlanViewPage({ params }: PageProps) {
         const data = (await res.json()) as { plan: Plan }
         setPlan(data.plan)
         setDays(data.plan.days)
+        setPhases(computePhases(data.plan.totalWeeks, data.plan.input.race?.distance ?? "full", data.plan.input.weeklyMileageRange))
+        setPlanStartDate(data.plan.days.find(d => new Date(d.date + "T00:00:00Z").getUTCDay() === 1)?.date)
       })
       .catch(() => setPlan("not-found"))
       .finally(() => setFetching(false))
@@ -84,6 +90,7 @@ export default function PlanViewPage({ params }: PageProps) {
     ?? plan.input.units
     ?? "km"
   const raceDistance = plan.input.race?.distance
+  const goalTimeLabel = formatGoalTime(plan.input)
 
   async function handleStartNewPlan() {
     if (typeof plan !== "object" || plan === null) return
@@ -167,6 +174,7 @@ export default function PlanViewPage({ params }: PageProps) {
         totalKm={Number(plan.totalKm)}
         units={units}
         status="complete"
+        goalTimeLabel={goalTimeLabel}
         backHref="/dashboard"
         onNewPlan={() => void handleStartNewPlan()}
       />
@@ -178,6 +186,8 @@ export default function PlanViewPage({ params }: PageProps) {
           units={units}
           totalWeeks={plan.totalWeeks}
           raceDistance={raceDistance as "half" | "full" | undefined}
+          phases={phases}
+          planStartDate={planStartDate}
           onToggleComplete={handleToggleComplete}
           onSaveEdit={handleSaveEdit}
           selectedKey={selectedKey}
@@ -192,6 +202,8 @@ export default function PlanViewPage({ params }: PageProps) {
           units={units}
           totalWeeks={plan.totalWeeks}
           raceDistance={raceDistance as "half" | "full" | undefined}
+          phases={phases}
+          planStartDate={planStartDate}
           onToggleComplete={handleToggleComplete}
           onSaveEdit={handleSaveEdit}
           selectedKey={selectedKey}

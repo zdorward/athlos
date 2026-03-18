@@ -39,8 +39,7 @@ export function PlanHeader({
 
   return (
     <div className="border-b border-border">
-      {/* Nav row */}
-      <div className="flex items-center justify-between px-4 py-3">
+      <div className="relative flex items-center justify-between px-4 py-6">
         <Link
           href={backHref}
           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -49,8 +48,16 @@ export function PlanHeader({
           Back
         </Link>
 
+        {/* Centered plan info — absolutely positioned so it doesn't shift with left/right content */}
+        <div className="absolute inset-x-0 flex flex-col items-center pointer-events-none">
+          <h1 className="text-base font-semibold tracking-tight">{planName}</h1>
+          {metaParts.length > 0 && (
+            <p className="text-xs text-muted-foreground mt-0.5">{metaParts.join(" · ")}</p>
+          )}
+        </div>
+
         <div className="flex items-center gap-3">
-{status === "error" && (
+          {status === "error" && (
             <p className="text-xs text-destructive">Generation failed — go back and try again.</p>
           )}
 
@@ -69,14 +76,6 @@ export function PlanHeader({
             </button>
           )}
         </div>
-      </div>
-
-      {/* Centered plan info */}
-      <div className="text-center px-4 pb-4 space-y-1">
-        <h1 className="text-xl font-semibold tracking-tight">{planName}</h1>
-        {metaParts.length > 0 && (
-          <p className="text-sm text-muted-foreground">{metaParts.join(" · ")}</p>
-        )}
       </div>
     </div>
   )

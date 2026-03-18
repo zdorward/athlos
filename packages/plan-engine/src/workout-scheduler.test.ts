@@ -809,7 +809,7 @@ describe("scheduleWorkouts — race week", () => {
     const days = scheduleWorkouts(raceInput)
     const preRaceDay = days.find(d => d.date === "2026-06-27")
     expect(preRaceDay?.type).toBe("shakeout")
-    expect(preRaceDay?.distanceKm).toBe(5)
+    expect(preRaceDay?.distanceKm).toBe(3)
     expect(preRaceDay?.targetPace).toBe(paceZones.easy)
   })
 
@@ -824,7 +824,7 @@ describe("scheduleWorkouts — race week", () => {
     })
     const preRaceDay = days.find(d => d.date === "2026-06-28")
     expect(preRaceDay?.type).toBe("shakeout")
-    expect(preRaceDay?.distanceKm).toBe(5)
+    expect(preRaceDay?.distanceKm).toBe(3)
   })
 
   it("selected days except race day and pre-race day get easy runs", () => {

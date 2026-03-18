@@ -215,7 +215,7 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
         assigned.set(preRaceDate, [{
           date: preRaceDate,
           type: "shakeout",
-          distanceKm: 5,
+          distanceKm: 3,
           targetPace: paceZones.easy,
         }])
       }

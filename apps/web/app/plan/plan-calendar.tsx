@@ -189,7 +189,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                       isPast ? "opacity-25" : "opacity-40",
                     ].join(" ")}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center">
                       <span
                         className={`text-[10px] font-medium ${isToday ? "text-primary" : "text-subtle-foreground"}`}
                       >
@@ -198,7 +198,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                     </div>
                     {!isPast && (
                       <div className="absolute bottom-2 left-2 right-2">
-                        <p className="text-[10px] font-semibold text-subtle-foreground">Rest Day</p>
+                        <p className="text-[10px] font-semibold text-subtle-foreground">{WORKOUT_NAMES["rest"]}</p>
                       </div>
                     )}
                   </div>
@@ -323,7 +323,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                         <span className="text-[10px] text-subtle-foreground">—</span>
                       </div>
                       <div className="absolute bottom-2 left-2 right-2">
-                        <p className="text-[10px] font-semibold text-subtle-foreground">Rest Day</p>
+                        <p className="text-[10px] font-semibold text-subtle-foreground">{WORKOUT_NAMES["rest"]}</p>
                       </div>
                     </div>
                   )
@@ -389,7 +389,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                     {/* Bottom zone */}
                     {isRest ? (
                       <div className="absolute bottom-2 left-2 right-2">
-                        <p className="text-[10px] font-semibold text-subtle-foreground">Rest Day</p>
+                        <p className="text-[10px] font-semibold text-subtle-foreground">{WORKOUT_NAMES["rest"]}</p>
                       </div>
                     ) : (
                       <WorkoutCellContent

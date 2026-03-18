@@ -67,12 +67,8 @@ export function buildBridgeRuns(
   // Fallback denominator = input.selectedDays.length = running days per week (not gap days)
   const distanceKm =
     week1EasyRuns.length > 0
-      ? Math.round(
-          (week1EasyRuns.reduce((sum, d) => sum + d.distanceKm!, 0) / week1EasyRuns.length) * 10,
-        ) / 10
-      : Math.round(
-          ((STARTING_VOLUME_KM[input.weeklyMileageRange] ?? 50) / input.selectedDays.length) * 10,
-        ) / 10
+      ? Math.round(week1EasyRuns.reduce((sum, d) => sum + d.distanceKm!, 0) / week1EasyRuns.length)
+      : Math.round((STARTING_VOLUME_KM[input.weeklyMileageRange] ?? 50) / input.selectedDays.length)
 
   // Target pace: copy from first week-1 easy run that has one; omit key if none
   const targetPace = week1EasyRuns.find(d => d.targetPace != null)?.targetPace

@@ -140,10 +140,8 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
             {prePlanDates.map((dateISO) => {
               const isToday = dateISO === todayISO
               const isPast = dateISO < todayISO
-              // Task 2 will replace this entire callback with full multi-entry rendering
-              const bridgeDay = bridgeDayMap.get(dateISO)?.[0]
-              const isRest = !bridgeDay || bridgeDay.type === "rest"
-              const isSelected = selectedDay?.date === dateISO && selectedDay?.type === bridgeDay?.type
+              const entries = bridgeDayMap.get(dateISO) ?? []
+              const isRest = entries.length === 0 || entries.every(e => e.type === "rest")
 
               if (isRest) {
                 return (
@@ -162,16 +160,23 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                     {isToday && (
                       <div className="w-1 h-1 rounded-full bg-primary mt-1" />
                     )}
+                    <p className="text-[10px] mt-0.5 text-subtle-foreground">
+                      {WORKOUT_NAMES["rest"]}
+                    </p>
                   </div>
                 )
               }
 
-              const color = getWorkoutColor(bridgeDay.type)
-              const textClass = WORKOUT_TEXT_CLASS[bridgeDay.type]
+              const primary = entries.find(e => RUN_TYPES.has(e.type)) ?? entries[0]!
+              const secondaryEntries = entries.filter(e => e.type !== primary.type && e.type !== "rest")
+              const isSelected = selectedDay?.date === primary.date && selectedDay?.type === primary.type
+              const color = getWorkoutColor(primary.type)
+              const textClass = WORKOUT_TEXT_CLASS[primary.type]
+
               return (
                 <button
                   key={dateISO}
-                  onClick={() => onSelectedKeyChange(isSelected ? null : { date: bridgeDay.date, type: bridgeDay.type })}
+                  onClick={() => onSelectedKeyChange(isSelected ? null : { date: primary.date, type: primary.type })}
                   className={[
                     "min-h-[88px] rounded-md border p-2 text-left transition-colors cursor-pointer",
                     isSelected
@@ -182,21 +187,39 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                   <p className={`text-[10px] font-medium ${isToday ? "text-primary" : "text-subtle-foreground"}`}>
                     {format(parseISO(dateISO), "d")}
                   </p>
-                  {bridgeDay.distanceKm != null && (
-                    <p
-                      className={`text-sm font-bold tabular-nums ${textClass}`}
-                      style={color ? { color } : undefined}
-                    >
-                      {formatDistance(bridgeDay.distanceKm, units)}
-                      <span className="text-[9px] font-normal ml-0.5 text-muted-foreground">{unit}</span>
-                    </p>
+                  {isToday && (
+                    <div className="w-1 h-1 rounded-full bg-primary mt-1" />
                   )}
                   <p
-                    className={`text-[10px] mt-0.5 ${textClass}`}
+                    className={`text-[10px] font-semibold leading-snug mt-0.5 ${textClass}`}
                     style={color ? { color } : undefined}
                   >
-                    {WORKOUT_NAMES[bridgeDay.type]}
+                    {primary.distanceKm != null && (
+                      <>
+                        <span className="text-sm font-bold tabular-nums">
+                          {formatDistance(primary.distanceKm, units)}
+                        </span>
+                        <span className="text-[9px] font-normal text-muted-foreground ml-0.5">
+                          {unit}
+                        </span>
+                        {" · "}
+                      </>
+                    )}
+                    {WORKOUT_NAMES[primary.type]}
                   </p>
+                  {secondaryEntries.map(entry => {
+                    const secColor = getWorkoutColor(entry.type)
+                    const secTextClass = WORKOUT_TEXT_CLASS[entry.type]
+                    return (
+                      <p
+                        key={`${entry.date}-${entry.type}`}
+                        className={`text-[10px] mt-0.5 font-medium ${secTextClass}`}
+                        style={secColor ? { color: secColor } : undefined}
+                      >
+                        {WORKOUT_NAMES[entry.type]}
+                      </p>
+                    )
+                  })}
                 </button>
               )
             })}

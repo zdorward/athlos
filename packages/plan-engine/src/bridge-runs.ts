@@ -114,6 +114,7 @@ export function buildBridgeRuns(
     const chosen: Array<{ date: string; dow: number }> = []
     for (const candidate of sorted) {
       if (chosen.length >= 2) break
+      if (circDist(candidate.dow, longRunUTCDay) <= 1) continue
       if (chosen.every(s => circDist(s.dow, candidate.dow) > 1)) chosen.push(candidate)
     }
     for (const { date } of chosen) results.push({ date, type: "strength" })

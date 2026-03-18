@@ -19,26 +19,88 @@ import {
 
 const DAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
+function PhaseHeader({ label }: { label: string }) {
+  return (
+    <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1 mt-3">
+      <div />
+      <div className="col-span-7 flex items-center gap-3">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground whitespace-nowrap">
+          {label}
+        </span>
+        <div className="flex-1 h-px bg-border" />
+      </div>
+    </div>
+  )
+}
+
+function WorkoutCellContent({
+  primary,
+  secondaryEntries,
+  units,
+}: {
+  primary: WorkoutDay
+  secondaryEntries: WorkoutDay[]
+  units: "km" | "miles"
+}) {
+  const color = getWorkoutColor(primary.type)
+  const textClass = WORKOUT_TEXT_CLASS[primary.type]
+  const unit = distanceUnit(units)
+  return (
+    <>
+      <p
+        className={`text-[10px] font-semibold leading-snug ${textClass}`}
+        style={color ? { color } : undefined}
+      >
+        {primary.distanceKm != null && (
+          <>
+            <span className="text-sm font-bold tabular-nums">
+              {formatDistance(primary.distanceKm, units)}
+            </span>
+            <span className="text-[9px] font-normal text-muted-foreground ml-0.5">
+              {unit}
+            </span>
+            {" · "}
+          </>
+        )}
+        {WORKOUT_NAMES[primary.type]}
+      </p>
+      {secondaryEntries.map((entry) => {
+        const secColor = getWorkoutColor(entry.type)
+        const secTextClass = WORKOUT_TEXT_CLASS[entry.type]
+        return (
+          <p
+            key={`${entry.date}-${entry.type}`}
+            className={`text-[10px] mt-0.5 font-medium ${secTextClass}`}
+            style={secColor ? { color: secColor } : undefined}
+          >
+            {WORKOUT_NAMES[entry.type]}
+          </p>
+        )
+      })}
+    </>
+  )
+}
+
 function getTodayISO(): string {
   return new Date().toLocaleDateString("en-CA")
 }
 
 /** Returns the ISO date of the Monday of the week containing `isoDate`. */
 function getMondayOfWeek(isoDate: string): string {
-  const d = new Date(isoDate + "T00:00:00")
-  const day = d.getDay()
+  const d = new Date(isoDate + "T00:00:00Z")
+  const day = d.getUTCDay()
   const diff = day === 0 ? -6 : 1 - day
-  d.setDate(d.getDate() + diff)
-  return d.toLocaleDateString("en-CA")
+  d.setUTCDate(d.getUTCDate() + diff)
+  return d.toISOString().slice(0, 10)
 }
 
 /** Returns ISO dates for all 7 days of the week starting from `mondayISO`. */
 function getWeekDates(mondayISO: string): string[] {
   const dates: string[] = []
-  const d = new Date(mondayISO + "T00:00:00")
+  const d = new Date(mondayISO + "T00:00:00Z")
   for (let i = 0; i < 7; i++) {
-    dates.push(d.toLocaleDateString("en-CA"))
-    d.setDate(d.getDate() + 1)
+    dates.push(d.toISOString().slice(0, 10))
+    d.setUTCDate(d.getUTCDate() + 1)
   }
   return dates
 }
@@ -120,17 +182,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
         {/* Pre-plan current week — shown when plan hasn't started yet */}
         {showPrePlanWeek && (
           <>
-            {firstPhase && (
-              <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1 mt-3">
-                <div />
-                <div className="col-span-7 flex items-center gap-3">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground whitespace-nowrap">
-                    {firstPhase}
-                  </span>
-                  <div className="flex-1 h-px bg-border" />
-                </div>
-              </div>
-            )}
+            {firstPhase && <PhaseHeader label={firstPhase} />}
             <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1">
             <div className="flex flex-col justify-center pr-2">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-subtle-foreground opacity-40">
@@ -191,36 +243,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                   {isToday && (
                     <div className="w-1 h-1 rounded-full bg-primary mt-1" />
                   )}
-                  <p
-                    className={`text-[10px] font-semibold leading-snug mt-0.5 ${textClass}`}
-                    style={color ? { color } : undefined}
-                  >
-                    {primary.distanceKm != null && (
-                      <>
-                        <span className="text-sm font-bold tabular-nums">
-                          {formatDistance(primary.distanceKm, units)}
-                        </span>
-                        <span className="text-[9px] font-normal text-muted-foreground ml-0.5">
-                          {unit}
-                        </span>
-                        {" · "}
-                      </>
-                    )}
-                    {WORKOUT_NAMES[primary.type]}
-                  </p>
-                  {secondaryEntries.map(entry => {
-                    const secColor = getWorkoutColor(entry.type)
-                    const secTextClass = WORKOUT_TEXT_CLASS[entry.type]
-                    return (
-                      <p
-                        key={`${entry.date}-${entry.type}`}
-                        className={`text-[10px] mt-0.5 font-medium ${secTextClass}`}
-                        style={secColor ? { color: secColor } : undefined}
-                      >
-                        {WORKOUT_NAMES[entry.type]}
-                      </p>
-                    )
-                  })}
+                  <WorkoutCellContent primary={primary} secondaryEntries={secondaryEntries} units={units} />
                 </button>
               )
             })}
@@ -255,17 +278,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                 animationFillMode: "both",
               } : undefined}
             >
-              {showPhaseHeader && (
-                <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1 mt-3">
-                  <div />
-                  <div className="col-span-7 flex items-center gap-3">
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground whitespace-nowrap">
-                      {phase}
-                    </span>
-                    <div className="flex-1 h-px bg-border" />
-                  </div>
-                </div>
-              )}
+              {showPhaseHeader && <PhaseHeader label={phase} />}
             <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1">
               {/* Week label column */}
               <div className="flex flex-col justify-center pr-2">
@@ -338,47 +351,11 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                       <Star className="h-3 w-3 fill-primary text-primary mb-1" />
                     )}
 
-                    {(() => {
-                      const secondaryEntries = entries.filter(
-                        (e) => e.type !== primary.type && e.type !== "rest"
-                      )
-                      const primColor = getWorkoutColor(primary.type)
-                      const primTextClass = WORKOUT_TEXT_CLASS[primary.type]
-                      return (
-                        <>
-                          <p
-                            className={`text-[10px] font-semibold leading-snug ${primTextClass}`}
-                            style={primColor ? { color: primColor } : undefined}
-                          >
-                            {primary.distanceKm != null && (
-                              <>
-                                <span className="text-sm font-bold tabular-nums">
-                                  {formatDistance(primary.distanceKm, units)}
-                                </span>
-                                <span className="text-[9px] font-normal text-muted-foreground ml-0.5">
-                                  {unit}
-                                </span>
-                                {" · "}
-                              </>
-                            )}
-                            {WORKOUT_NAMES[primary.type]}
-                          </p>
-                          {secondaryEntries.map((entry) => {
-                            const secColor = getWorkoutColor(entry.type)
-                            const secTextClass = WORKOUT_TEXT_CLASS[entry.type]
-                            return (
-                              <p
-                                key={`${entry.date}-${entry.type}`}
-                                className={`text-[10px] mt-0.5 font-medium ${secTextClass}`}
-                                style={secColor ? { color: secColor } : undefined}
-                              >
-                                {WORKOUT_NAMES[entry.type]}
-                              </p>
-                            )
-                          })}
-                        </>
-                      )
-                    })()}
+                    <WorkoutCellContent
+                      primary={primary}
+                      secondaryEntries={entries.filter((e) => e.type !== primary.type && e.type !== "rest")}
+                      units={units}
+                    />
                   </button>
                 )
               })}

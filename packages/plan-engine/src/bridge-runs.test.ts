@@ -148,6 +148,15 @@ describe("buildBridgeRuns — strength training", () => {
     expect(result.filter(d => d.type === "strength").length).toBe(1)
   })
 
+  it("does not place strength adjacent to the long run day", () => {
+    // selectedDays ["sat", "sun"], longRunDay "sun" — Sat is adjacent to Sun (circDist=1)
+    // Sat is the only easy day but is adjacent to long run → no strength
+    const input = { ...BASE_INPUT, selectedDays: ["sat", "sun"], longRunDay: "sun" }
+    const saturday = new Date("2026-03-21T00:00:00Z")
+    const result = buildBridgeRuns(input, [], saturday)
+    expect(result.filter(d => d.type === "strength").length).toBe(0)
+  })
+
   it("does not add strength when no easy run days exist", () => {
     // All rest — no selected days in gap
     const input = { ...BASE_INPUT, selectedDays: ["mon"] }

@@ -83,6 +83,8 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
   const currentWeekMonday = getMondayOfWeek(todayISO)
   const showPrePlanWeek = planFirstMonday !== null && currentWeekMonday < planFirstMonday
   const prePlanDates = showPrePlanWeek ? getWeekDates(currentWeekMonday) : []
+  // First plan week's phase label — shown above the "Now" row
+  const firstPhase = totalWeeks > 0 ? getPhaseLabel(1, totalWeeks, taperWeeks, phases) : ""
   // Bridge days grouped by date (supports multiple entries per day, e.g. run + strength)
   const bridgeDayMap = groupDaysByDate(
     days.filter(d => planFirstMonday && d.date < planFirstMonday)
@@ -118,6 +120,17 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
         {/* Pre-plan current week — shown when plan hasn't started yet */}
         {showPrePlanWeek && (
           <>
+            {firstPhase && (
+              <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1 mt-3">
+                <div />
+                <div className="col-span-7 flex items-center gap-3">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground whitespace-nowrap">
+                    {firstPhase}
+                  </span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1">
             <div className="flex flex-col justify-center pr-2">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-subtle-foreground opacity-40">
@@ -223,7 +236,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
           const prevPhase = totalWeeks > 0 && weekIdx > 0
             ? getPhaseLabel(weekIdx, totalWeeks, taperWeeks, phases)
             : null
-          const showPhaseHeader = phase && phase !== prevPhase
+          const showPhaseHeader = phase && phase !== prevPhase && !(weekIdx === 0 && showPrePlanWeek)
 
           // Build a map of day-of-week → WorkoutDay[] for this week (multiple entries per day allowed)
           const dayMap: Record<string, WorkoutDay[]> = {}

@@ -290,10 +290,14 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                   return (
                     <div
                       key={dow}
-                      className="min-h-[88px] rounded-md border border-border bg-card p-2 opacity-40"
+                      className="relative min-h-[88px] rounded-md border border-border bg-card p-2 opacity-40"
                     >
-                      <p className="text-[10px] text-subtle-foreground">—</p>
-                      <p className="text-[10px] text-subtle-foreground mt-0.5">Rest Day</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-subtle-foreground">—</span>
+                      </div>
+                      <div className="absolute bottom-2 left-2 right-2">
+                        <p className="text-[10px] font-semibold text-subtle-foreground">Rest Day</p>
+                      </div>
                     </div>
                   )
                 }
@@ -304,42 +308,71 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                 const isRest = entries.every((d) => d.type === "rest")
                 const isSelected = selectedDay?.date === primary.date && selectedDay?.type === primary.type
                 const isFullyComplete = !isRest && entries.filter((e) => e.type !== "rest").every((e) => e.completed === true)
+                const isLongRun = !isRace && primary.type === "long"
+                const isToday = primary.date === todayISO
+                const distColor = getWorkoutColor(primary.type)
 
                 return (
                   <button
                     key={dow}
                     onClick={() => onSelectedKeyChange(isSelected ? null : { date: primary.date, type: primary.type })}
                     className={[
-                      "min-h-[88px] rounded-md border p-2 text-left transition-colors cursor-pointer",
+                      "relative min-h-[88px] rounded-md border p-2 text-left transition-colors cursor-pointer",
                       isRace
                         ? "bg-primary/12 border-primary"
                         : isFullyComplete && isSelected
                         ? "bg-green-500/10 border-green-500/50"
                         : isFullyComplete
                         ? "bg-green-500/10 border-green-500/30"
+                        : isLongRun && isSelected
+                        ? "bg-muted border-primary/40"
+                        : isLongRun
+                        ? "bg-primary/[0.08] border-primary/40"
                         : isSelected
                         ? "bg-muted border-primary/40"
                         : "bg-card border-border hover:border-primary/25",
                       isRest ? "opacity-40" : "",
                     ].join(" ")}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-[10px] text-subtle-foreground">
-                        {format(parseISO(primary.date), "d")}
-                      </p>
-                      {isFullyComplete && (
-                        <Check className="h-3 w-3 text-green-600" />
+                    {/* Top row: date + check left, distance right */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <span
+                          className={`text-[10px] font-medium ${isToday ? "text-primary" : "text-subtle-foreground"}`}
+                        >
+                          {format(parseISO(primary.date), "d")}
+                        </span>
+                        {isFullyComplete && (
+                          <Check className="h-[10px] w-[10px] text-green-500" />
+                        )}
+                      </div>
+                      {!isRest && primary.distanceKm != null && (
+                        <div className="flex items-baseline gap-[1px]">
+                          <span
+                            className={`text-base font-bold tabular-nums ${WORKOUT_TEXT_CLASS[primary.type]}`}
+                            style={distColor ? { color: distColor } : undefined}
+                          >
+                            {formatDistance(primary.distanceKm, units)}
+                          </span>
+                          <span className="text-[10px] text-subtle-foreground">{unit}</span>
+                        </div>
                       )}
                     </div>
 
-                    {isRace && (
-                      <Star className="h-3 w-3 fill-primary text-primary mb-1" />
+                    {/* Bottom zone */}
+                    {isRest ? (
+                      <div className="absolute bottom-2 left-2 right-2">
+                        <p className="text-[10px] font-semibold text-subtle-foreground">Rest Day</p>
+                      </div>
+                    ) : (
+                      <WorkoutCellContent
+                        primary={primary}
+                        secondaryEntries={entries.filter(
+                          (e) => e.type !== primary.type && e.type !== "rest"
+                        )}
+                        isRace={isRace}
+                      />
                     )}
-
-                    <WorkoutCellContent
-                      primary={primary}
-                      secondaryEntries={entries.filter((e) => e.type !== primary.type && e.type !== "rest")}
-                    />
                   </button>
                 )
               })}

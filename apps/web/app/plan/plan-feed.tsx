@@ -103,7 +103,7 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, planStartDate,
               <div className="space-y-1.5">
                 {Array.from(groupDaysByDate(weekDays).values()).map((entries) => {
                   const primary = entries.find((e) => RUN_TYPES.has(e.type)) ?? entries[0]!
-                  const secondaryEntries = entries.filter((e) => e !== primary && e.type !== "rest")
+                  const secondaryEntries = entries.filter((e) => e.type !== primary.type && e.type !== "rest")
                   const isRest = entries.every((e) => e.type === "rest")
                   const isRace = entries.some((e) => e.type === "race")
                   const isSelected =
@@ -172,7 +172,7 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, planStartDate,
                                 const secTextClass = WORKOUT_TEXT_CLASS[entry.type]
                                 return (
                                   <p
-                                    key={entry.type}
+                                    key={`${entry.date}-${entry.type}`}
                                     className={`text-xs font-medium ${secTextClass}`}
                                     style={secColor ? { color: secColor } : undefined}
                                   >

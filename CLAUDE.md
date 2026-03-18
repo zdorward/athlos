@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Athlos is an adaptive marathon training platform for advanced runners. Training plans are grounded in **modern marathon science** — Pfitzinger's *Advanced Marathoning* is a useful foundation for volume progression, long run targets, and phase structure, but it has known weaknesses (see `docs/training-science/modern-marathon-science.md`). When Pfitz conflicts with modern research, modern research wins.
+Athlos is an adaptive marathon training platform for advanced runners. Training plans are grounded in **modern marathon science** — Pfitzinger's *Advanced Marathoning* is a useful foundation for volume progression, long run targets, and phase structure, but it has known weaknesses (see `docs/training-science/marathon-training-science.md`). When Pfitz conflicts with modern research, modern research wins.
 
 ## Training Science Principles
 

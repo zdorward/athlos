@@ -68,6 +68,20 @@ export function groupDaysByWeek(days: WorkoutDay[]): WorkoutDay[][] {
   return weeks
 }
 
+export const RUN_TYPES = new Set<WorkoutType>([
+  "easy", "long", "progression", "medium-long", "mp", "tempo", "intervals", "race", "shakeout",
+])
+
+export function groupDaysByDate(days: WorkoutDay[]): Map<string, WorkoutDay[]> {
+  const map = new Map<string, WorkoutDay[]>()
+  for (const day of days) {
+    const existing = map.get(day.date) ?? []
+    existing.push(day)
+    map.set(day.date, existing)
+  }
+  return map
+}
+
 /**
  * Returns the phase label for a given week.
  *

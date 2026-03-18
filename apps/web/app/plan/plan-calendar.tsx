@@ -185,20 +185,21 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                   <div
                     key={dateISO}
                     className={[
-                      "min-h-[88px] rounded-md border bg-card border-border p-2",
+                      "relative min-h-[88px] rounded-md border bg-card border-border p-2",
                       isPast ? "opacity-25" : "opacity-40",
                     ].join(" ")}
                   >
-                    <p className={`text-[10px] font-medium ${isToday ? "text-primary" : "text-subtle-foreground"}`}>
-                      {format(parseISO(dateISO), "d")}
-                    </p>
-                    {isToday && (
-                      <div className="w-1 h-1 rounded-full bg-primary mt-1" />
-                    )}
+                    <div className="flex items-center justify-between">
+                      <span
+                        className={`text-[10px] font-medium ${isToday ? "text-primary" : "text-subtle-foreground"}`}
+                      >
+                        {format(parseISO(dateISO), "d")}
+                      </span>
+                    </div>
                     {!isPast && (
-                      <p className="text-[10px] mt-0.5 text-subtle-foreground">
-                        {WORKOUT_NAMES["rest"]}
-                      </p>
+                      <div className="absolute bottom-2 left-2 right-2">
+                        <p className="text-[10px] font-semibold text-subtle-foreground">Rest Day</p>
+                      </div>
                     )}
                   </div>
                 )
@@ -207,28 +208,54 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
               const primary = entries.find(e => RUN_TYPES.has(e.type)) ?? entries[0]!
               const secondaryEntries = entries.filter(e => e.type !== primary.type && e.type !== "rest")
               const isSelected = selectedDay?.date === primary.date && selectedDay?.type === primary.type
-              const color = getWorkoutColor(primary.type)
-              const textClass = WORKOUT_TEXT_CLASS[primary.type]
+              const distColor = getWorkoutColor(primary.type)
 
               return (
                 <button
                   key={dateISO}
-                  onClick={() => onSelectedKeyChange(isSelected ? null : { date: primary.date, type: primary.type })}
+                  onClick={() =>
+                    onSelectedKeyChange(
+                      isSelected ? null : { date: primary.date, type: primary.type }
+                    )
+                  }
                   className={[
-                    "min-h-[88px] rounded-md border p-2 text-left transition-colors cursor-pointer",
+                    "relative min-h-[88px] rounded-md border p-2 text-left transition-colors cursor-pointer",
                     isSelected
                       ? "bg-muted border-primary/40"
                       : "bg-card border-border hover:border-primary/25",
                     isPast ? "opacity-25" : "",
                   ].join(" ")}
                 >
-                  <p className={`text-[10px] font-medium ${isToday ? "text-primary" : "text-subtle-foreground"}`}>
-                    {format(parseISO(dateISO), "d")}
-                  </p>
-                  {isToday && (
-                    <div className="w-1 h-1 rounded-full bg-primary mt-1" />
-                  )}
-                  <WorkoutCellContent primary={primary} secondaryEntries={secondaryEntries} />
+                  {/* Top row: date + check left, distance right */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      <span
+                        className={`text-[10px] font-medium ${isToday ? "text-primary" : "text-subtle-foreground"}`}
+                      >
+                        {format(parseISO(dateISO), "d")}
+                      </span>
+                      {primary.completed && (
+                        <Check className="h-[10px] w-[10px] text-green-500" />
+                      )}
+                    </div>
+                    {primary.distanceKm != null && (
+                      <div className="flex items-baseline gap-[1px]">
+                        <span
+                          className={`text-base font-bold tabular-nums ${WORKOUT_TEXT_CLASS[primary.type]}`}
+                          style={distColor ? { color: distColor } : undefined}
+                        >
+                          {formatDistance(primary.distanceKm, units)}
+                        </span>
+                        <span className="text-[10px] text-subtle-foreground">{unit}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bottom zone */}
+                  <WorkoutCellContent
+                    primary={primary}
+                    secondaryEntries={secondaryEntries}
+                  />
                 </button>
               )
             })}

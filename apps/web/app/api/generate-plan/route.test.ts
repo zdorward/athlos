@@ -18,6 +18,8 @@ const validInput = {
   longRunDay: "sat",
   units: "km",
   weeklyMileageRange: "40-60",
+  isFirstAtDistance: false,
+  includeStrength: true,
 }
 
 describe("POST /api/generate-plan", () => {
@@ -149,5 +151,35 @@ describe("POST /api/generate-plan — bridge runs and planStartDate", () => {
     const body = await res.json()
     const bridgeDays = body.days.filter((d: { date: string }) => d.date < body.planStartDate)
     expect(bridgeDays.length).toBe(0)
+  })
+})
+
+describe("POST /api/generate-plan — constraints and feasibilityWarning", () => {
+  it("includes feasibilityWarning in response", async () => {
+    const res = await POST(makeRequest(validInput))
+    const body = await res.json()
+    expect("feasibilityWarning" in body).toBe(true)
+    expect(body.feasibilityWarning).toBeNull()
+  })
+
+  it("returns feasibilityWarning for first-timer with insufficient weeks", async () => {
+    const firstTimerInput = {
+      ...validInput,
+      race: { ...validInput.race, date: "2026-07-01" }, // ~14 weeks away from 2026-03-19
+      isFirstAtDistance: true,
+      weeklyMileageRange: "under-40",
+    }
+    const res = await POST(makeRequest(firstTimerInput))
+    const body = await res.json()
+    expect(body.feasibilityWarning).not.toBeNull()
+    expect(typeof body.feasibilityWarning).toBe("string")
+  })
+
+  it("no strength workouts when includeStrength is false", async () => {
+    const noStrengthInput = { ...validInput, includeStrength: false }
+    const res = await POST(makeRequest(noStrengthInput))
+    const body = await res.json()
+    const strengthDays = body.days.filter((d: { type: string }) => d.type === "strength")
+    expect(strengthDays).toHaveLength(0)
   })
 })

@@ -3,7 +3,6 @@ import {
   type PlanGenerationInput,
   calculatePaceZones,
   computePhases,
-  computeGoalPeakMileage,
   computeTrainingStructure,
   computeLongRunTargets,
   computeWeeklyVolumes,
@@ -12,20 +11,6 @@ import {
   buildBridgeRuns,
   firstMondayOnOrAfter,
 } from "@workspace/plan-engine"
-
-const MILEAGE_RANGE_HIGH: Record<string, number> = {
-  "under-40": 40,
-  "40-60": 60,
-  "60-80": 80,
-  "80-plus": 120,
-}
-
-const MILEAGE_RANGE_LOW: Record<string, number> = {
-  "under-40": 30,
-  "40-60": 40,
-  "60-80": 60,
-  "80-plus": 80,
-}
 
 function weeksBetween(start: Date, end: Date): number {
   return Math.floor((end.getTime() - start.getTime()) / (7 * 24 * 60 * 60 * 1000))
@@ -68,13 +53,19 @@ export async function POST(req: NextRequest) {
     ? input.goalTime.hours * 60 + input.goalTime.minutes + (input.goalTime.seconds ?? 0) / 60
     : null
 
-  const peakMileage = goalMinutes
-    ? computeGoalPeakMileage(input.race.distance, goalMinutes)
-    : null
-  const peakWeeklyKm = peakMileage?.high ?? MILEAGE_RANGE_HIGH[input.weeklyMileageRange] ?? 60
+  const constraints = computeConstraints({
+    distance: input.race.distance,
+    weeklyMileageRange: input.weeklyMileageRange,
+    totalWeeks,
+    goalMinutes,
+    selectedDaysCount: input.selectedDays.length,
+    isFirstAtDistance: input.isFirstAtDistance,
+    includeStrength: input.includeStrength,
+  })
 
-  const lowerBound = MILEAGE_RANGE_LOW[input.weeklyMileageRange] ?? 40
-  if (lowerBound > peakWeeklyKm) {
+  const peakWeeklyKm = constraints.peakWeeklyKm
+
+  if (constraints.startingVolumeKm > peakWeeklyKm) {
     return Response.json({ error: "Starting volume exceeds peak weekly km" }, { status: 400 })
   }
 
@@ -116,16 +107,9 @@ export async function POST(req: NextRequest) {
     input.weeklyMileageRange,
   )
 
-  const longRunTargets = computeLongRunTargets(input.race.distance, peakMileage)
-
-  const constraints = computeConstraints({
-    distance: input.race.distance,
-    weeklyMileageRange: input.weeklyMileageRange,
-    totalWeeks,
-    goalMinutes,
-    selectedDaysCount: input.selectedDays.length,
-    isFirstAtDistance: input.isFirstAtDistance,
-    includeStrength: input.includeStrength,
+  const longRunTargets = computeLongRunTargets(input.race.distance, {
+    low: constraints.peakWeeklyKm * 0.85,
+    high: constraints.peakWeeklyKm,
   })
 
   const days = scheduleWorkouts({
@@ -180,5 +164,5 @@ export async function POST(req: NextRequest) {
     ? [...bridgeDays, ...days].sort((a, b) => a.date.localeCompare(b.date))
     : days
 
-  return Response.json({ days: finalDays, planStartDate, totalWeeks, totalKm, peakWeekKm, phases })
+  return Response.json({ days: finalDays, planStartDate, totalWeeks, totalKm, peakWeekKm, phases, feasibilityWarning: constraints.feasibilityWarning })
 }

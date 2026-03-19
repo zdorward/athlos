@@ -15,6 +15,7 @@ export {
   computeLongRunTargets,
 } from "./training-parameters"
 export { computeWeeklyVolumes, type VolumeProgressionInput } from "./volume-progression"
+export { computeConstraints, type PlanConstraints, type ConstraintsInput } from "./constraints"
 export {
   scheduleWorkouts,
   type SchedulerInput,

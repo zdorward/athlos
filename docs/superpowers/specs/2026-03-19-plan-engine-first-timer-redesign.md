@@ -91,6 +91,29 @@ isFirstAtDistance: boolean
 includeStrength: boolean
 ```
 
+### Wiring: `getSteps()` and `renderStep()`
+
+Two files in the onboarding orchestration require mechanical updates:
+
+**`apps/web/components/onboarding/types.ts` — `getSteps()`**
+Add `"firstAtDistance"` at index 1 (after `findRace`) and `"includeStrength"` at index 5 (after `whichDays`). Move `"weeklyMileage"` before `"goalTime"`. Updated return:
+```ts
+["findRace", "firstAtDistance", "weeklyMileage", "goalTime", "whichDays", "includeStrength"]
+```
+
+Add both new step keys to `STEP_LABELS`:
+```ts
+firstAtDistance: "Experience",
+includeStrength: "Strength Training",
+```
+
+**`apps/web/components/onboarding/onboarding-flow.tsx` — `renderStep()`**
+Add two new cases to the switch (or equivalent conditional):
+```ts
+case "firstAtDistance": return <StepFirstAtDistance ... />
+case "includeStrength": return <StepIncludeStrength ... />
+```
+
 ### Deletions
 
 Remove two superseded unused step files:
@@ -110,8 +133,8 @@ A single `computeConstraints()` function takes all plan inputs and returns a `Pl
 ```ts
 interface PlanConstraints {
   // Volume
-  startingVolumeKm: number       // from bracket (unchanged: 30/50/70/90)
-  peakWeeklyKm: number           // from goal time or bracket high fallback
+  startingVolumeKm: number       // from WEEK1_VOLUME_KM in volume-progression.ts (30/40/60/80)
+  peakWeeklyKm: number           // achievable peak — see derivation below
   rampRatePerWeek: number        // first-timers: 0.08; experienced: 0.10
 
   // Long run
@@ -131,10 +154,36 @@ interface PlanConstraints {
 }
 ```
 
+### Starting Volume: Resolve Pre-existing Inconsistency
+
+Two constants currently diverge:
+- `WEEK1_VOLUME_KM` in `volume-progression.ts`: `{ under-40: 30, 40-60: 40, 60-80: 60, 80-plus: 80 }` — this is what `computeWeeklyVolumes` actually uses
+- `STARTING_VOLUME_KM` in `constants.ts`: `{ under-40: 30, 40-60: 50, 60-80: 70, 80-plus: 90 }` — diverged duplicate
+
+As part of this change: delete `STARTING_VOLUME_KM` from `constants.ts` and export `WEEK1_VOLUME_KM` from `volume-progression.ts` (rename to `STARTING_VOLUME_KM` for clarity, or export as-is). `constraints.ts` imports and uses `WEEK1_VOLUME_KM` as the canonical starting volume.
+
+### Peak Weekly Km: Achievable vs. Aspirational
+
+`computeConstraints()` computes an **achievable peak** by clamping the goal-time-derived peak to what the ramp rate can reach in the available pre-taper weeks:
+
+```
+aspirationalPeakKm = computeGoalPeakMileage(distance, goalMinutes)?.high
+                     ?? MILEAGE_RANGE_HIGH[weeklyMileageRange]
+
+preTaperWeeks = totalWeeks - 3   // taper is always 3 weeks minimum
+
+achievablePeakKm = startingVolumeKm × (1 + rampRatePerWeek)^preTaperWeeks
+
+constraints.peakWeeklyKm = Math.min(aspirationalPeakKm, achievablePeakKm)
+```
+
+The plan uses `constraints.peakWeeklyKm` (achievable), not the raw aspirational value. This ensures the plan is sound. The feasibility warning explains the gap if one exists.
+
+`preTaperWeeks` is not stored in `PlanConstraints` — it is a local variable in `computeConstraints()`, derived as `totalWeeks - 3`. `computeConstraints()` does not call `computePhases()` internally; it uses the fixed 3-week taper minimum as the approximation. The actual phase boundary used downstream remains `computePhases()` output.
+
 ### Feasibility Warning Logic
 
 ```
-achievablePeakKm = startingVolumeKm × (1 + rampRate)^(preTaperWeeks)
 achievableLongRunKm = achievablePeakKm × longRunMaxFraction
 
 if totalWeeks < minimumPlanWeeks:
@@ -149,13 +198,22 @@ if achievableLongRunKm < 16 km AND distance === "half":
 
 Both conditions can fire simultaneously. `null` if the plan is sound.
 
+### Feasibility Warning Display
+
+The warning is returned by the API in the plan response and displayed on the **final confirmation screen** (after all onboarding steps, before "Build My Plan"). It is not computed client-side during step 4. The final screen already exists (`final-screen.tsx`) and is where the API response is consumed — no client-side constraint computation is needed.
+
+### Interval Slot Behaviour for First-Timers
+
+When `constraints.allowIntervals === false`, the Build early phase has its interval slot dropped entirely — the week has 1 quality session (tempo), not 2. This is consistent with `constraints.maxQualitySessions === 1` for first-timers. The interval slot is not replaced with a second tempo. The `workout-placement.ts` logic should filter out any `types` entry of `"intervals"` before counting sessions when `allowIntervals` is false.
+
 ### Changes to Existing Functions
 
 | File | Change |
 |------|--------|
-| `workout-scheduler.ts` | Replace hardcoded `0.35` with `constraints.longRunMaxFraction`; skip strength placement if `constraints.includeStrength === false`; skip interval placement if `constraints.allowIntervals === false` |
+| `workout-scheduler.ts` | Replace hardcoded `0.35` with `constraints.longRunMaxFraction`; skip strength placement if `constraints.includeStrength === false`; skip interval slot if `constraints.allowIntervals === false` |
 | `training-parameters.ts` | `computeTrainingStructure` no longer owns `maxQualitySessions` for the first-timer case — constraints owns it |
-| `volume-progression.ts` | Use `constraints.rampRatePerWeek` instead of pure linear interpolation |
+| `volume-progression.ts` | Use `constraints.rampRatePerWeek` instead of pure linear interpolation; export `WEEK1_VOLUME_KM` as canonical starting volume |
+| `constants.ts` | Delete `STARTING_VOLUME_KM` (superseded by `WEEK1_VOLUME_KM`) |
 | `generate-plan/route.ts` | Call `computeConstraints()` early; thread `constraints` through the pipeline; include `feasibilityWarning` in API response |
 
 ---

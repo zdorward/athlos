@@ -1,0 +1,767 @@
+"use client"
+
+import { Suspense, useEffect, useRef, useState } from "react"
+import dynamic from "next/dynamic"
+import { Wordmark } from "@/components/wordmark"
+import { Search } from "lucide-react"
+import { RACES, type Race } from "@/data/races"
+import {
+  DISTANCE_LABELS,
+  type OnboardingData,
+  type RaceData,
+} from "@/components/onboarding/types"
+import { PlanPreview } from "./plan-preview"
+
+const OnboardingFlow = dynamic(
+  () => import("@/components/onboarding/onboarding-flow").then((m) => ({ default: m.OnboardingFlow })),
+  { ssr: false },
+)
+const SignInSheet = dynamic(
+  () => import("@/app/plan/sign-in-sheet").then((m) => ({ default: m.SignInSheet })),
+  { ssr: false },
+)
+const ManualRaceSheet = dynamic(
+  () => import("./manual-race-sheet").then((m) => ({ default: m.ManualRaceSheet })),
+  { ssr: false },
+)
+
+export function LandingPage() {
+  return (
+    <Suspense>
+      <PageContent />
+    </Suspense>
+  )
+}
+
+function PageContent() {
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [showSignIn, setShowSignIn] = useState(false)
+  const [showManualEntry, setShowManualEntry] = useState(false)
+  const [initialData, setInitialData] = useState<
+    Partial<OnboardingData> | undefined
+  >()
+  const [query, setQuery] = useState("")
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleMouseDown(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleMouseDown)
+    return () => document.removeEventListener("mousedown", handleMouseDown)
+  }, [])
+
+  if (showOnboarding) {
+    return (
+      <main className="min-h-svh">
+        <OnboardingFlow
+          onExit={() => setShowOnboarding(false)}
+          initialData={initialData}
+        />
+      </main>
+    )
+  }
+
+  const filtered =
+    query.trim() === ""
+      ? RACES
+      : RACES.filter((r) => {
+          const q = query.toLowerCase()
+          return (
+            r.name.toLowerCase().includes(q) ||
+            r.city.toLowerCase().includes(q) ||
+            r.province.toLowerCase().includes(q)
+          )
+        })
+
+  function handleRaceSelect(race: Race) {
+    const raceData: RaceData = {
+      name: race.name,
+      city: `${race.city}, ${race.province}`,
+      date: new Date(race.date + "T12:00:00Z"),
+      distance: race.distance,
+    }
+    setInitialData({ goal: "race", race: raceData })
+    setShowOnboarding(true)
+  }
+
+  function handleManualRaceSubmit(raceData: RaceData) {
+    setInitialData({ goal: "race", race: raceData })
+    setShowManualEntry(false)
+    setShowOnboarding(true)
+  }
+
+  const isOpen = dropdownOpen || query.trim() !== ""
+
+  return (
+    <>
+      <style>{`
+        @keyframes bloom-1 {
+          0%   { transform: translate(0%, 0%) scale(1) rotate(0deg); }
+          33%  { transform: translate(6%, 8%) scale(1.15) rotate(15deg); }
+          66%  { transform: translate(-4%, 3%) scale(0.95) rotate(-8deg); }
+          100% { transform: translate(0%, 0%) scale(1) rotate(0deg); }
+        }
+        @keyframes bloom-2 {
+          0%   { transform: translate(0%, 0%) scale(1) rotate(0deg); }
+          40%  { transform: translate(-8%, -5%) scale(1.1) rotate(-20deg); }
+          70%  { transform: translate(5%, 6%) scale(1.05) rotate(10deg); }
+          100% { transform: translate(0%, 0%) scale(1) rotate(0deg); }
+        }
+        @keyframes bloom-3 {
+          0%   { transform: translate(0%, 0%) scale(1); }
+          50%  { transform: translate(4%, -6%) scale(1.08); }
+          100% { transform: translate(0%, 0%) scale(1); }
+        }
+      `}</style>
+
+      <main style={{ background: "#020208" }}>
+        {/* ── Hero ──────────────────────────────────────────────────────── */}
+        <section
+          style={{ position: "relative", height: "100svh", overflow: "hidden" }}
+        >
+          {/* Dot grid */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage:
+                "linear-gradient(rgba(80,100,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(80,100,255,0.05) 1px, transparent 1px)",
+              backgroundSize: "40px 40px",
+            }}
+          />
+
+          {/* Aurora blooms */}
+          <div
+            style={{
+              position: "absolute",
+              borderRadius: "50%",
+              filter: "blur(80px)",
+              pointerEvents: "none",
+              width: "70vw",
+              height: "60vh",
+              top: "-15vh",
+              left: "-10vw",
+              background:
+                "radial-gradient(ellipse, rgba(30,55,200,0.22) 0%, transparent 70%)",
+              animation: "bloom-1 28s ease-in-out infinite alternate",
+              willChange: "transform",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              borderRadius: "50%",
+              filter: "blur(80px)",
+              pointerEvents: "none",
+              width: "60vw",
+              height: "55vh",
+              bottom: "-10vh",
+              right: "-5vw",
+              background:
+                "radial-gradient(ellipse, rgba(15,80,180,0.18) 0%, transparent 70%)",
+              animation: "bloom-2 34s ease-in-out infinite alternate",
+              willChange: "transform",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              borderRadius: "50%",
+              filter: "blur(80px)",
+              pointerEvents: "none",
+              width: "50vw",
+              height: "45vh",
+              top: "20vh",
+              left: "25vw",
+              background:
+                "radial-gradient(ellipse, rgba(40,40,160,0.12) 0%, transparent 65%)",
+              animation: "bloom-3 22s ease-in-out infinite alternate",
+              willChange: "transform",
+            }}
+          />
+
+          {/* Vignette */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              pointerEvents: "none",
+              background:
+                "radial-gradient(ellipse 75% 75% at 50% 48%, transparent 20%, rgba(1,1,8,0.7) 100%)",
+            }}
+          />
+
+          {/* Nav */}
+          <nav
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              padding: "24px 36px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              zIndex: 10,
+            }}
+          >
+            <Wordmark className="text-white/85" />
+            <button
+              onClick={() => setShowSignIn(true)}
+              style={{
+                fontSize: 13,
+                color: "rgba(255,255,255,0.38)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 8,
+                padding: "7px 18px",
+                background: "none",
+                cursor: "pointer",
+              }}
+            >
+              Log in
+            </button>
+          </nav>
+
+          {/* Hero content */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 20,
+              zIndex: 5,
+              textAlign: "center",
+              padding: "0 24px",
+              paddingBottom: "14vh",
+            }}
+          >
+            <h1
+              style={{
+                fontSize: "clamp(40px, 6vw, 64px)",
+                fontWeight: 700,
+                color: "#fff",
+                letterSpacing: "-0.04em",
+                lineHeight: 1.0,
+                margin: 0,
+              }}
+            >
+              Pfitzinger-based marathon training.<br />Built around your goal time.
+            </h1>
+
+            <p
+              style={{
+                fontSize: 15,
+                margin: 0,
+                color: "rgba(255,255,255,0.38)",
+                letterSpacing: "0.01em",
+              }}
+            >
+              Strength training built in from day one.<br />Adapts when your body says it needs to.
+            </p>
+
+            {/* Search widget */}
+            <div
+              ref={wrapRef}
+              style={{ position: "relative", width: "100%", maxWidth: 480 }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  height: 56,
+                  padding: "0 18px",
+                  background: "rgba(255,255,255,0.05)",
+                  border: `1px solid ${isOpen ? "rgba(100,140,255,0.35)" : "rgba(255,255,255,0.12)"}`,
+                  borderRadius: isOpen ? "14px 14px 0 0" : 14,
+                  backdropFilter: "blur(12px)",
+                }}
+              >
+                <Search
+                  style={{
+                    color: "rgba(255,255,255,0.3)",
+                    flexShrink: 0,
+                    width: 16,
+                    height: 16,
+                  }}
+                />
+                <input
+                  placeholder="Search races by name or city…"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onFocus={() => setDropdownOpen(true)}
+                  style={{
+                    flex: 1,
+                    background: "none",
+                    border: "none",
+                    outline: "none",
+                    fontSize: 16,
+                    color: "rgba(255,255,255,0.85)",
+                    fontFamily: "inherit",
+                    letterSpacing: "0.01em",
+                  }}
+                />
+              </div>
+
+              {isOpen && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    right: 0,
+                    zIndex: 20,
+                    background: "rgba(8,8,20,0.95)",
+                    border: "1px solid rgba(100,140,255,0.25)",
+                    borderTop: "none",
+                    borderBottomLeftRadius: 14,
+                    borderBottomRightRadius: 14,
+                    backdropFilter: "blur(20px)",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div style={{ maxHeight: 200, overflowY: "auto" }}>
+                    {filtered.length > 0 ? (
+                      filtered.map((race) => (
+                        <DropdownRaceRow
+                          key={race.id}
+                          race={race}
+                          onSelect={handleRaceSelect}
+                        />
+                      ))
+                    ) : (
+                      <div
+                        style={{
+                          padding: "12px 18px",
+                          fontSize: 13,
+                          color: "rgba(255,255,255,0.32)",
+                        }}
+                      >
+                        No races found for &ldquo;{query}&rdquo;
+                      </div>
+                    )}
+                  </div>
+                  <ManualEntryFooter
+                    onSelect={() => setShowManualEntry(true)}
+                  />
+                </div>
+              )}
+            </div>
+
+            <p style={{ fontSize: 12, margin: 0, color: "rgba(255,255,255,0.22)", letterSpacing: "0.02em" }}>
+              Adaptive · Hybrid-athlete ready · Built for BQ
+            </p>
+
+          </div>
+
+          {/* Scroll hint */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: 28,
+              left: 0,
+              right: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 6,
+              zIndex: 5,
+              pointerEvents: "none",
+            }}
+          >
+            <span
+              style={{
+                fontSize: 11,
+                color: "rgba(255,255,255,0.18)",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+              }}
+            >
+              See how it works
+            </span>
+            <div
+              style={{
+                width: 1,
+                height: 28,
+                background:
+                  "linear-gradient(to bottom, rgba(255,255,255,0.18), transparent)",
+              }}
+            />
+          </div>
+        </section>
+
+        <PlanPreview />
+
+        {/* ── Why Athlos ──────────────────────────────────────────────── */}
+        <section
+          style={{ padding: "0 24px 96px", maxWidth: 1100, margin: "0 auto" }}
+        >
+          <div style={{ textAlign: "center", marginBottom: 40 }}>
+            <h2
+              style={{
+                fontSize: "clamp(22px, 3.5vw, 36px)",
+                fontWeight: 700,
+                color: "#fff",
+                letterSpacing: "-0.03em",
+                margin: 0,
+              }}
+            >
+              Why Athlos
+            </h2>
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: 24,
+            }}
+          >
+            {[
+              {
+                title: "Pfitzinger methodology",
+                body: "Not generic intervals. Structured phases: base, build, peak, taper — built around your race date and goal time.",
+              },
+              {
+                title: "Strength training included",
+                body: "Lift days scheduled around your key runs, not as an afterthought.",
+              },
+              {
+                title: "Adaptive by default",
+                body: "Log how a session felt. If you're accumulating fatigue, the plan adjusts — before it becomes an injury.",
+              },
+            ].map((f) => (
+              <div
+                key={f.title}
+                style={{
+                  padding: 28,
+                  borderRadius: 14,
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  background: "rgba(255,255,255,0.02)",
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "rgba(255,255,255,0.88)",
+                    marginBottom: 8,
+                  }}
+                >
+                  {f.title}
+                </div>
+                <div
+                  style={{
+                    fontSize: 13,
+                    color: "rgba(255,255,255,0.38)",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {f.body}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+
+        {/* ── How your plan is built ────────────────────────────────── */}
+        <section
+          style={{ padding: "0 24px 96px", maxWidth: 1100, margin: "0 auto" }}
+        >
+          <div style={{ textAlign: "center", marginBottom: 40 }}>
+            <h2
+              style={{
+                fontSize: "clamp(22px, 3.5vw, 36px)",
+                fontWeight: 700,
+                color: "#fff",
+                letterSpacing: "-0.03em",
+                margin: 0,
+              }}
+            >
+              How your plan is built
+            </h2>
+            <p
+              style={{
+                fontSize: 14,
+                color: "rgba(255,255,255,0.32)",
+                margin: "8px 0 0",
+              }}
+            >
+              Five inputs. One coherent plan.
+            </p>
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 24,
+            }}
+          >
+            {[
+              {
+                label: "Goal time",
+                title: "Sets your training load",
+                body: "Sub-3:15 means higher mileage and more intensity sessions. Sub-4:30 means more aerobic base, less threshold work. Your target pace determines what your body needs to do to get there.",
+              },
+              {
+                label: "Current weekly mileage",
+                title: "Sets your volume ceiling",
+                body: "Where you are now determines how aggressively the plan can ramp. Running 60km/week already? The plan builds on that. Starting from 30km? It gets you there safely over the base phase.",
+              },
+              {
+                label: "Running days",
+                title: "Determines session mix",
+                body: "5 days gets you a long run, a tempo, and three easy runs. 4 days drops the least valuable session first. The long run and quality work are always protected.",
+              },
+              {
+                label: "Strength days",
+                title: "Kept in the picture",
+                body: "Tell us which days you lift. The plan is built around your full training week, running and strength included.",
+              },
+            ].map((card) => (
+              <div
+                key={card.label}
+                style={{
+                  padding: 28,
+                  borderRadius: 14,
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  background: "rgba(255,255,255,0.02)",
+                  textAlign: "left",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: "rgba(100,150,255,0.7)",
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    marginBottom: 8,
+                  }}
+                >
+                  {card.label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "rgba(255,255,255,0.88)",
+                    marginBottom: 6,
+                  }}
+                >
+                  {card.title}
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: "rgba(255,255,255,0.38)",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {card.body}
+                </div>
+              </div>
+            ))}
+            {/* Full-width fifth card */}
+            <div
+              style={{
+                gridColumn: "1 / -1",
+                padding: 28,
+                borderRadius: 14,
+                border: "1px solid rgba(255,255,255,0.07)",
+                background: "rgba(255,255,255,0.02)",
+                textAlign: "left",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "rgba(100,150,255,0.7)",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  marginBottom: 8,
+                }}
+              >
+                Weeks to race
+              </div>
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "rgba(255,255,255,0.88)",
+                  marginBottom: 6,
+                }}
+              >
+                Defines your phase structure
+              </div>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "rgba(255,255,255,0.38)",
+                  lineHeight: 1.6,
+                }}
+              >
+                18 or more weeks gets a full base, build, peak, taper arc. Shorter windows compress the base and extend the peak. The taper stays at 3 weeks regardless.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Bottom CTA ────────────────────────────────────────────────── */}
+        <section style={{ padding: "0 24px 120px", textAlign: "center" }}>
+          <h2
+            style={{
+              fontSize: "clamp(24px, 3.5vw, 36px)",
+              fontWeight: 700,
+              color: "#fff",
+              letterSpacing: "-0.03em",
+              margin: "0 0 12px",
+            }}
+          >
+            Build your plan.
+          </h2>
+          <p
+            style={{
+              fontSize: 14,
+              color: "rgba(255,255,255,0.32)",
+              margin: "0 0 28px",
+            }}
+          >
+            Pick your race. Set your goal time. We&apos;ll handle the rest.
+          </p>
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            style={{
+              fontSize: 14,
+              fontWeight: 600,
+              color: "#fff",
+              background: "rgba(80,120,255,0.9)",
+              border: "none",
+              borderRadius: 12,
+              padding: "14px 32px",
+              cursor: "pointer",
+            }}
+          >
+            Find my race
+          </button>
+        </section>
+      </main>
+
+      {showSignIn && (
+        <SignInSheet
+          onBeforeSignIn={() => {}}
+          onClose={() => setShowSignIn(false)}
+          callbackURL="/dashboard"
+          title="Sign in to Athlos"
+        />
+      )}
+
+      {showManualEntry && (
+        <ManualRaceSheet
+          onClose={() => setShowManualEntry(false)}
+          onSubmit={handleManualRaceSubmit}
+        />
+      )}
+    </>
+  )
+}
+
+// ── Sub-components ──────────────────────────────────────────────────────────
+
+function ManualEntryFooter({ onSelect }: { onSelect: () => void }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <div
+      role="button"
+      onClick={onSelect}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        padding: "10px 18px",
+        fontSize: 11,
+        color: hovered ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.2)",
+        borderTop: "1px solid rgba(255,255,255,0.05)",
+        textAlign: "center",
+        cursor: "pointer",
+      }}
+    >
+      Don&apos;t see yours? Add it manually →
+    </div>
+  )
+}
+
+function DropdownRaceRow({
+  race,
+  onSelect,
+}: {
+  race: Race
+  onSelect: (r: Race) => void
+}) {
+  const [hovered, setHovered] = useState(false)
+  const dateLabel = new Date(race.date + "T12:00:00Z").toLocaleDateString("en-US", {
+    month: "short", day: "numeric", year: "numeric",
+  })
+  return (
+    <div
+      role="button"
+      onClick={() => onSelect(race)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        padding: "12px 18px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        cursor: "pointer",
+        borderBottom: "1px solid rgba(255,255,255,0.04)",
+        background: hovered ? "rgba(80,120,255,0.08)" : "transparent",
+      }}
+    >
+      <div style={{ textAlign: "left" }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 500,
+            color: "rgba(255,255,255,0.82)",
+          }}
+        >
+          {race.name}
+        </div>
+        <div
+          style={{
+            fontSize: 11,
+            color: "rgba(255,255,255,0.32)",
+            marginTop: 2,
+          }}
+        >
+          {race.city}, {race.province} · {dateLabel}
+        </div>
+      </div>
+      <span
+        style={{
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: "0.04em",
+          color: "rgba(100,150,255,0.7)",
+          background: "rgba(80,120,255,0.1)",
+          border: "1px solid rgba(80,120,255,0.18)",
+          borderRadius: 4,
+          padding: "2px 7px",
+          flexShrink: 0,
+          marginLeft: 16,
+        }}
+      >
+        {DISTANCE_LABELS[race.distance]}
+      </span>
+    </div>
+  )
+}

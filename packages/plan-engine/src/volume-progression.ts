@@ -7,7 +7,7 @@ export interface VolumeProgressionInput {
   phases: PhaseEntry[]
 }
 
-const WEEK1_VOLUME_KM: Record<WeeklyMileageRange, number> = {
+export const WEEK1_VOLUME_KM: Record<WeeklyMileageRange, number> = {
   "under-40": 30,
   "40-60": 40,
   "60-80": 60,

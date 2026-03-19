@@ -65,20 +65,20 @@ describe("buildBridgeRuns", () => {
   })
 
   it("uses fallback distance when no week-1 easy runs exist", () => {
-    // "40-60" = 50 km/week, 2 selected days → 50/2 = 25.0
+    // "40-60" = 40 km/week, 2 selected days → 40/2 = 20.0
     const wednesday = new Date("2026-03-18T00:00:00Z")
     const input = { ...BASE_INPUT, selectedDays: ["wed", "fri"], weeklyMileageRange: "40-60" as const }
     const result = buildBridgeRuns(input, [], wednesday)
     const easyRun = result.find(d => d.type === "easy")!
-    expect(easyRun.distanceKm).toBe(25.0)
+    expect(easyRun.distanceKm).toBe(20.0)
   })
 
-  it("uses fallback with 3 selected days: 50/3 rounds to 17", () => {
+  it("uses fallback with 3 selected days: 40/3 rounds to 13", () => {
     const wednesday = new Date("2026-03-18T00:00:00Z")
     const input = { ...BASE_INPUT, selectedDays: ["wed", "fri", "sat"], weeklyMileageRange: "40-60" as const }
     const result = buildBridgeRuns(input, [], wednesday)
     const easyRun = result.find(d => d.type === "easy")!
-    expect(easyRun.distanceKm).toBe(17)
+    expect(easyRun.distanceKm).toBe(13)
   })
 
   it("copies targetPace from week-1 easy run", () => {

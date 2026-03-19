@@ -1,4 +1,4 @@
-import { STARTING_VOLUME_KM } from "./constants"
+import { WEEK1_VOLUME_KM } from "./volume-progression"
 import type { PlanGenerationInput, WorkoutDay } from "./types"
 
 function toISO(date: Date): string {
@@ -68,7 +68,7 @@ export function buildBridgeRuns(
   const distanceKm =
     week1EasyRuns.length > 0
       ? Math.round(week1EasyRuns.reduce((sum, d) => sum + d.distanceKm!, 0) / week1EasyRuns.length)
-      : Math.round((STARTING_VOLUME_KM[input.weeklyMileageRange] ?? 50) / input.selectedDays.length)
+      : Math.round((WEEK1_VOLUME_KM[input.weeklyMileageRange] ?? 50) / input.selectedDays.length)
 
   // Target pace: copy from first week-1 easy run that has one; omit key if none
   const targetPace = week1EasyRuns.find(d => d.targetPace != null)?.targetPace
@@ -101,9 +101,9 @@ export function buildBridgeRuns(
     cursor.setUTCDate(cursor.getUTCDate() + 1)
   }
 
-  // Add strength training on easy-run days (2 per week, furthest from long run, non-consecutive)
+  // Add strength training on easy-run days, only if the plan includes strength
   const easyEntries = results.filter(r => r.type === "easy")
-  if (easyEntries.length > 0) {
+  if (easyEntries.length > 0 && input.includeStrength !== false) {
     const circDist = (a: number, b: number) => { const d = Math.abs(a - b); return Math.min(d, 7 - d) }
     const withDow = easyEntries.map(r => ({ date: r.date, dow: new Date(r.date + "T00:00:00Z").getUTCDay() }))
     const sorted = [...withDow].sort((a, b) => circDist(b.dow, longRunUTCDay) - circDist(a.dow, longRunUTCDay))

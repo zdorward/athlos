@@ -306,6 +306,26 @@ The onboarding final screen reads this from the response and displays the warnin
 
 ---
 
+## Implementation Notes
+
+### `computeWeeklyVolumes` stays linear
+
+`volume-progression.ts` keeps its linear interpolation (`startVol + (peak - startVol) × t`). It does not switch to compound growth. The ramp rate is used only inside `computeConstraints()` to calculate the feasibility ceiling (`achievablePeakKm`). The plan's actual weekly volumes just need to reach the clamped `constraints.peakWeeklyKm` — the linear progression already does this. No formula change to `computeWeeklyVolumes` is needed; only its input `peakWeeklyKm` changes (it now receives the clamped value from constraints).
+
+### `MILEAGE_RANGE_HIGH` already exists in `route.ts`
+
+The constant is already defined locally in `apps/web/app/api/generate-plan/route.ts` as `{ "under-40": 40, "40-60": 60, "60-80": 80, "80-plus": 120 }`. Move it to `packages/plan-engine/src/constraints.ts` so `computeConstraints()` can use it directly without the API route re-defining it.
+
+### `maxQualitySessions` ownership in `SchedulerInput`
+
+`SchedulerInput` currently carries `trainingStructure: TrainingStructure` which includes `maxQualitySessions`. After this change, `SchedulerInput` should also carry `constraints: PlanConstraints`. The quality count clamp in `workout-scheduler.ts` (line 263: `Math.min(sessions, trainingStructure.maxQualitySessions)`) should become `Math.min(sessions, constraints.maxQualitySessions)`. `trainingStructure.maxQualitySessions` is still computed by `computeTrainingStructure()` for experienced runners and can be removed from `TrainingStructure` if constraints always owns this value — or kept for reference.
+
+### Feasibility warning display location
+
+`final-screen.tsx` does not call the plan generation API — it stores to sessionStorage and navigates to `/plan`. The plan generation API is called from `/plan/page.tsx`. The feasibility warning is therefore displayed on the plan page after generation, not on the final confirmation screen. It appears as an inline callout above the plan calendar — not a blocking error, just informational. This is the simplest wiring path and matches the "not a blocker" intent.
+
+---
+
 ## Out of Scope
 
 - Pace zone changes for first-timers (same zones, less intense sessions)

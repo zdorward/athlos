@@ -11,19 +11,19 @@ export function round05(km: number): number {
   return Math.round(km)
 }
 
-export function circularDist(a: number, b: number): number {
+function circularDist(a: number, b: number): number {
   const diff = Math.abs(a - b)
   return Math.min(diff, 7 - diff)
 }
 
-export function isAdjacentTo(day: string, targetDay: string): boolean {
+function isAdjacentTo(day: string, targetDay: string): boolean {
   const a = DAY_INDEX[day] ?? -1
   const b = DAY_INDEX[targetDay] ?? -1
   if (a === -1 || b === -1) return false
   return circularDist(a, b) === 1
 }
 
-export function qualityDistance(type: "tempo" | "intervals" | "mp", weeklyKm: number): number {
+function qualityDistance(type: "tempo" | "intervals" | "mp", weeklyKm: number): number {
   const pct = type === "intervals" ? 0.10 : type === "tempo" ? 0.12 : 0.15
   return round05(weeklyKm * pct)
 }

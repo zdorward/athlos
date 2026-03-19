@@ -66,7 +66,7 @@ function PageContent() {
     return () => document.removeEventListener("mousedown", handleMouseDown)
   }, [])
 
-  if (isPending || sessionData?.session) {
+  if (sessionData?.session) {
     return (
       <main
         style={{
@@ -176,6 +176,7 @@ function PageContent() {
               background:
                 "radial-gradient(ellipse, rgba(30,55,200,0.22) 0%, transparent 70%)",
               animation: "bloom-1 28s ease-in-out infinite alternate",
+              willChange: "transform",
             }}
           />
           <div
@@ -191,6 +192,7 @@ function PageContent() {
               background:
                 "radial-gradient(ellipse, rgba(15,80,180,0.18) 0%, transparent 70%)",
               animation: "bloom-2 34s ease-in-out infinite alternate",
+              willChange: "transform",
             }}
           />
           <div
@@ -206,6 +208,7 @@ function PageContent() {
               background:
                 "radial-gradient(ellipse, rgba(40,40,160,0.12) 0%, transparent 65%)",
               animation: "bloom-3 22s ease-in-out infinite alternate",
+              willChange: "transform",
             }}
           />
 

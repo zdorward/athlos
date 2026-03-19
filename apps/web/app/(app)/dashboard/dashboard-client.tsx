@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { Suspense, useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { format, parseISO } from "date-fns"
 import Link from "next/link"
@@ -50,6 +50,18 @@ function getDayLabel(dateISO: string): string {
   return format(parseISO(dateISO), "EEEE, MMM d")
 }
 
+function UpgradedBanner({ onShow }: { onShow: () => void }) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    if (searchParams.get("upgraded") === "true") {
+      onShow()
+      router.replace("/dashboard")
+    }
+  }, [searchParams, router, onShow])
+  return null
+}
+
 export function DashboardClient({
   initialPlan,
   units: serverUnits,
@@ -58,17 +70,9 @@ export function DashboardClient({
   units: string
 }) {
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   const [plan, setPlan] = useState<Plan | "empty" | "error">(initialPlan)
   const [showUpgradedBanner, setShowUpgradedBanner] = useState(false)
-
-  useEffect(() => {
-    if (searchParams.get("upgraded") === "true") {
-      setShowUpgradedBanner(true)
-      router.replace("/dashboard")
-    }
-  }, [searchParams, router])
 
   async function fetchPlan() {
     try {
@@ -147,6 +151,9 @@ export function DashboardClient({
 
   return (
     <main className="min-h-svh">
+      <Suspense fallback={null}>
+        <UpgradedBanner onShow={() => setShowUpgradedBanner(true)} />
+      </Suspense>
       <div className="mx-auto max-w-xl px-4 py-6 space-y-6">
 
         {showUpgradedBanner && (

@@ -50,4 +50,6 @@ export interface PlanGenerationInput {
   startDate?: string
   weeklyMileageRange: WeeklyMileageRange
   today?: string  // ISO date sent by client to avoid server-clock/timezone mismatch
+  isFirstAtDistance: boolean
+  includeStrength: boolean
 }

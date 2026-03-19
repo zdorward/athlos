@@ -35,6 +35,8 @@ export interface OnboardingData {
   longRunDay?: Day
   weeklyMileageRange?: "under-40" | "40-60" | "60-80" | "80-plus"
   units?: "km" | "miles"
+  isFirstAtDistance?: boolean
+  includeStrength?: boolean
 }
 
 export interface StepProps {

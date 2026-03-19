@@ -1,6 +1,7 @@
 import type { WorkoutDay, PhaseEntry, WeeklyMileageRange } from "./types"
 import type { PaceZones } from "./pace-calculator"
 import { computeWeeklyVolumes } from "./volume-progression"
+import type { PlanConstraints } from "./constraints"
 
 export interface TrainingStructure {
   runDaysPerWeek: number
@@ -25,6 +26,7 @@ export interface SchedulerInput {
   longRunTargets: LongRunTargets
   paceZones: PaceZones
   raceDateISO?: string
+  constraints: PlanConstraints
 }
 
 const DAY_ORDER = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const
@@ -169,7 +171,7 @@ function circularDist(a: number, b: number): number {
 export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
   const {
     startDate, selectedDays, longRunDay, phases, totalWeeks,
-    peakWeeklyKm, trainingStructure, longRunTargets, paceZones,
+    peakWeeklyKm, trainingStructure, longRunTargets, paceZones, constraints,
   } = input
 
   const weeklyVolumes = computeWeeklyVolumes({
@@ -248,7 +250,7 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
     const longRunEntry = weekDays.find(d => d.dayKey === longRunDay)!
     const progressFactor = Math.min(weeklyKm / peakWeeklyKm, 1.0)
     const rawLongKm = longRunTargets.peakLongRunKm * progressFactor
-    const longRunKm = round05(Math.min(rawLongKm, weeklyKm * 0.35))
+    const longRunKm = round05(Math.min(rawLongKm, weeklyKm * constraints.longRunMaxFraction))
 
     assigned.set(longRunEntry.date, [{
       date: longRunEntry.date,
@@ -260,11 +262,13 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
     // ── 2. Quality sessions ──
     const longIdx = DAY_INDEX[longRunDay] ?? 0
     const { sessions, types } = getQualityConfig(week, phase, phases, isRecovery)
-    const count = Math.min(sessions, trainingStructure.maxQualitySessions)
+    // Filter out intervals if constraints disallow them, then cap by max quality sessions
+    const allowedTypes = types.filter(t => t !== "intervals" || constraints.allowIntervals)
+    const count = Math.min(allowedTypes.length, sessions, constraints.maxQualitySessions)
     const placedQuality: WorkoutDay[] = []
 
     for (let i = 0; i < count; i++) {
-      const type = types[i]!
+      const type = allowedTypes[i]!
       const candidates = weekDays.filter(({ dayKey, date }) =>
         selectedDays.includes(dayKey) &&
         dayKey !== longRunDay &&
@@ -330,7 +334,7 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
     // ── 4. Strength sessions ──
     const sCount = strengthCount(week, phase, phases)
 
-    if (sCount > 0) {
+    if (sCount > 0 && constraints.includeStrength) {
       // Collect quality day keys for adjacency exclusion
       const qualityDayKeys = placedQuality.map(q =>
         weekDays.find(w => w.date === q.date)?.dayKey ?? ""

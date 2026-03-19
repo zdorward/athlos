@@ -7,6 +7,7 @@ import {
   computeTrainingStructure,
   computeLongRunTargets,
   computeWeeklyVolumes,
+  computeConstraints,
   scheduleWorkouts,
   buildBridgeRuns,
   firstMondayOnOrAfter,
@@ -117,6 +118,16 @@ export async function POST(req: NextRequest) {
 
   const longRunTargets = computeLongRunTargets(input.race.distance, peakMileage)
 
+  const constraints = computeConstraints({
+    distance: input.race.distance,
+    weeklyMileageRange: input.weeklyMileageRange,
+    totalWeeks,
+    goalMinutes,
+    selectedDaysCount: input.selectedDays.length,
+    isFirstAtDistance: input.isFirstAtDistance,
+    includeStrength: input.includeStrength,
+  })
+
   const days = scheduleWorkouts({
     startDate: startDate.toISOString().slice(0, 10),
     selectedDays: input.selectedDays,
@@ -129,6 +140,7 @@ export async function POST(req: NextRequest) {
     longRunTargets,
     paceZones,
     raceDateISO: input.race.date,
+    constraints,
   })
 
   // Replace any workout on race date with a race entry, or append if not scheduled

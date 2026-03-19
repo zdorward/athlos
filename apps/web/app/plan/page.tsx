@@ -48,6 +48,8 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
     // sessionStorage under SESSION_KEY. This line will pick it up automatically.
     units: (raw["units"] === "miles" ? "miles" : "km") as "km" | "miles",
     weeklyMileageRange: "40-60",  // default; overwritten below
+    isFirstAtDistance: raw["isFirstAtDistance"] === true,
+    includeStrength: raw["includeStrength"] !== false,
   }
 
   if (raw["timeGoal"] === true && raw["goalTime"]) {

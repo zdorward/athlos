@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest"
 import { scheduleWorkouts } from "./workout-scheduler"
 import type { PhaseEntry, WorkoutType } from "./types"
 import type { PaceZones } from "./pace-calculator"
+import type { PlanConstraints } from "./constraints"
 
 // Type-level test: "progression" must be a valid WorkoutType
 const _progressionTypeCheck: WorkoutType = "progression"
@@ -21,6 +22,22 @@ const basePhases: PhaseEntry[] = [
   { name: "Base", startWeek: 1, endWeek: 4 },
 ]
 
+const baseConstraints: PlanConstraints = {
+  startingVolumeKm: 40,
+  peakWeeklyKm: 60,
+  rampRatePerWeek: 0.10,
+  peakLongRunKm: 30,
+  longRunMaxFraction: 0.40,
+  maxQualitySessions: 1,
+  allowIntervals: true,
+  includeStrength: true,
+  minimumPlanWeeks: 8,
+  feasibilityWarning: null,
+}
+
+// Constraints fixture for tests that require 2 quality sessions
+const baseConstraints2: PlanConstraints = { ...baseConstraints, maxQualitySessions: 2 }
+
 const baseInput = {
   startDate: "2026-06-01", // a Monday
   selectedDays: ["mon", "wed", "fri", "sat"],
@@ -32,6 +49,7 @@ const baseInput = {
   trainingStructure: { runDaysPerWeek: 4, restDaysPerWeek: 3, maxQualitySessions: 1 },
   longRunTargets: { peakLongRunKm: 30, recoveryRunMaxKm: 13 },
   paceZones,
+  constraints: baseConstraints,
 }
 
 // Helper to find dayKey from a date string
@@ -61,12 +79,12 @@ describe("scheduleWorkouts — long run", () => {
     })
   })
 
-  it("long run distance is capped at 35% of weekly km", () => {
+  it("long run distance is capped at longRunMaxFraction of weekly km", () => {
     const days = scheduleWorkouts({ ...baseInput, peakWeeklyKm: 200 })
     const week1Saturday = days.find(d => d.type === "long" && d.date === "2026-06-06")
     expect(week1Saturday).toBeDefined()
-    // weeklyKm for week 1 = 40 (lower bound of "40-60"), cap = 40 × 0.35 = 14
-    expect(week1Saturday!.distanceKm).toBeLessThanOrEqual(14)
+    // weeklyKm for week 1 = 40 (lower bound of "40-60"), cap = 40 × 0.40 = 16
+    expect(week1Saturday!.distanceKm).toBeLessThanOrEqual(16)
   })
 
   it("long run distance rounded to nearest 0.5", () => {
@@ -173,6 +191,7 @@ describe("scheduleWorkouts — quality session phase rules", () => {
       ...baseInput,
       totalWeeks: 6,
       trainingStructure: { runDaysPerWeek: 4, restDaysPerWeek: 3, maxQualitySessions: 2 },
+      constraints: baseConstraints2,
       phases: [
         { name: "Base",  startWeek: 1, endWeek: 2 },
         { name: "Build", startWeek: 3, endWeek: 6 },
@@ -192,6 +211,7 @@ describe("scheduleWorkouts — quality session phase rules", () => {
       ...baseInput,
       totalWeeks: 6,
       trainingStructure: { runDaysPerWeek: 4, restDaysPerWeek: 3, maxQualitySessions: 2 },
+      constraints: baseConstraints2,
       phases: [
         { name: "Base",  startWeek: 1, endWeek: 2 },
         { name: "Build", startWeek: 3, endWeek: 6 },
@@ -211,6 +231,7 @@ describe("scheduleWorkouts — quality session phase rules", () => {
       ...baseInput,
       totalWeeks: 4,
       trainingStructure: { runDaysPerWeek: 4, restDaysPerWeek: 3, maxQualitySessions: 2 },
+      constraints: baseConstraints2,
       phases: [{ name: "Peak", startWeek: 1, endWeek: 4 }],
       peakWeeklyKm: 80,
     })
@@ -243,6 +264,7 @@ describe("scheduleWorkouts — quality session phase rules", () => {
       ...baseInput,
       phases: [{ name: "Peak", startWeek: 1, endWeek: 4 }],
       trainingStructure: { runDaysPerWeek: 4, restDaysPerWeek: 3, maxQualitySessions: 2 },
+      constraints: baseConstraints2,
       peakWeeklyKm: 80,
     })
     const quality = days.filter(d => ["tempo","mp","intervals"].includes(d.type))
@@ -257,6 +279,7 @@ describe("scheduleWorkouts — quality session phase rules", () => {
       selectedDays: ["mon", "tue", "wed", "thu", "sat"],
       phases: [{ name: "Peak", startWeek: 1, endWeek: 4 }],
       trainingStructure: { runDaysPerWeek: 5, restDaysPerWeek: 2, maxQualitySessions: 2 },
+      constraints: baseConstraints2,
       peakWeeklyKm: 80,
     })
     for (let w = 0; w < 4; w++) {
@@ -283,6 +306,7 @@ describe("scheduleWorkouts — quality session phase rules", () => {
       selectedDays: ["mon", "wed", "fri", "sat"],
       phases: [{ name: "Peak", startWeek: 1, endWeek: 1 }],
       trainingStructure: { runDaysPerWeek: 4, restDaysPerWeek: 3, maxQualitySessions: 2 },
+      constraints: baseConstraints2,
       peakWeeklyKm: 80,
     })
     const mpDay = days.find(d => d.type === "mp")
@@ -326,6 +350,7 @@ describe("scheduleWorkouts — quality session phase rules", () => {
       ...baseInput,
       totalWeeks: 6,
       trainingStructure: { runDaysPerWeek: 4, restDaysPerWeek: 3, maxQualitySessions: 2 },
+      constraints: baseConstraints2,
       phases: [
         { name: "Base",  startWeek: 1, endWeek: 2 },
         { name: "Build", startWeek: 3, endWeek: 4 },
@@ -510,6 +535,7 @@ function makeInput(phases: PhaseEntry[], totalWeeks: number, selectedDays = ["mo
     trainingStructure: { runDaysPerWeek: selectedDays.length, restDaysPerWeek: 7 - selectedDays.length, maxQualitySessions: 2 },
     longRunTargets: { peakLongRunKm: 30, recoveryRunMaxKm: 13 },
     paceZones,
+    constraints: baseConstraints2,
   }
 }
 
@@ -632,6 +658,7 @@ describe("phase config — quality session types", () => {
       trainingStructure: { runDaysPerWeek: 6, restDaysPerWeek: 1, maxQualitySessions: 2 },
       longRunTargets: { peakLongRunKm: 35, recoveryRunMaxKm: 13 },
       paceZones,
+      constraints: baseConstraints2,
     })
     // Taper W1 = week 27. startDate + (27-1)*7 = 2026-03-23 + 182 days = 2026-09-21.
     const taperW1Start = "2026-09-21"

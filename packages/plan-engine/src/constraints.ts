@@ -68,7 +68,7 @@ export function computeConstraints(input: ConstraintsInput): PlanConstraints {
     : 8
 
   // Feasibility warnings
-  const achievableLongRunKm = achievablePeakKm * longRunMaxFraction
+  const achievableLongRunKm = peakWeeklyKm * longRunMaxFraction
   const warnings: string[] = []
 
   if (totalWeeks < minimumPlanWeeks) {

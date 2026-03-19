@@ -82,8 +82,10 @@ Replace with:
 ```ts
 // Add strength training on easy-run days, only if the plan includes strength
 const easyEntries = results.filter(r => r.type === "easy")
-if (easyEntries.length > 0 && input.includeStrength) {
+if (easyEntries.length > 0 && input.includeStrength !== false) {
 ```
+
+**Note on task ordering:** `PlanGenerationInput` does not have `includeStrength` declared until Task 2. Using `!== false` (rather than `=== true`) makes this safe for the transition — `undefined !== false` evaluates to `true`, preserving the existing default behaviour until Task 2 adds the field. After Task 2, the value will be a proper boolean.
 
 - [ ] **Step 3: Empty `constants.ts`**
 
@@ -521,27 +523,23 @@ const {
 } = input
 ```
 
-- [ ] **Step 3: Cap quality sessions from `constraints.maxQualitySessions`**
+- [ ] **Step 3: Replace the quality session count + type selection block (Steps 3+4 combined)**
 
-Find line ~263:
+Steps 3 and 4 both modify the same lines — apply them together as a single replacement. Find the existing block starting at line ~262 (after the `getQualityConfig` call):
 ```ts
+const { sessions, types } = getQualityConfig(week, phase, phases, isRecovery)
 const count = Math.min(sessions, trainingStructure.maxQualitySessions)
 ```
+
 Replace with:
 ```ts
-const count = Math.min(sessions, constraints.maxQualitySessions)
-```
-
-- [ ] **Step 4: Filter intervals when `constraints.allowIntervals === false`**
-
-The quality type loop (lines ~266–301) picks session types from `types[i]`. Add a filter before the loop:
-
-```ts
+const { sessions, types } = getQualityConfig(week, phase, phases, isRecovery)
+// Filter out intervals if constraints disallow them, then cap by max quality sessions
 const allowedTypes = types.filter(t => t !== "intervals" || constraints.allowIntervals)
-const count = Math.min(allowedTypes.length > 0 ? sessions : 0, constraints.maxQualitySessions)
+const count = Math.min(allowedTypes.length, sessions, constraints.maxQualitySessions)
 ```
 
-Then use `allowedTypes[i]` instead of `types[i]` inside the loop:
+Then inside the quality placement loop, change `types[i]` to `allowedTypes[i]`:
 ```ts
 const type = allowedTypes[i]!
 ```
@@ -624,7 +622,7 @@ import {
 } from "@workspace/plan-engine"
 ```
 
-Remove the local `MILEAGE_RANGE_HIGH` constant (it now lives inside `constraints.ts`). The `MILEAGE_RANGE_LOW` constant stays — it's used for the starting volume guard.
+Remove the local `MILEAGE_RANGE_HIGH` constant (it now lives inside `constraints.ts`). The `MILEAGE_RANGE_LOW` constant stays — it's used for the starting volume guard. Keep `computeGoalPeakMileage` in the import — it is still needed for the `longRunTargets` derivation (see Step 2b below).
 
 - [ ] **Step 2: Call `computeConstraints()` early in the handler, after `goalMinutes` is derived**
 
@@ -652,12 +650,27 @@ const peakMileage = goalMinutes ? computeGoalPeakMileage(input.race.distance, go
 const peakWeeklyKm = peakMileage?.high ?? MILEAGE_RANGE_HIGH[input.weeklyMileageRange] ?? 60
 ```
 
-Keep the starting volume guard but update it to use `constraints.startingVolumeKm`:
+Keep the starting volume guard, updated to use `constraints.startingVolumeKm`:
 ```ts
 if (constraints.startingVolumeKm > peakWeeklyKm) {
   return Response.json({ error: "Starting volume exceeds peak weekly km" }, { status: 400 })
 }
 ```
+
+**Step 2b: Update the `longRunTargets` derivation to use `constraints.peakWeeklyKm`**
+
+The existing `route.ts` line ~118 reads:
+```ts
+const longRunTargets = computeLongRunTargets(input.race.distance, peakMileage)
+```
+`peakMileage` is the now-deleted variable. Replace with:
+```ts
+const longRunTargets = computeLongRunTargets(input.race.distance, {
+  low: constraints.peakWeeklyKm * 0.85,
+  high: constraints.peakWeeklyKm,
+})
+```
+`computeLongRunTargets` only reads the `high` value for its bucket lookup, so the `low` approximation is fine.
 
 - [ ] **Step 3: Pass `constraints` to `scheduleWorkouts`**
 
@@ -852,8 +865,7 @@ Expected: < 200 lines.
 
 ```bash
 git add packages/plan-engine/src/workout-placement.ts \
-        packages/plan-engine/src/workout-scheduler.ts \
-        packages/plan-engine/src/index.ts
+        packages/plan-engine/src/workout-scheduler.ts
 git commit -m "refactor(scheduler): extract placement logic into workout-placement.ts"
 ```
 
@@ -1132,8 +1144,7 @@ Expected: passes.
 
 ```bash
 git add apps/web/components/onboarding/types.ts \
-        apps/web/components/onboarding/onboarding-flow.tsx \
-        apps/web/components/onboarding/final-screen.tsx
+        apps/web/components/onboarding/onboarding-flow.tsx
 git rm apps/web/components/onboarding/steps/step-long-run-day.tsx \
        apps/web/components/onboarding/steps/step-time-goal.tsx
 git commit -m "feat(onboarding): reorder steps, add firstAtDistance + includeStrength, delete dead files"

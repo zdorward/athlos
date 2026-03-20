@@ -173,22 +173,21 @@ async function seedUSA(): Promise<void> {
     console.log(` ${fullRaces.length} full, ${halfRaces.length} half`)
   }
 
-  // Sort by date ascending
-  allRaces.sort((a, b) => a.date.localeCompare(b.date))
+  // Fix duplicate IDs by adding name slug, then counter if still colliding
+  const assignUniqueId = (races: Race[]) => {
+    const idCounts = new Map<string, number>()
+    for (const race of races) {
+      idCounts.set(race.id, (idCounts.get(race.id) ?? 0) + 1)
+    }
 
-  // Fix duplicate IDs by adding a name slug
-  const idCounts = new Map<string, number>()
-  for (const race of allRaces) {
-    idCounts.set(race.id, (idCounts.get(race.id) ?? 0) + 1)
-  }
+    const stopWords = new Set(["marathon", "half", "race", "run", "running", "the", "and", "of", "at", "in", "a"])
+    const usedIds = new Set(races.filter((r) => (idCounts.get(r.id) ?? 0) === 1).map((r) => r.id))
 
-  const duplicateIds = new Set([...idCounts.entries()].filter(([, n]) => n > 1).map(([id]) => id))
+    for (const race of races) {
+      if ((idCounts.get(race.id) ?? 0) <= 1) continue
 
-  if (duplicateIds.size > 0) {
-    console.log(`\nFixing ${duplicateIds.size} duplicate IDs...`)
-    for (const race of allRaces) {
-      if (!duplicateIds.has(race.id)) continue
-      const stopWords = new Set(["marathon", "half", "race", "run", "running", "the", "and", "of", "at", "in"])
+      const citySlug = race.city.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+      const year = race.date.split("-")[0]!
       const nameSlug = race.name
         .toLowerCase()
         .replace(/[^a-z0-9\s]/g, "")
@@ -196,14 +195,43 @@ async function seedUSA(): Promise<void> {
         .filter((w) => !stopWords.has(w))
         .slice(0, 3)
         .join("-")
-      const citySlug = race.city.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
-      const year = race.date.split("-")[0]!
-      race.id = `us-${nameSlug}-${citySlug}-${race.distance}-${year}`
+
+      let candidate = `us-${nameSlug}-${citySlug}-${race.distance}-${year}`
+      let counter = 2
+      while (usedIds.has(candidate)) {
+        candidate = `us-${nameSlug}-${citySlug}-${race.distance}-${year}-${counter}`
+        counter++
+      }
+
+      race.id = candidate
+      usedIds.add(candidate)
     }
   }
 
-  console.log(`\nTotal: ${allRaces.length} USA races`)
-  writeRaceFile("us", "US_RACES", allRaces)
+  // Filter out non-road races and junk entries
+  const currentYear = new Date().getFullYear()
+  const filtered = allRaces.filter((race) => {
+    const nameLower = race.name.toLowerCase()
+    // Exclude trail races
+    if (nameLower.includes("trail")) return false
+    // Exclude relay races
+    if (nameLower.includes("relay")) return false
+    // Exclude virtual races
+    if (nameLower.includes("virtual")) return false
+    if (race.city.toLowerCase() === "virtual") return false
+    // Exclude far-future/bogus dates (more than 2 years out)
+    const raceYear = parseInt(race.date.split("-")[0]!, 10)
+    if (raceYear > currentYear + 2) return false
+    return true
+  })
+
+  // Sort by date ascending
+  filtered.sort((a, b) => a.date.localeCompare(b.date))
+
+  assignUniqueId(filtered)
+
+  console.log(`\nTotal: ${filtered.length} USA races (filtered from ${allRaces.length} raw)`)
+  writeRaceFile("us", "US_RACES", filtered)
 }
 
 main().catch((err) => {

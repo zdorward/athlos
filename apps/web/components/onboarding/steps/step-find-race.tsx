@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
+import { useMediaQuery } from "@/hooks/use-media-query"
 import { Search } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { Button } from "@workspace/ui/components/button"
@@ -8,27 +9,17 @@ import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Calendar } from "@workspace/ui/components/calendar"
 import { cn } from "@workspace/ui/lib/utils"
-import { RACES, type Race } from "@/data/races"
+import type { Race } from "@/data/races/types"
+import { useRaceSearch } from "@/hooks/use-race-search"
 import { DISTANCE_LABELS, type Distance, type RaceData, type StepProps } from "../types"
 
-export function StepFindRace({ formData, onNext }: Pick<StepProps, "formData" | "onNext">) {
+export function StepFindRace({ onNext }: Pick<StepProps, "onNext">) {
   const [query, setQuery] = useState("")
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [showManual, setShowManual] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
 
-  const filtered =
-    query.trim() === ""
-      ? RACES
-      : RACES.filter((r) => {
-          const q = query.toLowerCase()
-          return (
-            r.name.toLowerCase().includes(q) ||
-            r.city.toLowerCase().includes(q) ||
-            r.region.toLowerCase().includes(q) ||
-            r.country.toLowerCase().includes(q)
-          )
-        })
+  const { results, loading } = useRaceSearch(query)
 
   const isOpen = dropdownOpen || query.trim() !== ""
 
@@ -82,8 +73,10 @@ export function StepFindRace({ formData, onNext }: Pick<StepProps, "formData" | 
         {isOpen && (
           <div className="absolute top-full left-0 right-0 z-20 bg-background border border-t-0 border-border rounded-b-xl overflow-hidden shadow-lg">
             <div className="max-h-52 overflow-y-auto">
-              {filtered.length > 0 ? (
-                filtered.map((race) => (
+              {loading ? (
+                <p className="px-4 py-3 text-sm text-muted-foreground">Loading…</p>
+              ) : results.length > 0 ? (
+                results.map((race) => (
                   <button
                     key={race.id}
                     onMouseDown={() => handleSelect(race)}
@@ -126,10 +119,14 @@ function ManualRaceForm({
   onBack: () => void
   onSubmit: (race: RaceData) => void
 }) {
+  const isDesktop = useMediaQuery("(min-width: 768px)")
   const [name, setName] = useState("")
   const [city, setCity] = useState("")
   const [date, setDate] = useState<Date | undefined>()
   const [distance, setDistance] = useState<Distance>("full")
+
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
 
   const isValid = name.trim() !== "" && city.trim() !== "" && date !== undefined
 
@@ -142,7 +139,7 @@ function ManualRaceForm({
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         <div className="space-y-1.5">
           <Label htmlFor="race-name">Race name</Label>
           <Input
@@ -185,19 +182,31 @@ function ManualRaceForm({
             )}
           </div>
         </div>
-        <div className="space-y-1.5">
-          <Label>Race date</Label>
-          <div className="w-fit mx-auto rounded-lg border border-border">
+        <div className="mt-2 space-y-1.5">
+          <Label htmlFor="race-date">Race date</Label>
+          {isDesktop ? (
             <Calendar
               mode="single"
               selected={date}
               onSelect={setDate}
               disabled={(d) => d <= new Date()}
               fixedWeeks
-              initialFocus
-              className="[--cell-size:2.75rem]"
+              className="rounded-lg border border-border"
+              classNames={{
+                root: "w-full",
+                day: "group/day relative h-9 w-full rounded-(--cell-radius) p-0 text-center select-none [&:last-child[data-selected=true]_button]:rounded-r-(--cell-radius) [&:first-child[data-selected=true]_button]:rounded-l-(--cell-radius)",
+              }}
             />
-          </div>
+          ) : (
+            <input
+              id="race-date"
+              type="date"
+              min={format(tomorrow, "yyyy-MM-dd")}
+              value={date ? format(date, "yyyy-MM-dd") : ""}
+              onChange={(e) => setDate(e.target.value ? new Date(e.target.value + "T00:00:00") : undefined)}
+              className="h-10 w-full rounded-lg border border-border bg-transparent px-3 text-sm text-foreground"
+            />
+          )}
         </div>
       </div>
 

@@ -2,9 +2,11 @@
 
 import { Suspense, useEffect, useRef, useState } from "react"
 import dynamic from "next/dynamic"
+import Image from "next/image"
 import { Wordmark } from "@/components/wordmark"
 import { Search } from "lucide-react"
-import { RACES, type Race } from "@/data/races"
+import type { Race } from "@/data/races/types"
+import { useRaceSearch } from "@/hooks/use-race-search"
 import {
   DISTANCE_LABELS,
   type OnboardingData,
@@ -22,7 +24,6 @@ const SignInSheet = dynamic(
 )
 const ManualRaceSheet = dynamic(
   () => import("./manual-race-sheet").then((m) => ({ default: m.ManualRaceSheet })),
-  { ssr: false },
 )
 
 export function LandingPage() {
@@ -42,6 +43,7 @@ function PageContent() {
   >()
   const [query, setQuery] = useState("")
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const { results, loading } = useRaceSearch(query)
   const wrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -65,19 +67,6 @@ function PageContent() {
     )
   }
 
-  const filtered =
-    query.trim() === ""
-      ? RACES
-      : RACES.filter((r) => {
-          const q = query.toLowerCase()
-          return (
-            r.name.toLowerCase().includes(q) ||
-            r.city.toLowerCase().includes(q) ||
-            r.region.toLowerCase().includes(q) ||
-            r.country.toLowerCase().includes(q)
-          )
-        })
-
   function handleRaceSelect(race: Race) {
     const raceData: RaceData = {
       name: race.name,
@@ -96,6 +85,10 @@ function PageContent() {
   }
 
   const isOpen = dropdownOpen || query.trim() !== ""
+
+  useEffect(() => {
+    if (isOpen) void import("./manual-race-sheet")
+  }, [isOpen])
 
   return (
     <>
@@ -253,7 +246,7 @@ function PageContent() {
                 margin: 0,
               }}
             >
-              Pfitzinger-based marathon training.<br />Built around your goal time.
+              Your marathon plan,<br />built on modern sports science.
             </h1>
 
             <p
@@ -264,7 +257,7 @@ function PageContent() {
                 letterSpacing: "0.01em",
               }}
             >
-              Strength training built in from day one.<br />Adapts when your body says it needs to.
+              Pfitzinger methodology. Personalized to your goal time and race date. Strength training included.
             </p>
 
             {/* Search widget */}
@@ -329,8 +322,10 @@ function PageContent() {
                   }}
                 >
                   <div style={{ maxHeight: 200, overflowY: "auto" }}>
-                    {filtered.length > 0 ? (
-                      filtered.map((race) => (
+                    {loading ? (
+                      <p className="px-4 py-3 text-sm text-muted-foreground">Loading…</p>
+                    ) : results.length > 0 ? (
+                      results.map((race) => (
                         <DropdownRaceRow
                           key={race.id}
                           race={race}
@@ -356,8 +351,8 @@ function PageContent() {
               )}
             </div>
 
-            <p style={{ fontSize: 12, margin: 0, color: "rgba(255,255,255,0.22)", letterSpacing: "0.02em" }}>
-              Adaptive · Hybrid-athlete ready · Built for BQ
+            <p style={{ fontSize: 12, margin: 0, color: "rgba(74,222,128,0.55)", letterSpacing: "0.02em" }}>
+              Free. No account required to start.
             </p>
 
           </div>
@@ -617,6 +612,8 @@ function PageContent() {
           </div>
         </section>
 
+        <FounderSection />
+
         {/* ── Bottom CTA ────────────────────────────────────────────────── */}
         <section style={{ padding: "0 24px 120px", textAlign: "center" }}>
           <h2
@@ -667,10 +664,12 @@ function PageContent() {
       )}
 
       {showManualEntry && (
-        <ManualRaceSheet
-          onClose={() => setShowManualEntry(false)}
-          onSubmit={handleManualRaceSubmit}
-        />
+        <Suspense fallback={null}>
+          <ManualRaceSheet
+            onClose={() => setShowManualEntry(false)}
+            onSubmit={handleManualRaceSubmit}
+          />
+        </Suspense>
       )}
     </>
   )
@@ -764,5 +763,111 @@ function DropdownRaceRow({
         {DISTANCE_LABELS[race.distance]}
       </span>
     </div>
+  )
+}
+
+function FounderSection() {
+  const [photoError, setPhotoError] = useState(false)
+
+  return (
+    <section style={{ padding: "0 24px 96px", maxWidth: 1100, margin: "0 auto" }}>
+      <div style={{ maxWidth: 560, margin: "0 auto" }}>
+
+        {/* Flex row: photo column | text column */}
+        <div style={{ display: "flex", gap: 32, alignItems: "flex-start", flexWrap: "wrap" }}>
+
+          {/* Photo column */}
+          <div style={{ flexShrink: 0, minWidth: 120, display: "flex", flexDirection: "column", alignItems: "center" }}>
+            {photoError ? (
+              <div style={{
+                width: 88, height: 88, borderRadius: "50%",
+                background: "rgba(255,255,255,0.08)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 20, color: "rgba(255,255,255,0.4)",
+              }}>ZD</div>
+            ) : (
+              <Image
+                src="/zack.jpg"
+                alt="Zack"
+                width={88}
+                height={88}
+                onError={() => setPhotoError(true)}
+                style={{ borderRadius: "50%", objectFit: "cover", display: "block" }}
+              />
+            )}
+            <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginTop: 10 }}>Zack</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.32)", marginTop: 2 }}>Edmonton, AB</div>
+          </div>
+
+          {/* Text column */}
+          <div style={{ flex: 1, minWidth: 220 }}>
+            <div style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: "0.06em",
+              textTransform: "uppercase", color: "rgba(100,150,255,0.7)", marginBottom: 16,
+            }}>
+              Why I built this
+            </div>
+            <p style={{ fontSize: 15, lineHeight: 1.7, color: "rgba(255,255,255,0.55)", margin: "0 0 14px" }}>
+              I ran my first marathon in September 2025 in{" "}
+              <strong style={{ color: "rgba(255,255,255,0.88)", fontWeight: 600 }}>3:52</strong>. I&apos;m trying to run{" "}
+              <strong style={{ color: "rgba(255,255,255,0.88)", fontWeight: 600 }}>3:20 at Victoria BC</strong>{" "}
+              this year and I&apos;m using Athlos to get there.
+            </p>
+            <p style={{ fontSize: 15, lineHeight: 1.7, color: "rgba(255,255,255,0.55)", margin: "0 0 14px" }}>
+              I wanted something that fit how I actually train. I lift, I care about how I look, and I run.
+              Most plans don&apos;t really account for that. I built this mostly for myself and figured other
+              people probably had the same problem.
+            </p>
+            <p style={{ fontSize: 15, lineHeight: 1.7, color: "rgba(255,255,255,0.55)", margin: 0 }}>
+              I also just don&apos;t think training plans should cost money.{" "}
+              <strong style={{ color: "rgba(255,255,255,0.88)", fontWeight: 600 }}>Athlos is free.</strong>{" "}
+              The core plan always will be.
+            </p>
+          </div>
+        </div>
+
+        {/* Stats row */}
+        <div style={{
+          display: "flex", marginTop: 32,
+          border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, overflow: "hidden",
+        }}>
+          {[
+            { value: "3:52", color: "rgba(255,255,255,0.88)", label: "First marathon · Sept 2025" },
+            { value: "3:20", color: "rgba(100,150,255,0.9)", label: "Goal · Victoria BC 2026" },
+            { value: "2:55", color: "rgba(167,139,250,0.9)", label: "BQ goal · 2027" },
+          ].map((stat, i) => (
+            <div key={stat.value} style={{
+              flex: 1, padding: "16px 20px", textAlign: "center",
+              borderRight: i < 2 ? "1px solid rgba(255,255,255,0.07)" : undefined,
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 700, color: stat.color }}>{stat.value}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.32)", marginTop: 4 }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Early access callout */}
+        <div style={{
+          marginTop: 20, padding: "14px 18px",
+          background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)",
+          borderRadius: 8, display: "flex", alignItems: "flex-start", gap: 12,
+        }}>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>⚡</span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Early access</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.38)" }}>
+              I&apos;m looking for people to try this and tell me what&apos;s wrong with it. I read every message.
+            </div>
+            <a
+              href="mailto:zack@athlos.run"
+              style={{ fontSize: 12, color: "rgba(100,150,255,0.9)", textDecoration: "none" }}
+            >
+              zack@athlos.run
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </section>
   )
 }

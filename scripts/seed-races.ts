@@ -176,6 +176,32 @@ async function seedUSA(): Promise<void> {
   // Sort by date ascending
   allRaces.sort((a, b) => a.date.localeCompare(b.date))
 
+  // Fix duplicate IDs by adding a name slug
+  const idCounts = new Map<string, number>()
+  for (const race of allRaces) {
+    idCounts.set(race.id, (idCounts.get(race.id) ?? 0) + 1)
+  }
+
+  const duplicateIds = new Set([...idCounts.entries()].filter(([, n]) => n > 1).map(([id]) => id))
+
+  if (duplicateIds.size > 0) {
+    console.log(`\nFixing ${duplicateIds.size} duplicate IDs...`)
+    for (const race of allRaces) {
+      if (!duplicateIds.has(race.id)) continue
+      const stopWords = new Set(["marathon", "half", "race", "run", "running", "the", "and", "of", "at", "in"])
+      const nameSlug = race.name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, "")
+        .split(/\s+/)
+        .filter((w) => !stopWords.has(w))
+        .slice(0, 3)
+        .join("-")
+      const citySlug = race.city.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+      const year = race.date.split("-")[0]!
+      race.id = `us-${nameSlug}-${citySlug}-${race.distance}-${year}`
+    }
+  }
+
   console.log(`\nTotal: ${allRaces.length} USA races`)
   writeRaceFile("us", "US_RACES", allRaces)
 }

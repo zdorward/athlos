@@ -167,7 +167,7 @@ describe("POST /api/generate-plan — constraints and feasibilityWarning", () =>
       ...validInput,
       race: { ...validInput.race, date: "2026-07-01" }, // ~14 weeks away from 2026-03-19
       isFirstAtDistance: true,
-      weeklyMileageRange: "under-40",
+      weeklyMileageRange: "25-40" as const,
     }
     const res = await POST(makeRequest(firstTimerInput))
     const body = await res.json()

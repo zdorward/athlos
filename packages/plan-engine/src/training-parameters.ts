@@ -98,7 +98,7 @@ export function computeTrainingStructure(
     if (run > 6) { run = 6; rest += 1 }
   } else {
     // Mileage fallback (ultra, no goal time, unknown distance)
-    if (weeklyMileageRange === "under-40")     { run = 5; rest = 2; quality = 1 }
+    if (weeklyMileageRange === "25-40")        { run = 5; rest = 2; quality = 1 }
     else if (weeklyMileageRange === "40-60")   { run = 6; rest = 1; quality = 1 }
     else if (weeklyMileageRange === "60-80")   { run = 6; rest = 1; quality = 2 }
     else if (weeklyMileageRange === "80-plus") { run = 7; rest = 0; quality = 2 }

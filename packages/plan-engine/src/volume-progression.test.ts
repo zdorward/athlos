@@ -26,9 +26,9 @@ describe("computeWeeklyVolumes", () => {
     expect(vols[0]).toBe(40)
   })
 
-  it("week 1 lower bounds: under-40=30, 60-80=60, 80-plus=80", () => {
+  it("week 1 lower bounds: 25-40=30, 60-80=60, 80-plus=80", () => {
     const base = { totalWeeks: 8, peakWeeklyKm: 200, phases: noTaperPhases }
-    expect(computeWeeklyVolumes({ ...base, weeklyMileageRange: "under-40" })[0]).toBe(30)
+    expect(computeWeeklyVolumes({ ...base, weeklyMileageRange: "25-40" as const })[0]).toBe(30)
     expect(computeWeeklyVolumes({ ...base, weeklyMileageRange: "60-80" })[0]).toBe(60)
     expect(computeWeeklyVolumes({ ...base, weeklyMileageRange: "80-plus" })[0]).toBe(80)
   })

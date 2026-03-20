@@ -118,7 +118,7 @@ describe("computeTrainingStructure — full marathon, 4:30+ (360 min / 6h), 7 da
 })
 
 describe("computeTrainingStructure — no goal time, full marathon, uses mileage fallback", () => {
-  const result = computeTrainingStructure(null, "full", 7, "under-40")
+  const result = computeTrainingStructure(null, "full", 7, "25-40")
   it("runDaysPerWeek: 5", () => { expect(result.runDaysPerWeek).toBe(5) })
   it("restDaysPerWeek: 2", () => { expect(result.restDaysPerWeek).toBe(2) })
   it("maxQualitySessions: 1", () => { expect(result.maxQualitySessions).toBe(1) })

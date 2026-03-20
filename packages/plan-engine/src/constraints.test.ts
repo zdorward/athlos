@@ -70,11 +70,11 @@ describe("computeConstraints", () => {
 
   describe("peakWeeklyKm — achievable clamping", () => {
     it("clamps to achievable peak when ramp cannot reach aspirational", () => {
-      // under-40 bracket starts at 30 km/week, 0.10 ramp, 5 pre-taper weeks
+      // 25-40 bracket starts at 30 km/week, 0.10 ramp, 5 pre-taper weeks
       // achievable = 30 * 1.1^5 ≈ 48.3 km — far below goal-time-derived ~80 km
       const c = computeConstraints({
         ...base,
-        weeklyMileageRange: "under-40",
+        weeklyMileageRange: "25-40" as const,
         totalWeeks: 8,
         goalMinutes: 210,         // would prescribe 80–100 km peak
         isFirstAtDistance: false,
@@ -120,12 +120,12 @@ describe("computeConstraints", () => {
     })
 
     it("warns when achievable long run is below 26 km for full marathon", () => {
-      // under-40 starts 30 km, 0.08 first-timer ramp, 5 pre-taper weeks
+      // 25-40 starts 30 km, 0.08 first-timer ramp, 5 pre-taper weeks
       // achievable = 30 * 1.08^5 ≈ 44 km; long run = 44 * 0.40 ≈ 17.6 km < 26
       const c = computeConstraints({
         ...base,
         isFirstAtDistance: true,
-        weeklyMileageRange: "under-40",
+        weeklyMileageRange: "25-40" as const,
         totalWeeks: 8,
       })
       expect(c.feasibilityWarning).toMatch(/Long run/)
@@ -141,7 +141,7 @@ describe("computeConstraints", () => {
       const c = computeConstraints({
         ...base,
         isFirstAtDistance: true,
-        weeklyMileageRange: "under-40",
+        weeklyMileageRange: "25-40" as const,
         totalWeeks: 6,  // below 16 AND too short for long runs
       })
       expect(c.feasibilityWarning).toContain("weeks")

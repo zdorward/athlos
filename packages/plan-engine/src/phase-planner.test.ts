@@ -141,8 +141,8 @@ describe("computePhases — exactly 20 weeks (last 4-phase case)", () => {
 })
 
 describe("computePhases — 29 week full marathon: GF fills gap", () => {
-  it("under-40: GF=4, Base=9, Build=9, Peak=4, Taper=3", () => {
-    const phases = computePhases(29, "full", "under-40")
+  it("25-40: GF=4, Base=9, Build=9, Peak=4, Taper=3", () => {
+    const phases = computePhases(29, "full", "25-40")
     expect(phases[0]).toEqual({ name: "General Fitness", startWeek: 1, endWeek: 4 })
     expect(phases[1]).toEqual({ name: "Base", startWeek: 5, endWeek: 13 })
     expect(phases[2]).toEqual({ name: "Build", startWeek: 14, endWeek: 22 })
@@ -150,7 +150,7 @@ describe("computePhases — 29 week full marathon: GF fills gap", () => {
     expect(phases[4]).toEqual({ name: "Taper", startWeek: 27, endWeek: 29 })
   })
 
-  it("80-plus: GF cap does not bite at 29 weeks — same layout as under-40", () => {
+  it("80-plus: GF cap does not bite at 29 weeks — same layout as 25-40", () => {
     const phases = computePhases(29, "full", "80-plus")
     expect(phases[0]).toEqual({ name: "General Fitness", startWeek: 1, endWeek: 4 })
     expect(phases[1]).toEqual({ name: "Base", startWeek: 5, endWeek: 13 })
@@ -161,8 +161,8 @@ describe("computePhases — 29 week full marathon: GF fills gap", () => {
 })
 
 describe("computePhases — 52 week full marathon: GF capped by mileage range", () => {
-  it("under-40: GF is capped at 12 weeks", () => {
-    const phases = computePhases(52, "full", "under-40")
+  it("25-40: GF is capped at 12 weeks", () => {
+    const phases = computePhases(52, "full", "25-40")
     const gf = phases.find(p => p.name === "General Fitness")!
     expect(gf.endWeek - gf.startWeek + 1).toBe(12)
   })

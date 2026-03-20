@@ -33,7 +33,7 @@ export interface OnboardingData {
   goalTime?: { hours: number; minutes: number }
   selectedDays?: Day[]
   longRunDay?: Day
-  weeklyMileageRange?: "under-40" | "40-60" | "60-80" | "80-plus"
+  weeklyMileageRange?: "25-40" | "40-60" | "60-80" | "80-plus"
   units?: "km" | "miles"
   isFirstAtDistance?: boolean
   includeStrength?: boolean

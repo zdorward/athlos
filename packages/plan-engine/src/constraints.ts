@@ -3,7 +3,7 @@ import { WEEK1_VOLUME_KM } from "./volume-progression"
 import type { WeeklyMileageRange } from "./types"
 
 const MILEAGE_RANGE_HIGH: Record<WeeklyMileageRange, number> = {
-  "under-40": 40,
+  "25-40":  40,
   "40-60":    60,
   "60-80":    80,
   "80-plus":  120,

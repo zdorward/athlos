@@ -50,11 +50,17 @@ The form fields are extracted into a shared internal component (`ManualRaceFormF
 
 ### `ManualRaceForm` (onboarding) — fields only
 
-No container changes. The inline form that replaces the step view already sits correctly in the layout. Apply field improvements only:
+No container changes. The inline form that replaces the step view already sits correctly in the layout. Apply the same field improvements:
 - Distance `Select` → segmented control (Full default)
 - Date `Popover`/`Calendar` → inline calendar (fixed 6-row grid)
 
+`ManualRaceForm` does **not** consume the `ManualRaceFormFields` component from `manual-race-sheet.tsx` — it lives in a different file and has a different layout context. Each applies the same field pattern independently.
+
 Back button and Continue button unchanged.
+
+### Calendar implementation note
+
+The fixed 6-row grid requires the shadcn `Calendar` component to always render 6 weeks regardless of the month. The shadcn `Calendar` (built on `react-day-picker`) supports this via the `fixedWeeks` prop — pass `fixedWeeks` to the `Calendar` component to enable it.
 
 ## Files to change
 

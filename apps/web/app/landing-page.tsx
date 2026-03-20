@@ -73,14 +73,15 @@ function PageContent() {
           return (
             r.name.toLowerCase().includes(q) ||
             r.city.toLowerCase().includes(q) ||
-            r.province.toLowerCase().includes(q)
+            r.region.toLowerCase().includes(q) ||
+            r.country.toLowerCase().includes(q)
           )
         })
 
   function handleRaceSelect(race: Race) {
     const raceData: RaceData = {
       name: race.name,
-      city: `${race.city}, ${race.province}`,
+      city: `${race.city}, ${race.region}`,
       date: new Date(race.date + "T12:00:00Z"),
       distance: race.distance,
     }
@@ -743,7 +744,7 @@ function DropdownRaceRow({
             marginTop: 2,
           }}
         >
-          {race.city}, {race.province} · {dateLabel}
+          {race.city}, {race.region} · {dateLabel}
         </div>
       </div>
       <span

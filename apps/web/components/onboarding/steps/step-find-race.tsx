@@ -34,7 +34,8 @@ export function StepFindRace({ formData, onNext }: Pick<StepProps, "formData" | 
           return (
             r.name.toLowerCase().includes(q) ||
             r.city.toLowerCase().includes(q) ||
-            r.province.toLowerCase().includes(q)
+            r.region.toLowerCase().includes(q) ||
+            r.country.toLowerCase().includes(q)
           )
         })
 
@@ -43,7 +44,7 @@ export function StepFindRace({ formData, onNext }: Pick<StepProps, "formData" | 
   function handleSelect(race: Race) {
     const raceData: RaceData = {
       name: race.name,
-      city: `${race.city}, ${race.province}`,
+      city: `${race.city}, ${race.region}`,
       date: parseISO(race.date),
       distance: race.distance,
     }
@@ -100,7 +101,7 @@ export function StepFindRace({ formData, onNext }: Pick<StepProps, "formData" | 
                     <div>
                       <p className="text-sm font-medium">{race.name}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {race.city}, {race.province} · {format(parseISO(race.date), "MMM d, yyyy")}
+                        {race.city}, {race.region} · {format(parseISO(race.date), "MMM d, yyyy")}
                       </p>
                     </div>
                     <span className="text-xs font-semibold text-primary/70 bg-primary/10 border border-primary/20 rounded px-1.5 py-0.5 shrink-0 ml-4">

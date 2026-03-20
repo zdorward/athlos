@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import { OnboardingCard } from "../onboarding-card"
-import type { StepProps } from "../types"
+import type { StepProps, OnboardingData } from "../types"
 
-type MileageRange = "0-10" | "10-25" | "25-40" | "40-60" | "60-80" | "80-plus"
+type MileageRange = NonNullable<OnboardingData["weeklyMileageRange"]>
 
 const KM_OPTIONS: { value: MileageRange; label: string; description: string; badge: string }[] = [
   { value: "0-10",   label: "Just getting started", description: "Little or no current running",              badge: "0–10 km/wk"  },

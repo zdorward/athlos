@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { XIcon } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
@@ -34,7 +35,7 @@ export function ManualRaceSheet({
   if (isDesktop) {
     return (
       <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
-        <DialogContent className="max-w-sm" showCloseButton={false}>
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Add your race</DialogTitle>
             <DialogDescription>
@@ -58,11 +59,20 @@ export function ManualRaceSheet({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto h-1 w-10 rounded-full bg-border" />
-        <div className="space-y-1">
-          <h2 className="text-lg font-semibold">Add your race</h2>
-          <p className="text-sm text-muted-foreground">
-            Can&apos;t find it in the list? Enter the details manually.
-          </p>
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold">Add your race</h2>
+            <p className="text-sm text-muted-foreground">
+              Can&apos;t find it in the list? Enter the details manually.
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-md p-1 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Close"
+          >
+            <XIcon className="h-4 w-4" />
+          </button>
         </div>
         {fields}
       </div>

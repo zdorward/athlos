@@ -4,7 +4,8 @@ import { Suspense, useEffect, useRef, useState } from "react"
 import dynamic from "next/dynamic"
 import { Wordmark } from "@/components/wordmark"
 import { Search } from "lucide-react"
-import { RACES, type Race } from "@/data/races"
+import type { Race } from "@/data/races/types"
+import { useRaceSearch } from "@/hooks/use-race-search"
 import {
   DISTANCE_LABELS,
   type OnboardingData,
@@ -42,6 +43,7 @@ function PageContent() {
   >()
   const [query, setQuery] = useState("")
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const { results, loading } = useRaceSearch(query)
   const wrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -64,19 +66,6 @@ function PageContent() {
       </main>
     )
   }
-
-  const filtered =
-    query.trim() === ""
-      ? RACES
-      : RACES.filter((r) => {
-          const q = query.toLowerCase()
-          return (
-            r.name.toLowerCase().includes(q) ||
-            r.city.toLowerCase().includes(q) ||
-            r.region.toLowerCase().includes(q) ||
-            r.country.toLowerCase().includes(q)
-          )
-        })
 
   function handleRaceSelect(race: Race) {
     const raceData: RaceData = {
@@ -329,8 +318,10 @@ function PageContent() {
                   }}
                 >
                   <div style={{ maxHeight: 200, overflowY: "auto" }}>
-                    {filtered.length > 0 ? (
-                      filtered.map((race) => (
+                    {loading ? (
+                      <p className="px-4 py-3 text-sm text-muted-foreground">Loading…</p>
+                    ) : results.length > 0 ? (
+                      results.map((race) => (
                         <DropdownRaceRow
                           key={race.id}
                           race={race}

@@ -83,7 +83,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-to-space-huntsville-full-2026",
-    name: "Race to Space Marathon & Half Marathon",
+    name: "Race to Space Marathon",
     city: "Huntsville",
     region: "AL",
     country: "US",
@@ -93,7 +93,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-to-space-huntsville-half-2026",
-    name: "Race to Space Marathon & Half Marathon",
+    name: "Race to Space Half Marathon",
     city: "Huntsville",
     region: "AL",
     country: "US",
@@ -623,7 +623,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-bend-bend-full-2026",
-    name: "Bend Marathon and Half",
+    name: "Bend Marathon",
     city: "Bend",
     region: "OR",
     country: "US",
@@ -633,7 +633,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-bend-bend-half-2026",
-    name: "Bend Marathon and Half",
+    name: "Bend Half Marathon",
     city: "Bend",
     region: "OR",
     country: "US",
@@ -743,7 +743,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-yakima-full-2026",
-    name: "Yakima River Canyon Marathon and Half-Marathon",
+    name: "Yakima River Canyon Marathon-Marathon",
     city: "Yakima",
     region: "WA",
     country: "US",
@@ -763,7 +763,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-yakima-half-2026",
-    name: "Yakima River Canyon Marathon and Half-Marathon",
+    name: "Yakima River Canyon Half Marathon-Marathon",
     city: "Yakima",
     region: "WA",
     country: "US",
@@ -1243,7 +1243,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-lexington-full-2026",
-    name: "Horse Capital Marathon & Half Marathon",
+    name: "Horse Capital Marathon",
     city: "Lexington",
     region: "KY",
     country: "US",
@@ -1253,7 +1253,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-horse-capital-lexington-half-2026",
-    name: "Horse Capital Marathon & Half Marathon",
+    name: "Horse Capital Half Marathon",
     city: "Lexington",
     region: "KY",
     country: "US",
@@ -1883,7 +1883,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-ventura-full-2026",
-    name: "Mountains 2 Beach Marathon and Half",
+    name: "Mountains 2 Beach Marathon",
     city: "Ventura",
     region: "CA",
     country: "US",
@@ -1893,7 +1893,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-mountains-2-beach-ventura-half-2026",
-    name: "Mountains 2 Beach Marathon and Half",
+    name: "Mountains 2 Beach Half Marathon",
     city: "Ventura",
     region: "CA",
     country: "US",
@@ -2213,7 +2213,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-bozeman-full-2026",
-    name: "River Road Marathon & Half Marathon",
+    name: "River Road Marathon",
     city: "Bozeman",
     region: "MT",
     country: "US",
@@ -2223,7 +2223,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-bozeman-half-2026",
-    name: "River Road Marathon & Half Marathon",
+    name: "River Road Half Marathon",
     city: "Bozeman",
     region: "MT",
     country: "US",
@@ -2233,7 +2233,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-jersey-city-full-2026",
-    name: "The Jersey City Marathon & Half Marathon Marquee Experience at Newport",
+    name: "The Jersey City Marathon Marquee Experience at Newport",
     city: "Jersey City",
     region: "NJ",
     country: "US",
@@ -2243,7 +2243,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-jersey-city-half-2026",
-    name: "The Jersey City Marathon & Half Marathon Marquee Experience at Newport",
+    name: "The Jersey City Half Marathon Marquee Experience at Newport",
     city: "Jersey City",
     region: "NJ",
     country: "US",
@@ -2883,7 +2883,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-l-hain-full-2026",
-    name: "Maui Marathon and Half Marathon April 26, 2026",
+    name: "Maui Marathon April 26, 2026",
     city: "Lāhainā",
     region: "HI",
     country: "US",
@@ -2893,7 +2893,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-l-hain-half-2026",
-    name: "Maui Marathon and Half Marathon April 26, 2026",
+    name: "Maui Half Marathon April 26, 2026",
     city: "Lāhainā",
     region: "HI",
     country: "US",
@@ -2913,7 +2913,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-moosehead-greenville-full-2026",
-    name: "Moosehead Marathon and Half Marathon",
+    name: "Moosehead Marathon",
     city: "Greenville",
     region: "ME",
     country: "US",
@@ -2923,7 +2923,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-moosehead-greenville-half-2026",
-    name: "Moosehead Marathon and Half Marathon",
+    name: "Moosehead Half Marathon",
     city: "Greenville",
     region: "ME",
     country: "US",
@@ -2933,7 +2933,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-oak-bluffs-full-2026",
-    name: "MV Spring Classic Marathon and Half Marathon",
+    name: "MV Spring Classic Marathon",
     city: "Oak Bluffs",
     region: "MA",
     country: "US",
@@ -2943,7 +2943,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-oak-bluffs-half-2026",
-    name: "MV Spring Classic Marathon and Half Marathon",
+    name: "MV Spring Classic Half Marathon",
     city: "Oak Bluffs",
     region: "MA",
     country: "US",
@@ -3023,7 +3023,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-greer-full-2026",
-    name: "2Slow4Boston Marathon & Half",
+    name: "2Slow4Boston Marathon",
     city: "Greer",
     region: "SC",
     country: "US",
@@ -3033,7 +3033,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-greer-half-2026",
-    name: "2Slow4Boston Marathon & Half",
+    name: "2Slow4Boston Half Marathon",
     city: "Greer",
     region: "SC",
     country: "US",
@@ -3053,7 +3053,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-chesapeake-full-2026",
-    name: "Tidewater Strider Marathon and Half Marathon Spring Edition",
+    name: "Tidewater Strider Marathon Spring Edition",
     city: "Chesapeake",
     region: "VA",
     country: "US",
@@ -3083,7 +3083,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-chesapeake-half-2026",
-    name: "Tidewater Strider Marathon and Half Marathon Spring Edition",
+    name: "Tidewater Strider Half Marathon Spring Edition",
     city: "Chesapeake",
     region: "VA",
     country: "US",
@@ -3773,7 +3773,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-york-full-2026",
-    name: "York Marathon and Half Marathon",
+    name: "York Marathon",
     city: "York",
     region: "PA",
     country: "US",
@@ -3783,7 +3783,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-york-york-half-2026",
-    name: "York Marathon and Half Marathon",
+    name: "York Half Marathon",
     city: "York",
     region: "PA",
     country: "US",
@@ -4303,7 +4303,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-cambridge-full-2026",
-    name: "Guernsey County Crossroads Marathon & Half-marathon",
+    name: "Guernsey County Crossroads Marathon-marathon",
     city: "Cambridge",
     region: "OH",
     country: "US",
@@ -4323,7 +4323,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-guernsey-county-crossroads-cambridge-half-2026",
-    name: "Guernsey County Crossroads Marathon & Half-marathon",
+    name: "Guernsey County Crossroads Half Marathon-marathon",
     city: "Cambridge",
     region: "OH",
     country: "US",
@@ -4653,7 +4653,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-dillon-full-2026",
-    name: "Beaverhead Marathon Full & Half",
+    name: "Beaverhead Marathon Full",
     city: "Dillon",
     region: "MT",
     country: "US",
@@ -5043,7 +5043,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-spring-mud-mountain-enumclaw-full-2026",
-    name: "Spring - Mud Mountain Dam Marathon & Half Marathon",
+    name: "Spring - Mud Mountain Dam Marathon",
     city: "Enumclaw",
     region: "WA",
     country: "US",
@@ -5053,7 +5053,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-spring-mud-mountain-enumclaw-half-2026",
-    name: "Spring - Mud Mountain Dam Marathon & Half Marathon",
+    name: "Spring - Mud Mountain Dam Half Marathon",
     city: "Enumclaw",
     region: "WA",
     country: "US",
@@ -5603,7 +5603,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-el-cajon-full-2026",
-    name: "WICKED FAST MARATHON & HALF MARATHON SAN DIEGO",
+    name: "WICKED FAST MARATHON SAN DIEGO",
     city: "El Cajon",
     region: "CA",
     country: "US",
@@ -5623,7 +5623,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-el-cajon-half-2026",
-    name: "WICKED FAST MARATHON & HALF MARATHON SAN DIEGO",
+    name: "WICKED FAST Half Marathon SAN DIEGO",
     city: "El Cajon",
     region: "CA",
     country: "US",
@@ -5813,7 +5813,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-super-hyak-north-bend-full-2026",
-    name: "Super Hyak Marathon and Half",
+    name: "Super Hyak Marathon",
     city: "North Bend",
     region: "WA",
     country: "US",
@@ -5823,7 +5823,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-super-hyak-north-bend-half-2026",
-    name: "Super Hyak Marathon and Half",
+    name: "Super Hyak Half Marathon",
     city: "North Bend",
     region: "WA",
     country: "US",
@@ -5903,7 +5903,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-bound-for-boston-olympia-full-2026",
-    name: "Bound for Boston Marathon & Half Marathon - Seattle",
+    name: "Bound for Boston Marathon - Seattle",
     city: "Olympia",
     region: "WA",
     country: "US",
@@ -5913,7 +5913,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-bound-for-boston-olympia-half-2026",
-    name: "Bound for Boston Marathon & Half Marathon - Seattle",
+    name: "Bound for Boston Half Marathon - Seattle",
     city: "Olympia",
     region: "WA",
     country: "US",
@@ -5933,7 +5933,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-2026-anchorage-mayors-anchorage-full-2026",
-    name: "2026 Anchorage Mayor's Marathon & Half Marathon",
+    name: "2026 Anchorage Mayor's Marathon",
     city: "Anchorage",
     region: "AK",
     country: "US",
@@ -5943,7 +5943,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-2026-anchorage-mayors-anchorage-half-2026",
-    name: "2026 Anchorage Mayor's Marathon & Half Marathon",
+    name: "2026 Anchorage Mayor's Half Marathon",
     city: "Anchorage",
     region: "AK",
     country: "US",
@@ -7203,7 +7203,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-brooklyn-park-full-2026",
-    name: "XENIA AVENUE MARATHON & HALF-MARATHON",
+    name: "XENIA AVENUE MARATHON-MARATHON",
     city: "Brooklyn Park",
     region: "MN",
     country: "US",
@@ -7213,7 +7213,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-brooklyn-park-half-2026",
-    name: "XENIA AVENUE MARATHON & HALF-MARATHON",
+    name: "XENIA AVENUE Half Marathon-MARATHON",
     city: "Brooklyn Park",
     region: "MN",
     country: "US",
@@ -7613,7 +7613,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-bound-for-boston-denver-full-2026",
-    name: "Bound for Boston Marathon & Half Marathon - Denver",
+    name: "Bound for Boston Marathon - Denver",
     city: "Denver",
     region: "CO",
     country: "US",
@@ -7623,7 +7623,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-bound-for-boston-denver-half-2026",
-    name: "Bound for Boston Marathon & Half Marathon - Denver",
+    name: "Bound for Boston Half Marathon - Denver",
     city: "Denver",
     region: "CO",
     country: "US",
@@ -7983,7 +7983,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-livingston-full-2026",
-    name: "WICKED FAST MARATHON & HALF MARATHON MONTANA",
+    name: "WICKED FAST MARATHON MONTANA",
     city: "Livingston",
     region: "MT",
     country: "US",
@@ -7993,7 +7993,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-livingston-half-2026",
-    name: "WICKED FAST MARATHON & HALF MARATHON MONTANA",
+    name: "WICKED FAST Half Marathon MONTANA",
     city: "Livingston",
     region: "MT",
     country: "US",
@@ -8063,7 +8063,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-maple-grove-full-2026",
-    name: "Bound for Boston Marathon & Half Marathon - Minneapolis",
+    name: "Bound for Boston Marathon - Minneapolis",
     city: "Maple Grove",
     region: "MN",
     country: "US",
@@ -8073,7 +8073,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-maple-grove-half-2026",
-    name: "Bound for Boston Marathon & Half Marathon - Minneapolis",
+    name: "Bound for Boston Half Marathon - Minneapolis",
     city: "Maple Grove",
     region: "MN",
     country: "US",
@@ -8143,7 +8143,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-pine-full-2026",
-    name: "Staunton Rocks! Marathon and Half Marathon",
+    name: "Staunton Rocks! Marathon",
     city: "Pine",
     region: "CO",
     country: "US",
@@ -8153,7 +8153,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-pine-half-2026",
-    name: "Staunton Rocks! Marathon and Half Marathon",
+    name: "Staunton Rocks! Half Marathon",
     city: "Pine",
     region: "CO",
     country: "US",
@@ -8293,7 +8293,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-menomonee-falls-full-2026",
-    name: "Bound for Boston Marathon & Half Marathon - Milwaukee",
+    name: "Bound for Boston Marathon - Milwaukee",
     city: "Menomonee Falls",
     region: "WI",
     country: "US",
@@ -8323,7 +8323,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-bound-for-boston-menomonee-falls-half-2026",
-    name: "Bound for Boston Marathon & Half Marathon - Milwaukee",
+    name: "Bound for Boston Half Marathon - Milwaukee",
     city: "Menomonee Falls",
     region: "WI",
     country: "US",
@@ -8653,7 +8653,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-johns-creek-full-2026",
-    name: "Bound for Boston Marathon & Half Marathon - Atlanta",
+    name: "Bound for Boston Marathon - Atlanta",
     city: "Johns Creek",
     region: "GA",
     country: "US",
@@ -8663,7 +8663,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-johns-creek-half-2026",
-    name: "Bound for Boston Marathon & Half Marathon - Atlanta",
+    name: "Bound for Boston Half Marathon - Atlanta",
     city: "Johns Creek",
     region: "GA",
     country: "US",
@@ -8713,7 +8713,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-sackets-harbor-full-2026",
-    name: "Sackets Harbor Marathon & Half Marathon",
+    name: "Sackets Harbor Marathon",
     city: "Sackets Harbor",
     region: "NY",
     country: "US",
@@ -8723,7 +8723,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-sackets-harbor-half-2026",
-    name: "Sackets Harbor Marathon & Half Marathon",
+    name: "Sackets Harbor Half Marathon",
     city: "Sackets Harbor",
     region: "NY",
     country: "US",
@@ -8983,7 +8983,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-lehighton-full-2026",
-    name: "WICKED FAST MARATHON & HALF MARATHON POCONOS",
+    name: "WICKED FAST MARATHON POCONOS",
     city: "Lehighton",
     region: "PA",
     country: "US",
@@ -9003,7 +9003,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-lehighton-half-2026",
-    name: "WICKED FAST MARATHON & HALF MARATHON POCONOS",
+    name: "WICKED FAST Half Marathon POCONOS",
     city: "Lehighton",
     region: "PA",
     country: "US",
@@ -9063,7 +9063,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-cascade-express-north-bend-full-2026",
-    name: "Cascade Express Marathon & Half Marathon",
+    name: "Cascade Express Marathon",
     city: "North Bend",
     region: "WA",
     country: "US",
@@ -9093,7 +9093,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-cascade-express-north-bend-half-2026",
-    name: "Cascade Express Marathon & Half Marathon",
+    name: "Cascade Express Half Marathon",
     city: "North Bend",
     region: "WA",
     country: "US",
@@ -9623,7 +9623,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-fall-mud-mountain-enumclaw-full-2026",
-    name: "Fall - Mud Mountain Dam Marathon & Half Marathon",
+    name: "Fall - Mud Mountain Dam Marathon",
     city: "Enumclaw",
     region: "WA",
     country: "US",
@@ -9633,7 +9633,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-fall-mud-mountain-enumclaw-half-2026",
-    name: "Fall - Mud Mountain Dam Marathon & Half Marathon",
+    name: "Fall - Mud Mountain Dam Half Marathon",
     city: "Enumclaw",
     region: "WA",
     country: "US",
@@ -9783,7 +9783,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-yukon-full-2026",
-    name: "Bound for Boston Marathon & Half Marathon - Oklahoma City",
+    name: "Bound for Boston Marathon - Oklahoma City",
     city: "Yukon",
     region: "OK",
     country: "US",
@@ -9793,7 +9793,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-yukon-half-2026",
-    name: "Bound for Boston Marathon & Half Marathon - Oklahoma City",
+    name: "Bound for Boston Half Marathon - Oklahoma City",
     city: "Yukon",
     region: "OK",
     country: "US",
@@ -9963,7 +9963,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-belleville-full-2026",
-    name: "Belleville Main Street Marathon & Half Marathon",
+    name: "Belleville Main Street Marathon",
     city: "Belleville",
     region: "IL",
     country: "US",
@@ -9973,7 +9973,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-belleville-half-2026",
-    name: "Belleville Main Street Marathon & Half Marathon",
+    name: "Belleville Main Street Half Marathon",
     city: "Belleville",
     region: "IL",
     country: "US",
@@ -11633,7 +11633,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-bald-head-island-full-2026",
-    name: "Cape Fear Marathon & Half, presented by Mount to Coast and hosted by Badwater®",
+    name: "Cape Fear Marathon, presented by Mount to Coast and hosted by Badwater®",
     city: "Bald Head Island",
     region: "NC",
     country: "US",
@@ -11643,7 +11643,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-bald-head-island-half-2026",
-    name: "Cape Fear Marathon & Half, presented by Mount to Coast and hosted by Badwater®",
+    name: "Cape Fear Half Marathon, presented by Mount to Coast and hosted by Badwater®",
     city: "Bald Head Island",
     region: "NC",
     country: "US",
@@ -11683,7 +11683,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-south-hero-full-2026",
-    name: "Champlain Islands Marathon & Half Marathon",
+    name: "Champlain Islands Marathon",
     city: "South Hero",
     region: "VT",
     country: "US",
@@ -11693,7 +11693,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-south-hero-half-2026",
-    name: "Champlain Islands Marathon & Half Marathon",
+    name: "Champlain Islands Half Marathon",
     city: "South Hero",
     region: "VT",
     country: "US",
@@ -11893,7 +11893,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-waterfall-full-2026",
-    name: "End of the Road Half Marathon & One Tunnel 4 Miler",
+    name: "End of the Ro & One Tunnel 4 Miler",
     city: "Waterfall",
     region: "PA",
     country: "US",
@@ -12253,7 +12253,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-bowling-green-full-2026",
-    name: "bg26.2 & half marathon and bg6000",
+    name: "bg26.2 and bg6000",
     city: "Bowling Green",
     region: "KY",
     country: "US",
@@ -12913,7 +12913,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-allianz-richmond-carmax-richmond-full-2026",
-    name: "Allianz Richmond Marathon, CarMax Richmond Half Marathon, & Richmond 8k",
+    name: "Allianz Richmond Marathon, CarMax Richmo, & Richmond 8k",
     city: "Richmond",
     region: "VA",
     country: "US",
@@ -13183,7 +13183,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-cocoa-full-2026",
-    name: "Space Coast Marathon & Half Marathon",
+    name: "Space Coast Marathon",
     city: "Cocoa",
     region: "FL",
     country: "US",
@@ -13193,7 +13193,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-cocoa-half-2026",
-    name: "Space Coast Marathon & Half Marathon",
+    name: "Space Coast Half Marathon",
     city: "Cocoa",
     region: "FL",
     country: "US",
@@ -13293,7 +13293,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-sparks-glencoe-full-2026",
-    name: "NCR Marathon & Half Marathon",
+    name: "NCR Marathon",
     city: "Sparks Glencoe",
     region: "MD",
     country: "US",
@@ -13303,7 +13303,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-sparks-glencoe-half-2026",
-    name: "NCR Marathon & Half Marathon",
+    name: "NCR Half Marathon",
     city: "Sparks Glencoe",
     region: "MD",
     country: "US",
@@ -13443,7 +13443,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-rehoboth-seashore-rehoboth-beach-full-2026",
-    name: "Rehoboth Seashore Marathon and Half Marathon",
+    name: "Rehoboth Seashore Marathon",
     city: "Rehoboth Beach",
     region: "DE",
     country: "US",
@@ -13453,7 +13453,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-rehoboth-seashore-rehoboth-beach-half-2026",
-    name: "Rehoboth Seashore Marathon and Half Marathon",
+    name: "Rehoboth Seashore Half Marathon",
     city: "Rehoboth Beach",
     region: "DE",
     country: "US",
@@ -13523,7 +13523,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-bound-for-boston-sarasota-full-2026",
-    name: "Bound for Boston Marathon & Half Marathon - Sarasota",
+    name: "Bound for Boston Marathon - Sarasota",
     city: "Sarasota",
     region: "FL",
     country: "US",
@@ -13543,7 +13543,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-sarasota-half-2026",
-    name: "Bound for Boston Marathon & Half Marathon - Sarasota",
+    name: "Bound for Boston Half Marathon - Sarasota",
     city: "Sarasota",
     region: "FL",
     country: "US",
@@ -13883,7 +13883,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-last-chance-bellingham-full-2026",
-    name: "Last Chance Marathon and Half Marathon",
+    name: "Last Chance Marathon",
     city: "Bellingham",
     region: "WA",
     country: "US",
@@ -13893,7 +13893,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-last-chance-bellingham-half-2026",
-    name: "Last Chance Marathon and Half Marathon",
+    name: "Last Chance Half Marathon",
     city: "Bellingham",
     region: "WA",
     country: "US",
@@ -14113,7 +14113,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-daufuskie-island-full-2027",
-    name: "The Palmetto Running Company's Daufuskie Island Marathon and Half",
+    name: "The Palmetto Running Company's Daufuskie Island Marathon",
     city: "Daufuskie Island",
     region: "SC",
     country: "US",
@@ -14123,7 +14123,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-daufuskie-island-half-2027",
-    name: "The Palmetto Running Company's Daufuskie Island Marathon and Half",
+    name: "The Palmetto Running Company's Daufuskie Island Half Marathon",
     city: "Daufuskie Island",
     region: "SC",
     country: "US",
@@ -14143,7 +14143,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-minneapolis-full-2027",
-    name: "White Continent 50k, Marathon & Half-Marathon",
+    name: "White Continent 50k, Marathon-Marathon",
     city: "Minneapolis",
     region: "MN",
     country: "US",
@@ -14153,7 +14153,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-minneapolis-half-2027",
-    name: "White Continent 50k, Marathon & Half-Marathon",
+    name: "White Continent 50k, Half Marathon-Marathon",
     city: "Minneapolis",
     region: "MN",
     country: "US",
@@ -14183,7 +14183,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-fultondale-full-2027",
-    name: "Railway Marathon & Half Marathon presented by CraneWorks",
+    name: "Railway Marathon presented by CraneWorks",
     city: "Fultondale",
     region: "AL",
     country: "US",
@@ -14193,7 +14193,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-fultondale-half-2027",
-    name: "Railway Marathon & Half Marathon presented by CraneWorks",
+    name: "Railway Half Marathon presented by CraneWorks",
     city: "Fultondale",
     region: "AL",
     country: "US",
@@ -14463,7 +14463,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-tucson-full-2027",
-    name: "WICKED FAST MARATHON & HALF MARATHON TUCSON, ARIZONA",
+    name: "WICKED FAST MARATHON TUCSON, ARIZONA",
     city: "Tucson",
     region: "AZ",
     country: "US",
@@ -14473,7 +14473,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-tucson-half-2027",
-    name: "WICKED FAST MARATHON & HALF MARATHON TUCSON, ARIZONA",
+    name: "WICKED FAST Half Marathon TUCSON, ARIZONA",
     city: "Tucson",
     region: "AZ",
     country: "US",
@@ -14493,7 +14493,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-oak-ridge-full-2027",
-    name: "Oak Ridge to Kingston Express Marathon & Half Marathon",
+    name: "Oak Ridge to Kingston Express Marathon",
     city: "Oak Ridge",
     region: "TN",
     country: "US",
@@ -14503,7 +14503,7 @@ export const US_RACES: Race[] = [
   },
   {
     id: "us-oak-ridge-half-2027",
-    name: "Oak Ridge to Kingston Express Marathon & Half Marathon",
+    name: "Oak Ridge to Kingston Express Half Marathon",
     city: "Oak Ridge",
     region: "TN",
     country: "US",

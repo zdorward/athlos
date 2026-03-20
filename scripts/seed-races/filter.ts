@@ -4,6 +4,29 @@ const STOP_WORDS = new Set([
   "marathon", "half", "race", "run", "running", "the", "and", "of", "at", "in", "a",
 ])
 
+/**
+ * When an event offers both distances, RunSignUp returns the same compound name
+ * for each entry (e.g. "X Marathon & Half Marathon"). Strip the irrelevant half
+ * so the name matches the entry's actual distance.
+ */
+function normalizeName(name: string, distance: "full" | "half"): string {
+  if (distance === "half") {
+    // "X Marathon & Half Marathon" → "X Half Marathon"
+    return name
+      .replace(/\bMarathon\s*[&and]+\s*Half Marathon\b/gi, "Half Marathon")
+      .replace(/\bFull\s*[&and]+\s*Half Marathon\b/gi, "Half Marathon")
+      .replace(/\bMarathon\s*[&and]+\s*Half\b/gi, "Half Marathon")
+      .trim()
+  } else {
+    // "X Marathon & Half Marathon" → "X Marathon"
+    return name
+      .replace(/\s*[&and]+\s*Half Marathon\b/gi, "")
+      .replace(/\s*[&and]+\s*Half\b/gi, "")
+      .replace(/\bFull\s*[&and]+\s*Half Marathon\b/gi, "Marathon")
+      .trim()
+  }
+}
+
 /** Returns true if the race should be excluded from the output. */
 function shouldExclude(race: Race): boolean {
   const name = race.name.toLowerCase()
@@ -85,6 +108,9 @@ function assignUniqueIds(races: Race[]): void {
 export function filterAndFinalize(races: Race[]): Race[] {
   const deduped = deduplicate(races)
   const filtered = deduped.filter((r) => !shouldExclude(r))
+  for (const race of filtered) {
+    race.name = normalizeName(race.name, race.distance)
+  }
   filtered.sort((a, b) => a.date.localeCompare(b.date))
   assignUniqueIds(filtered)
   return filtered

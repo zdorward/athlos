@@ -11,8 +11,9 @@ export function useRaceSearch(query: string): { results: Race[]; loading: boolea
     const controller = new AbortController()
     let cancelled = false
 
+    setLoading(true)
+
     async function fetchRaces(q: string) {
-      setLoading(true)
       try {
         const url = q ? `/api/races?q=${encodeURIComponent(q)}` : "/api/races"
         const res = await fetch(url, { signal: controller.signal })

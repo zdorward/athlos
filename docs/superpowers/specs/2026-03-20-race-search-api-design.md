@@ -5,7 +5,7 @@
 
 ## Problem
 
-The RACES array (400KB) is imported directly in client components, adding significant JS to the client bundle and causing a noticeable delay when the race search dropdown opens — React renders all 1,465+ entries at once.
+The RACES array (400KB) is imported directly in client components, adding significant JS to the client bundle and causing a noticeable delay when the race search dropdown opens — React renders all 1,465+ entries at once. (Counts are approximate and will shift as the seed script is re-run.)
 
 ## Goal
 
@@ -40,14 +40,14 @@ No auth required — race data is public.
 useRaceSearch(query: string): { results: Race[]; loading: boolean }
 ```
 
-- Instantiated at component mount — the initial fetch fires immediately, not deferred to dropdown open. This ensures results are ready before the user interacts with the dropdown.
-- `loading` starts as `true` (mount triggers the first fetch immediately). The consumer's loading indicator will briefly appear at mount before the initial response arrives. This is acceptable — the dropdown is not visible yet, so the flash is invisible to the user.
-- Debounces `query` by 200ms before fetching
+- Instantiated at component mount — `loading` is set to `true` synchronously at effect invocation, then the fetch is dispatched immediately (no debounce on the initial mount fetch). This ensures results are ready before the user interacts with the dropdown.
+- Subsequent `query` changes are debounced 200ms. The debounce applies only to transitions from a prior value — it does not delay the mount fetch.
+- `loading` starts as `true` at mount. The consumer's loading indicator will briefly appear before the initial response arrives. This is acceptable — the dropdown is not visible yet, so the flash is invisible to the user.
 - Fetches `/api/races` (no q) on mount and when query is cleared
 - Fetches `/api/races?q={query}` when query is non-empty after debounce
-- Uses an AbortController per effect run to cancel in-flight requests both when a new query arrives and when the component unmounts (abort in the `useEffect` cleanup function)
-- Returns `{ results, loading }` — no error state surfaced to UI (empty results on failure is fine)
-- Uses plain `fetch` (no new dependencies — consistent with rest of codebase)
+- Uses an AbortController per effect run to cancel in-flight requests both when a new query arrives before the previous resolves and when the component unmounts (abort in the `useEffect` cleanup function)
+- **Error handling:** any non-2xx response or network error (including `fetch` rejections) results in empty `results` — no error state is surfaced to the UI. AbortError (from the cleanup abort) must be silently ignored and not treated as a failure.
+- Returns `{ results, loading }` — uses plain `fetch` (no new dependencies)
 
 ---
 
@@ -58,10 +58,12 @@ useRaceSearch(query: string): { results: Race[]; loading: boolean }
 - Replace client-side filter logic with `useRaceSearch(query)`
 - Add subtle loading indicator in dropdown while `loading === true`
 - `import type { Race }` remains (type-only, tree-shaken)
-- **Intentional behaviour change:** previously showed all 1,495 races (CA + US) on empty query; now shows only CA_RACES (~30). This is correct — Canadian races are the relevant default for this user base.
+- **Intentional behaviour change:** previously showed all ~1,465 races (CA + US) on empty query; now shows only CA_RACES (~30). This is correct — Canadian races are the relevant default for this user base.
+- Existing dropdown close mechanism (`onBlur` after 150ms) is unchanged — only the data source changes
 
 **`apps/web/app/landing-page.tsx`**
-- Same treatment as above — CA_RACES default applies here too
+- Same import and hook changes as `step-find-race.tsx` — CA_RACES default applies here too
+- Existing dropdown close mechanism (mousedown listener on `document`) is unchanged — only the data source changes
 
 ---
 

@@ -3,7 +3,6 @@ import {
   type PlanGenerationInput,
   calculatePaceZones,
   computePhases,
-  computeTrainingStructure,
   computeLongRunTargets,
   computeWeeklyVolumes,
   computeConstraints,
@@ -100,13 +99,6 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: "Could not compute pace zones" }, { status: 400 })
   }
 
-  const trainingStructure = computeTrainingStructure(
-    goalMinutes,
-    input.race.distance,
-    input.selectedDays.length,
-    input.weeklyMileageRange,
-  )
-
   const longRunTargets = computeLongRunTargets(input.race.distance, {
     low: constraints.peakWeeklyKm * 0.85,
     high: constraints.peakWeeklyKm,
@@ -120,7 +112,6 @@ export async function POST(req: NextRequest) {
     phases,
     totalWeeks,
     peakWeeklyKm,
-    trainingStructure,
     longRunTargets,
     paceZones,
     raceDateISO: input.race.date,

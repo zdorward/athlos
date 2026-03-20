@@ -3,7 +3,7 @@ import type { PaceZones } from "./pace-calculator"
 import { computeWeeklyVolumes } from "./volume-progression"
 import type { PlanConstraints } from "./constraints"
 import {
-  DAY_ORDER, DAY_INDEX, round05,
+  DAY_ORDER, DAY_INDEX, roundKm,
   placeQualitySessions, placeEasyRuns, placeStrengthSessions,
 } from "./workout-placement"
 
@@ -26,7 +26,6 @@ export interface SchedulerInput {
   phases: PhaseEntry[]
   totalWeeks: number
   peakWeeklyKm: number
-  trainingStructure: TrainingStructure
   longRunTargets: LongRunTargets
   paceZones: PaceZones
   raceDateISO?: string
@@ -149,7 +148,7 @@ function getLongRunType(phase: string, localIndex: number, isRecovery: boolean):
 export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
   const {
     startDate, selectedDays, longRunDay, phases, totalWeeks,
-    peakWeeklyKm, trainingStructure, longRunTargets, paceZones, constraints,
+    peakWeeklyKm, longRunTargets, paceZones, constraints,
   } = input
 
   const weeklyVolumes = computeWeeklyVolumes({
@@ -206,7 +205,7 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
       )
       if (eligibleDays.length > 0 && weeklyKm > 0) {
         const raceWeekTrainingKm = Math.min(weeklyKm, peakWeeklyKm * RACE_WEEK_TRAINING_RATIO)
-        const perDay = round05(raceWeekTrainingKm / eligibleDays.length)
+        const perDay = roundKm(raceWeekTrainingKm / eligibleDays.length)
         for (const ed of eligibleDays) {
           assigned.set(ed.date, [{
             date: ed.date, type: "easy", distanceKm: perDay, targetPace: paceZones.easy,
@@ -228,7 +227,7 @@ export function scheduleWorkouts(input: SchedulerInput): WorkoutDay[] {
     const longRunEntry = weekDays.find(d => d.dayKey === longRunDay)!
     const progressFactor = Math.min(weeklyKm / peakWeeklyKm, 1.0)
     const rawLongKm = longRunTargets.peakLongRunKm * progressFactor
-    const longRunKm = round05(Math.min(rawLongKm, weeklyKm * constraints.longRunMaxFraction))
+    const longRunKm = roundKm(Math.min(rawLongKm, weeklyKm * constraints.longRunMaxFraction))
 
     assigned.set(longRunEntry.date, [{
       date: longRunEntry.date,

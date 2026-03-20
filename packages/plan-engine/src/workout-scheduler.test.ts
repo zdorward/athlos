@@ -46,7 +46,6 @@ const baseInput = {
   phases: basePhases,
   totalWeeks: 4,
   peakWeeklyKm: 60,
-  trainingStructure: { runDaysPerWeek: 4, restDaysPerWeek: 3, maxQualitySessions: 1 },
   longRunTargets: { peakLongRunKm: 30, recoveryRunMaxKm: 13 },
   paceZones,
   constraints: baseConstraints,

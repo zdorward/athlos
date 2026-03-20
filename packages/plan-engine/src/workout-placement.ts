@@ -7,7 +7,7 @@ export const DAY_INDEX: Record<string, number> = {
   mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun: 6,
 }
 
-export function round05(km: number): number {
+export function roundKm(km: number): number {
   return Math.round(km)
 }
 
@@ -25,7 +25,7 @@ function isAdjacentTo(day: string, targetDay: string): boolean {
 
 function qualityDistance(type: "tempo" | "intervals" | "mp", weeklyKm: number): number {
   const pct = type === "intervals" ? 0.10 : type === "tempo" ? 0.12 : 0.15
-  return round05(weeklyKm * pct)
+  return roundKm(weeklyKm * pct)
 }
 
 export function placeQualitySessions(
@@ -104,12 +104,12 @@ export function placeEasyRuns(
     const cap = longRunKm - 1
     const rawPerDay = easyTotal / easyRunDays.length
     const cappedPerDay = Math.min(rawPerDay, cap)
-    const base = round05(cappedPerDay)
+    const base = roundKm(cappedPerDay)
     const rawRemainder = Math.max(0, easyTotal - base * easyRunDays.length)
 
     easyRunDays.forEach((ed, i) => {
       const uncapped = base + (i === 0 ? rawRemainder : 0)
-      const km = round05(Math.min(uncapped, cap))
+      const km = roundKm(Math.min(uncapped, cap))
       assigned.set(ed.date, [{
         date: ed.date,
         type: "easy",

@@ -35,14 +35,16 @@ export function ManualRaceSheet({
   if (isDesktop) {
     return (
       <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
-        <DialogContent className="max-w-sm max-h-[90dvh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add your race</DialogTitle>
-            <DialogDescription>
-              Can&apos;t find it in the list? Enter the details manually.
-            </DialogDescription>
-          </DialogHeader>
-          {fields}
+        <DialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
+          <div className="overflow-y-auto max-h-[90dvh] p-4 space-y-4">
+            <DialogHeader>
+              <DialogTitle>Add your race</DialogTitle>
+              <DialogDescription>
+                Can&apos;t find it in the list? Enter the details manually.
+              </DialogDescription>
+            </DialogHeader>
+            {fields}
+          </div>
         </DialogContent>
       </Dialog>
     )
@@ -146,7 +148,7 @@ function ManualRaceFormFields({
       </div>
       <div className="space-y-1.5">
         <Label>Race date</Label>
-        <div className="rounded-lg border border-border">
+        <div className="w-fit mx-auto rounded-lg border border-border">
           <Calendar
             mode="single"
             selected={date}
@@ -154,7 +156,7 @@ function ManualRaceFormFields({
             disabled={(d) => d <= new Date()}
             fixedWeeks
             initialFocus
-            classNames={{ root: "w-full" }}
+            className="[--cell-size:2.75rem]"
           />
         </div>
       </div>

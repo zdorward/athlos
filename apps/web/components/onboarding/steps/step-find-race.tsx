@@ -187,7 +187,7 @@ function ManualRaceForm({
         </div>
         <div className="space-y-1.5">
           <Label>Race date</Label>
-          <div className="rounded-lg border border-border">
+          <div className="w-fit mx-auto rounded-lg border border-border">
             <Calendar
               mode="single"
               selected={date}
@@ -195,7 +195,7 @@ function ManualRaceForm({
               disabled={(d) => d <= new Date()}
               fixedWeeks
               initialFocus
-              classNames={{ root: "w-full" }}
+              className="[--cell-size:2.75rem]"
             />
           </div>
         </div>

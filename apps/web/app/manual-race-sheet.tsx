@@ -35,7 +35,7 @@ export function ManualRaceSheet({
   if (isDesktop) {
     return (
       <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add your race</DialogTitle>
             <DialogDescription>
@@ -55,7 +55,7 @@ export function ManualRaceSheet({
       onClick={onClose}
     >
       <div
-        className="w-full space-y-5 rounded-t-xl border-t border-border bg-card p-6"
+        className="w-full max-h-[90dvh] overflow-y-auto space-y-5 rounded-t-xl border-t border-border bg-card p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto h-1 w-10 rounded-full bg-border" />
@@ -146,7 +146,7 @@ function ManualRaceFormFields({
       </div>
       <div className="space-y-1.5">
         <Label>Race date</Label>
-        <div className="flex justify-center rounded-lg border border-border">
+        <div className="rounded-lg border border-border">
           <Calendar
             mode="single"
             selected={date}
@@ -154,6 +154,7 @@ function ManualRaceFormFields({
             disabled={(d) => d <= new Date()}
             fixedWeeks
             initialFocus
+            classNames={{ root: "w-full" }}
           />
         </div>
       </div>

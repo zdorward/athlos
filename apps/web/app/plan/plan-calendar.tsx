@@ -175,9 +175,22 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
             {firstPhase && <PhaseHeader label={firstPhase} />}
             <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-1 mb-1">
             <div className="flex flex-col justify-center pr-2">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-subtle-foreground opacity-40">
-                Now
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-subtle-foreground">
+                W0
               </p>
+              {prePlanDates[0] && (
+                <p className="text-[10px] text-subtle-foreground/60 tabular-nums mt-0.5">
+                  {format(parseISO(prePlanDates[0]), "MMM d")}
+                </p>
+              )}
+              {(() => {
+                const weeklyKm = prePlanDates.flatMap(d => bridgeDayMap.get(d) ?? []).reduce((sum, e) => sum + (e.distanceKm ?? 0), 0)
+                return weeklyKm > 0 ? (
+                  <p className="text-[10px] font-semibold tabular-nums text-muted-foreground mt-0.5">
+                    {formatDistance(weeklyKm, units)}{unit}
+                  </p>
+                ) : null
+              })()}
             </div>
             {prePlanDates.map((dateISO) => {
               const isToday = dateISO === todayISO
@@ -229,7 +242,7 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
                       : isSelected
                       ? "bg-muted border-primary/40"
                       : "bg-card border-border hover:border-primary/25",
-                    isPast ? "opacity-25" : "",
+                    isPast && !isFullyComplete ? "opacity-25" : "",
                   ].join(" ")}
                   style={
                     isFullyComplete && isSelected

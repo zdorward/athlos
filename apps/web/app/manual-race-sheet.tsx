@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { XIcon } from "lucide-react"
+import { format } from "date-fns"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
@@ -35,16 +36,14 @@ export function ManualRaceSheet({
   if (isDesktop) {
     return (
       <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
-        <DialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
-          <div className="overflow-y-auto max-h-[90dvh] p-4 space-y-4">
-            <DialogHeader>
-              <DialogTitle>Add your race</DialogTitle>
-              <DialogDescription>
-                Can&apos;t find it in the list? Enter the details manually.
-              </DialogDescription>
-            </DialogHeader>
-            {fields}
-          </div>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Add your race</DialogTitle>
+            <DialogDescription>
+              Can&apos;t find it in the list? Enter the details manually.
+            </DialogDescription>
+          </DialogHeader>
+          {fields}
         </DialogContent>
       </Dialog>
     )
@@ -87,10 +86,14 @@ function ManualRaceFormFields({
 }: {
   onSubmit: (race: RaceData) => void
 }) {
+  const isDesktop = useMediaQuery("(min-width: 768px)")
   const [name, setName] = useState("")
   const [city, setCity] = useState("")
   const [date, setDate] = useState<Date | undefined>(undefined)
   const [distance, setDistance] = useState<Distance>("full")
+
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
 
   const isValid =
     name.trim() !== "" &&
@@ -103,7 +106,7 @@ function ManualRaceFormFields({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="space-y-1.5">
         <Label htmlFor="manual-race-name">Race name</Label>
         <Input
@@ -146,21 +149,33 @@ function ManualRaceFormFields({
           )}
         </div>
       </div>
-      <div className="space-y-1.5">
-        <Label>Race date</Label>
-        <div className="w-fit mx-auto rounded-lg border border-border">
+      <div className="mt-2 space-y-1.5">
+        <Label htmlFor="manual-race-date">Race date</Label>
+        {isDesktop ? (
           <Calendar
             mode="single"
             selected={date}
             onSelect={setDate}
             disabled={(d) => d <= new Date()}
             fixedWeeks
-            initialFocus
-            className="[--cell-size:2.75rem]"
+            className="rounded-lg border border-border"
+            classNames={{
+              root: "w-full",
+              day: "group/day relative h-9 w-full rounded-(--cell-radius) p-0 text-center select-none [&:last-child[data-selected=true]_button]:rounded-r-(--cell-radius) [&:first-child[data-selected=true]_button]:rounded-l-(--cell-radius)",
+            }}
           />
-        </div>
+        ) : (
+          <input
+            id="manual-race-date"
+            type="date"
+            min={format(tomorrow, "yyyy-MM-dd")}
+            value={date ? format(date, "yyyy-MM-dd") : ""}
+            onChange={(e) => setDate(e.target.value ? new Date(e.target.value + "T00:00:00") : undefined)}
+            className="h-10 w-full rounded-lg border border-border bg-transparent px-3 text-sm text-foreground"
+          />
+        )}
       </div>
-      <Button onClick={handleSubmit} disabled={!isValid} className="w-full">
+      <Button onClick={handleSubmit} disabled={!isValid} className="mt-2 w-full">
         Continue
       </Button>
     </div>

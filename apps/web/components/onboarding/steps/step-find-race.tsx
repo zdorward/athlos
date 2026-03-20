@@ -1,13 +1,13 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { CalendarIcon, Search } from "lucide-react"
+import { useMediaQuery } from "@/hooks/use-media-query"
+import { Search } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Calendar } from "@workspace/ui/components/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
 import { cn } from "@workspace/ui/lib/utils"
 import type { Race } from "@/data/races/types"
 import { useRaceSearch } from "@/hooks/use-race-search"
@@ -119,10 +119,14 @@ function ManualRaceForm({
   onBack: () => void
   onSubmit: (race: RaceData) => void
 }) {
+  const isDesktop = useMediaQuery("(min-width: 768px)")
   const [name, setName] = useState("")
   const [city, setCity] = useState("")
   const [date, setDate] = useState<Date | undefined>()
   const [distance, setDistance] = useState<Distance>("full")
+
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
 
   const isValid = name.trim() !== "" && city.trim() !== "" && date !== undefined
 
@@ -135,7 +139,7 @@ function ManualRaceForm({
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         <div className="space-y-1.5">
           <Label htmlFor="race-name">Race name</Label>
           <Input
@@ -178,29 +182,31 @@ function ManualRaceForm({
             )}
           </div>
         </div>
-        <div className="space-y-1.5">
-          <Label>Race date</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "MMM d, yyyy") : "Pick a date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                disabled={(d) => d <= new Date()}
-                fixedWeeks
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+        <div className="mt-2 space-y-1.5">
+          <Label htmlFor="race-date">Race date</Label>
+          {isDesktop ? (
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              disabled={(d) => d <= new Date()}
+              fixedWeeks
+              className="rounded-lg border border-border"
+              classNames={{
+                root: "w-full",
+                day: "group/day relative h-9 w-full rounded-(--cell-radius) p-0 text-center select-none [&:last-child[data-selected=true]_button]:rounded-r-(--cell-radius) [&:first-child[data-selected=true]_button]:rounded-l-(--cell-radius)",
+              }}
+            />
+          ) : (
+            <input
+              id="race-date"
+              type="date"
+              min={format(tomorrow, "yyyy-MM-dd")}
+              value={date ? format(date, "yyyy-MM-dd") : ""}
+              onChange={(e) => setDate(e.target.value ? new Date(e.target.value + "T00:00:00") : undefined)}
+              className="h-10 w-full rounded-lg border border-border bg-transparent px-3 text-sm text-foreground"
+            />
+          )}
         </div>
       </div>
 

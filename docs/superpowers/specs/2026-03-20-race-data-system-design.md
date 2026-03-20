@@ -55,6 +55,7 @@ scripts/
 ### `index.ts`
 
 ```typescript
+import type { Race } from "./types"
 import { CA_RACES } from "./ca"
 import { US_RACES } from "./us"
 
@@ -70,6 +71,24 @@ Adding a new country = add a fetcher, add a `XX_RACES` import here.
 
 **Path:** `scripts/seed-races.ts`
 **Invocation:** `pnpm seed-races [country]` (e.g. `pnpm seed-races us`)
+
+### Runtime
+
+The script runs via `tsx`. Add it as an explicit root devDependency before wiring up the script:
+
+```bash
+pnpm add -D tsx -w
+```
+
+The script entry goes in the **root `package.json`**:
+
+```json
+"scripts": {
+  "seed-races": "tsx scripts/seed-races.ts"
+}
+```
+
+The script uses **relative paths** for file output (e.g. `./apps/web/data/races/us.ts`) rather than `@/` aliases, since it runs outside the Next.js app context. Imports within the generated `.ts` files use `"./types"` which is correct for their final location.
 
 ### USA — RunSignUp API
 
@@ -96,7 +115,7 @@ Each country has a fetcher function in `scripts/seed-races.ts`. The entry point 
 
 ### Output format
 
-The script writes a typed TypeScript file:
+The script writes a typed TypeScript file with a hardcoded `import type { Race } from "./types"` at the top:
 
 ```typescript
 import type { Race } from "./types"
@@ -125,11 +144,13 @@ The file is committed to git. Changes are reviewed via `git diff` before committ
 ### `data/races.ts` → deleted
 ### `data/races/index.ts` → new entry point
 
-All app imports update from `@/data/races` (already the correct path if `data/races/index.ts` exists — no import string changes needed as long as the barrel export matches).
+All app imports of `@/data/races` continue to resolve correctly via the new `index.ts` barrel — no import string changes needed.
 
 ### `step-find-race.tsx` and `landing-page.tsx`
 
-`race.province` → `race.region` (search filter + display). Display format stays `{city}, {region}` — works for "Toronto, ON" and "Boston, MA" alike.
+- `race.province` → `race.region` in search filter and display (steps 5+6 are a single atomic change)
+- Add `race.country` to search filter so users can search "Canada" or "US" once the expanded dataset is live
+- Display format stays `{city}, {region}` — works for "Toronto, ON" and "Boston, MA" alike
 
 ### `Race` type imports
 
@@ -146,15 +167,14 @@ The `verify-races` skill is **removed** and replaced with a note in its `SKILL.m
 ## Migration Steps (in order)
 
 1. Create `data/races/types.ts` with `Race` interface
-2. Create `data/races/ca.ts` — migrate existing 34 races, add `country: "CA"`, rename `province` → `region`
+2. Create `data/races/ca.ts` — migrate existing 34 races, add `country: "CA"`, rename `province` → `region`; normalize IDs to `ca-{city-slug}-{distance}-{year}` format (one-time breaking change — no existing users affected)
 3. Create `data/races/index.ts` barrel
 4. Delete `data/races.ts`
-5. Update all import sites (`step-find-race.tsx`, `landing-page.tsx`, any others)
-6. Rename `province` → `region` at all usage sites
-7. Build seed script (`scripts/seed-races.ts`) with RunSignUp USA fetcher
+5. Update all import sites (`step-find-race.tsx`, `landing-page.tsx`, any others) **and** rename `province` → `region` + add `country` to search filter in the same pass — do not split these into separate steps
+6. Build seed script (`scripts/seed-races.ts`) with RunSignUp USA fetcher
+7. Add `tsx` as a root devDependency (`pnpm add -D tsx -w`), then add `seed-races` script to root `package.json`
 8. Run `pnpm seed-races us`, review output, commit `us.ts`
-9. Add `pnpm seed-races` script to `package.json`
-10. Update or retire the `verify-races` skill
+9. Update or retire the `verify-races` skill
 
 ---
 

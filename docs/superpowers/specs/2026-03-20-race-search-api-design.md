@@ -41,10 +41,11 @@ useRaceSearch(query: string): { results: Race[]; loading: boolean }
 ```
 
 - Instantiated at component mount — the initial fetch fires immediately, not deferred to dropdown open. This ensures results are ready before the user interacts with the dropdown.
+- `loading` starts as `true` (mount triggers the first fetch immediately). The consumer's loading indicator will briefly appear at mount before the initial response arrives. This is acceptable — the dropdown is not visible yet, so the flash is invisible to the user.
 - Debounces `query` by 200ms before fetching
 - Fetches `/api/races` (no q) on mount and when query is cleared
 - Fetches `/api/races?q={query}` when query is non-empty after debounce
-- Uses an AbortController to cancel in-flight requests when a new query arrives before the previous one resolves
+- Uses an AbortController per effect run to cancel in-flight requests both when a new query arrives and when the component unmounts (abort in the `useEffect` cleanup function)
 - Returns `{ results, loading }` — no error state surfaced to UI (empty results on failure is fine)
 - Uses plain `fetch` (no new dependencies — consistent with rest of codebase)
 
@@ -67,18 +68,29 @@ useRaceSearch(query: string): { results: Race[]; loading: boolean }
 ## Data flow
 
 ```
-User opens dropdown
+Component mounts (before dropdown opens)
   → useRaceSearch("") fires immediately
+  → loading = true
   → fetch /api/races → CA_RACES (30 races)
+  → loading = false, results populated
+
+User opens dropdown
+  → results already available (or fetch still in flight — loading indicator shown)
   → dropdown shows Canadian races
 
 User types "boston"
   → 200ms debounce
+  → previous AbortController aborted
   → fetch /api/races?q=boston → up to 50 matches
   → dropdown updates
 
 User clears input
+  → previous AbortController aborted
   → fetch /api/races → CA_RACES again
+
+Component unmounts mid-fetch
+  → AbortController aborted in useEffect cleanup
+  → no state update on unmounted component
 ```
 
 ---

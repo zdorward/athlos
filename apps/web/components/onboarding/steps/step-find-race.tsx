@@ -1,14 +1,16 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { Search } from "lucide-react"
+import { CalendarIcon, Search } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Calendar } from "@workspace/ui/components/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
 import { cn } from "@workspace/ui/lib/utils"
-import { RACES, type Race } from "@/data/races"
+import type { Race } from "@/data/races/types"
+import { useRaceSearch } from "@/hooks/use-race-search"
 import { DISTANCE_LABELS, type Distance, type RaceData, type StepProps } from "../types"
 
 export function StepFindRace({ formData, onNext }: Pick<StepProps, "formData" | "onNext">) {
@@ -17,18 +19,7 @@ export function StepFindRace({ formData, onNext }: Pick<StepProps, "formData" | 
   const [showManual, setShowManual] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
 
-  const filtered =
-    query.trim() === ""
-      ? RACES
-      : RACES.filter((r) => {
-          const q = query.toLowerCase()
-          return (
-            r.name.toLowerCase().includes(q) ||
-            r.city.toLowerCase().includes(q) ||
-            r.region.toLowerCase().includes(q) ||
-            r.country.toLowerCase().includes(q)
-          )
-        })
+  const { results, loading } = useRaceSearch(query)
 
   const isOpen = dropdownOpen || query.trim() !== ""
 
@@ -82,8 +73,10 @@ export function StepFindRace({ formData, onNext }: Pick<StepProps, "formData" | 
         {isOpen && (
           <div className="absolute top-full left-0 right-0 z-20 bg-background border border-t-0 border-border rounded-b-xl overflow-hidden shadow-lg">
             <div className="max-h-52 overflow-y-auto">
-              {filtered.length > 0 ? (
-                filtered.map((race) => (
+              {loading ? (
+                <p className="px-4 py-3 text-sm text-muted-foreground">Loading…</p>
+              ) : results.length > 0 ? (
+                results.map((race) => (
                   <button
                     key={race.id}
                     onMouseDown={() => handleSelect(race)}
@@ -187,17 +180,27 @@ function ManualRaceForm({
         </div>
         <div className="space-y-1.5">
           <Label>Race date</Label>
-          <div className="w-fit mx-auto rounded-lg border border-border">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              disabled={(d) => d <= new Date()}
-              fixedWeeks
-              initialFocus
-              className="[--cell-size:2.75rem]"
-            />
-          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? format(date, "MMM d, yyyy") : "Pick a date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                disabled={(d) => d <= new Date()}
+                fixedWeeks
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 

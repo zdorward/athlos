@@ -154,6 +154,7 @@ function ManualRaceFormFields({
             disabled={(d) => d <= new Date()}
             fixedWeeks
             initialFocus
+            classNames={{ root: "w-full" }}
           />
         </div>
       </div>

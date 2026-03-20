@@ -105,7 +105,7 @@ function DayCard({ entries, units, selectedKey, onSelectedKeyChange }: DayCardPr
             {WORKOUT_NAMES[primary.type]}
           </p>
           {secondaryEntries.length > 0 && (
-            <div className="mt-1.5 pt-1.5 border-t border-border/[0.06]">
+            <div className="mt-1.5 pt-1.5 border-t border-border/6">
               {secondaryEntries.map((entry) => {
                 const secColor = getWorkoutColor(entry.type)
                 const secTextClass = WORKOUT_TEXT_CLASS[entry.type]

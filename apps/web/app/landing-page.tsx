@@ -664,10 +664,12 @@ function PageContent() {
       )}
 
       {showManualEntry && (
-        <ManualRaceSheet
-          onClose={() => setShowManualEntry(false)}
-          onSubmit={handleManualRaceSubmit}
-        />
+        <Suspense fallback={null}>
+          <ManualRaceSheet
+            onClose={() => setShowManualEntry(false)}
+            onSubmit={handleManualRaceSubmit}
+          />
+        </Suspense>
       )}
     </>
   )

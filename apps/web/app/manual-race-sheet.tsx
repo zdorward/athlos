@@ -29,7 +29,7 @@ export function ManualRaceSheet({
 }) {
   const isDesktop = useMediaQuery("(min-width: 768px)")
 
-  const fields = <ManualRaceFormFields onClose={onClose} onSubmit={onSubmit} />
+  const fields = <ManualRaceFormFields onSubmit={onSubmit} />
 
   if (isDesktop) {
     return (
@@ -71,10 +71,8 @@ export function ManualRaceSheet({
 }
 
 function ManualRaceFormFields({
-  onClose,
   onSubmit,
 }: {
-  onClose: () => void
   onSubmit: (race: RaceData) => void
 }) {
   const [name, setName] = useState("")

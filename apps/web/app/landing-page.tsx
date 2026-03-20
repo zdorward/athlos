@@ -617,6 +617,8 @@ function PageContent() {
           </div>
         </section>
 
+        <FounderSection />
+
         {/* ── Bottom CTA ────────────────────────────────────────────────── */}
         <section style={{ padding: "0 24px 120px", textAlign: "center" }}>
           <h2
@@ -764,5 +766,109 @@ function DropdownRaceRow({
         {DISTANCE_LABELS[race.distance]}
       </span>
     </div>
+  )
+}
+
+function FounderSection() {
+  const [photoError, setPhotoError] = useState(false)
+
+  return (
+    <section style={{ padding: "0 24px 96px", maxWidth: 1100, margin: "0 auto" }}>
+      <div style={{ maxWidth: 560, margin: "0 auto" }}>
+
+        {/* Flex row: photo column | text column */}
+        <div style={{ display: "flex", gap: 32, alignItems: "flex-start", flexWrap: "wrap" }}>
+
+          {/* Photo column */}
+          <div style={{ flexShrink: 0, minWidth: 120, display: "flex", flexDirection: "column", alignItems: "center" }}>
+            {photoError ? (
+              <div style={{
+                width: 88, height: 88, borderRadius: "50%",
+                background: "rgba(255,255,255,0.08)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 20, color: "rgba(255,255,255,0.4)",
+              }}>ZD</div>
+            ) : (
+              <img
+                src="/zack.jpg"
+                alt="Zack"
+                onError={() => setPhotoError(true)}
+                style={{ width: 88, height: 88, borderRadius: "50%", objectFit: "cover", display: "block" }}
+              />
+            )}
+            <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginTop: 10 }}>Zack</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.32)", marginTop: 2 }}>Edmonton, AB</div>
+          </div>
+
+          {/* Text column */}
+          <div style={{ flex: 1, minWidth: 220 }}>
+            <div style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: "0.06em",
+              textTransform: "uppercase", color: "rgba(100,150,255,0.7)", marginBottom: 16,
+            }}>
+              Why I built this
+            </div>
+            <p style={{ fontSize: 15, lineHeight: 1.7, color: "rgba(255,255,255,0.55)", margin: "0 0 14px" }}>
+              I ran my first marathon in September 2025 in{" "}
+              <strong style={{ color: "rgba(255,255,255,0.88)", fontWeight: 600 }}>3:52</strong>. I&apos;m trying to run{" "}
+              <strong style={{ color: "rgba(255,255,255,0.88)", fontWeight: 600 }}>3:20 at Victoria BC</strong>{" "}
+              this year and I&apos;m using Athlos to get there.
+            </p>
+            <p style={{ fontSize: 15, lineHeight: 1.7, color: "rgba(255,255,255,0.55)", margin: "0 0 14px" }}>
+              I wanted something that fit how I actually train. I lift, I care about how I look, and I run.
+              Most plans don&apos;t really account for that. I built this mostly for myself and figured other
+              people probably had the same problem.
+            </p>
+            <p style={{ fontSize: 15, lineHeight: 1.7, color: "rgba(255,255,255,0.55)", margin: 0 }}>
+              I also just don&apos;t think training plans should cost money.{" "}
+              <strong style={{ color: "rgba(255,255,255,0.88)", fontWeight: 600 }}>Athlos is free.</strong>{" "}
+              The core plan always will be.
+            </p>
+          </div>
+        </div>
+
+        {/* Stats row */}
+        <div style={{
+          display: "flex", marginTop: 32,
+          border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, overflow: "hidden",
+        }}>
+          {[
+            { value: "3:52", color: "rgba(255,255,255,0.88)", label: "First marathon · Sept 2025" },
+            { value: "3:20", color: "rgba(100,150,255,0.9)", label: "Goal · Victoria BC 2026" },
+            { value: "2:55", color: "rgba(167,139,250,0.9)", label: "BQ goal · 2027" },
+          ].map((stat, i) => (
+            <div key={stat.value} style={{
+              flex: 1, padding: "16px 20px", textAlign: "center",
+              borderRight: i < 2 ? "1px solid rgba(255,255,255,0.07)" : undefined,
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 700, color: stat.color }}>{stat.value}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.32)", marginTop: 4 }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Early access callout */}
+        <div style={{
+          marginTop: 20, padding: "14px 18px",
+          background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)",
+          borderRadius: 8, display: "flex", alignItems: "flex-start", gap: 12,
+        }}>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>⚡</span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>Early access</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.38)" }}>
+              I&apos;m looking for people to try this and tell me what&apos;s wrong with it. I read every message.
+            </div>
+            <a
+              href="mailto:zack@athlos.run"
+              style={{ fontSize: 12, color: "rgba(100,150,255,0.9)", textDecoration: "none" }}
+            >
+              zack@athlos.run
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </section>
   )
 }

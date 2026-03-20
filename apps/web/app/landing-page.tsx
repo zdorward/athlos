@@ -397,6 +397,8 @@ function PageContent() {
 
         <PlanInputsSection />
 
+        <ScienceSection />
+
         <FounderSection />
 
         {/* ── Bottom CTA ────────────────────────────────────────────────── */}
@@ -774,6 +776,100 @@ function PlanInputsSection() {
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", lineHeight: 1.6 }}>
             Determines how long each phase runs and how much time is available to build before the taper.
           </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function ScienceSection() {
+  const phases = [
+    {
+      name: "Base",
+      focus: "Aerobic foundation. Tempo runs introduce lactate threshold work. Easy volume builds the engine.",
+      labelStyle: { background: "rgba(80,120,255,0.15)", color: "rgba(100,150,255,0.9)" },
+    },
+    {
+      name: "Build",
+      focus: "Early: tempo + VO2max intervals raise your ceiling. Late Build shifts toward marathon pace.",
+      labelStyle: { background: "rgba(120,80,255,0.15)", color: "rgba(160,120,255,0.9)" },
+    },
+    {
+      name: "Peak",
+      focus: "Marathon-pace dominant. The final 6–8 weeks are the most race-specific of the entire plan.",
+      labelStyle: { background: "rgba(255,120,50,0.15)", color: "rgba(255,150,80,0.9)" },
+    },
+    {
+      name: "Taper",
+      focus: "3 weeks. One light tempo session in Week 1. Full easy running from Week 2 through race day.",
+      labelStyle: { background: "rgba(80,200,120,0.15)", color: "rgba(100,220,140,0.9)" },
+    },
+  ]
+
+  return (
+    <section style={{ padding: "0 24px 96px", maxWidth: 1100, margin: "0 auto" }}>
+      <div style={{ textAlign: "center", marginBottom: 40 }}>
+        <h2
+          style={{
+            fontSize: "clamp(22px, 3.5vw, 36px)",
+            fontWeight: 700,
+            color: "#fff",
+            letterSpacing: "-0.03em",
+            margin: 0,
+          }}
+        >
+          The Science
+        </h2>
+      </div>
+
+      {/* Block 1 — Built on Pfitzinger, improved */}
+      <div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.88)" }}>
+          Built on Pfitzinger, improved
+        </div>
+        <div style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginTop: 6 }}>
+          Pfitz is the gold standard for volume progression and phase structure. We keep what works and fix what doesn&apos;t.
+        </div>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.38)", lineHeight: 1.6, marginTop: 8 }}>
+          What we keep: the 10% progression rule, long run targets, recovery week cadence, and the Base → Build → Peak → Taper arc. What we change: intensity distribution is polarized (80% easy / 20% hard) to eliminate the gray-zone fatigue that Pfitz&apos;s medium-long runs create. Phase order is reversed — threshold work comes before VO2max in early phases, then marathon-pace dominates the final 6–8 weeks. And marathon-pace volume is dramatically higher than Pfitz prescribes (~14 miles over 12 weeks). Modern coaching prescribes 5–10× that.
+        </div>
+      </div>
+
+      {/* Block 2 — Training phases */}
+      <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 28, marginTop: 28 }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.88)" }}>
+          Training phases
+        </div>
+        <div style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginTop: 6 }}>
+          Four phases, each with a distinct purpose. The taper is always 3 weeks — everything else scales to your timeline.
+        </div>
+        <div className="mt-4 space-y-3">
+          {phases.map((phase) => (
+            <div key={phase.name} className="flex items-start gap-3">
+              <div
+                className="shrink-0 rounded px-2 py-0.5 text-xs font-semibold"
+                style={phase.labelStyle}
+              >
+                {phase.name}
+              </div>
+              <div style={{ fontSize: 13, lineHeight: 1.6, color: "rgba(255,255,255,0.55)" }}>
+                {phase.focus}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Block 3 — Strength training */}
+      <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 28, marginTop: 28 }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.88)" }}>
+          Strength training is performance, not maintenance
+        </div>
+        <div style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginTop: 6 }}>
+          A 2024 meta-analysis of 31 studies and 652 runners puts heavy resistance training on the same performance tier as lactate threshold work.
+        </div>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.38)", lineHeight: 1.6, marginTop: 8 }}>
+          Heavy resistance (≥80% 1RM) combined with plyometrics improves neuromuscular efficiency, tendon stiffness, and running economy. The effect size is meaningful (ES = −0.426). We schedule strength on easy run days, after the run, never adjacent to quality sessions or the long run. Volume tapers with the plan: 2×/week resistance in Base and Build, 1×/week in Peak, and zero from Taper Week 2 through race day.
         </div>
       </div>
     </section>

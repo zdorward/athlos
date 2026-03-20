@@ -24,7 +24,6 @@ const SignInSheet = dynamic(
 )
 const ManualRaceSheet = dynamic(
   () => import("./manual-race-sheet").then((m) => ({ default: m.ManualRaceSheet })),
-  { ssr: false },
 )
 
 export function LandingPage() {

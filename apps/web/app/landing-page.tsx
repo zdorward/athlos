@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react"
 import dynamic from "next/dynamic"
+import Image from "next/image"
 import { Wordmark } from "@/components/wordmark"
 import { Search } from "lucide-react"
 import type { Race } from "@/data/races/types"
@@ -85,6 +86,10 @@ function PageContent() {
   }
 
   const isOpen = dropdownOpen || query.trim() !== ""
+
+  useEffect(() => {
+    if (isOpen) void import("./manual-race-sheet")
+  }, [isOpen])
 
   return (
     <>
@@ -242,7 +247,7 @@ function PageContent() {
                 margin: 0,
               }}
             >
-              Pfitzinger-based marathon training.<br />Built around your goal time.
+              Your marathon plan,<br />built on modern sports science.
             </h1>
 
             <p
@@ -253,7 +258,7 @@ function PageContent() {
                 letterSpacing: "0.01em",
               }}
             >
-              Strength training built in from day one.<br />Adapts when your body says it needs to.
+              Pfitzinger methodology. Personalized to your goal time and race date. Strength training included.
             </p>
 
             {/* Search widget */}
@@ -347,8 +352,8 @@ function PageContent() {
               )}
             </div>
 
-            <p style={{ fontSize: 12, margin: 0, color: "rgba(255,255,255,0.22)", letterSpacing: "0.02em" }}>
-              Adaptive · Hybrid-athlete ready · Built for BQ
+            <p style={{ fontSize: 12, margin: 0, color: "rgba(74,222,128,0.55)", letterSpacing: "0.02em" }}>
+              Free. No account required to start.
             </p>
 
           </div>
@@ -627,20 +632,10 @@ function PageContent() {
             style={{
               fontSize: 14,
               color: "rgba(255,255,255,0.32)",
-              margin: "0 0 8px",
-            }}
-          >
-            Pick your race. Set your goal time. We&apos;ll handle the rest.
-          </p>
-          <p
-            style={{
-              fontSize: 13,
-              fontWeight: 500,
-              color: "#4ade80",
               margin: "0 0 28px",
             }}
           >
-            Free. No account required to start.
+            Pick your race. Set your goal time. We&apos;ll handle the rest.
           </p>
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
@@ -790,11 +785,13 @@ function FounderSection() {
                 fontSize: 20, color: "rgba(255,255,255,0.4)",
               }}>ZD</div>
             ) : (
-              <img
+              <Image
                 src="/zack.jpg"
                 alt="Zack"
+                width={88}
+                height={88}
                 onError={() => setPhotoError(true)}
-                style={{ width: 88, height: 88, borderRadius: "50%", objectFit: "cover", display: "block" }}
+                style={{ borderRadius: "50%", objectFit: "cover", display: "block" }}
               />
             )}
             <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginTop: 10 }}>Zack</div>

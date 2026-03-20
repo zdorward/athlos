@@ -4,20 +4,24 @@ import { useState } from "react"
 import { OnboardingCard } from "../onboarding-card"
 import type { StepProps } from "../types"
 
-type MileageRange = "25-40" | "40-60" | "60-80" | "80-plus"
+type MileageRange = "0-10" | "10-25" | "25-40" | "40-60" | "60-80" | "80-plus"
 
-const KM_OPTIONS: { value: MileageRange; label: string; description: string }[] = [
-  { value: "25-40", label: "Under 40 km/week",  description: "Building base fitness" },
-  { value: "40-60",   label: "40–60 km/week",      description: "Consistent recreational runner" },
-  { value: "60-80",   label: "60–80 km/week",      description: "Consistent club runner" },
-  { value: "80-plus", label: "80+ km/week",         description: "High mileage athlete" },
+const KM_OPTIONS: { value: MileageRange; label: string; description: string; badge: string }[] = [
+  { value: "0-10",   label: "Just getting started", description: "Little or no current running",              badge: "0–10 km/wk"  },
+  { value: "10-25",  label: "Occasional runner",     description: "1–2 runs a week, mostly short",            badge: "10–25 km/wk" },
+  { value: "25-40",  label: "Regular runner",        description: "3–4 days/week, comfortable up to ~10 km",  badge: "25–40 km/wk" },
+  { value: "40-60",  label: "Consistent runner",     description: "4–5 days/week, regular long runs",         badge: "40–60 km/wk" },
+  { value: "60-80",  label: "Club runner",           description: "5–6 days/week, comfortable at distance",   badge: "60–80 km/wk" },
+  { value: "80-plus",label: "High mileage runner",   description: "6–7 days/week, high weekly volume",        badge: "80+ km/wk"   },
 ]
 
-const MILES_OPTIONS: { value: MileageRange; label: string; description: string }[] = [
-  { value: "25-40", label: "Under 25 mi/week",  description: "Building base fitness" },
-  { value: "40-60",   label: "25–37 mi/week",      description: "Consistent recreational runner" },
-  { value: "60-80",   label: "37–50 mi/week",      description: "Consistent club runner" },
-  { value: "80-plus", label: "50+ mi/week",         description: "High mileage athlete" },
+const MILES_OPTIONS: { value: MileageRange; label: string; description: string; badge: string }[] = [
+  { value: "0-10",   label: "Just getting started", description: "Little or no current running",              badge: "0–6 mi/wk"   },
+  { value: "10-25",  label: "Occasional runner",     description: "1–2 runs a week, mostly short",            badge: "6–15 mi/wk"  },
+  { value: "25-40",  label: "Regular runner",        description: "3–4 days/week, comfortable up to ~10 km",  badge: "15–25 mi/wk" },
+  { value: "40-60",  label: "Consistent runner",     description: "4–5 days/week, regular long runs",         badge: "25–37 mi/wk" },
+  { value: "60-80",  label: "Club runner",           description: "5–6 days/week, comfortable at distance",   badge: "37–50 mi/wk" },
+  { value: "80-plus",label: "High mileage runner",   description: "6–7 days/week, high weekly volume",        badge: "50+ mi/wk"   },
 ]
 
 export function StepWeeklyMileage({ formData, onNext }: Pick<StepProps, "formData" | "onNext">) {
@@ -34,12 +38,10 @@ export function StepWeeklyMileage({ formData, onNext }: Pick<StepProps, "formDat
     <div className="space-y-6">
       <div className="space-y-2">
         <h2 className="text-2xl font-semibold tracking-tight">
-          {units === "miles"
-            ? "How many miles do you run per week?"
-            : "How many kilometres do you run per week?"}
+          How would you describe your current running?
         </h2>
         <p className="text-sm text-muted-foreground">
-          This sets your starting volume for week 1 of the plan.
+          Pick the one that fits best — we'll build your plan from here.
         </p>
       </div>
       <div className="space-y-3">
@@ -48,6 +50,7 @@ export function StepWeeklyMileage({ formData, onNext }: Pick<StepProps, "formDat
             key={opt.value}
             label={opt.label}
             description={opt.description}
+            badge={opt.badge}
             selected={selected === opt.value}
             onClick={() => handleSelect(opt.value)}
           />

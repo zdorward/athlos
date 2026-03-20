@@ -3,11 +3,12 @@ import { cn } from "@workspace/ui/lib/utils"
 interface OnboardingCardProps {
   label: string
   description?: string
+  badge?: string
   selected: boolean
   onClick: () => void
 }
 
-export function OnboardingCard({ label, description, selected, onClick }: OnboardingCardProps) {
+export function OnboardingCard({ label, description, badge, selected, onClick }: OnboardingCardProps) {
   return (
     <button
       onClick={onClick}
@@ -18,10 +19,17 @@ export function OnboardingCard({ label, description, selected, onClick }: Onboar
           : "border-border bg-card hover:bg-muted/50"
       )}
     >
-      <div className="font-medium">{label}</div>
-      {description && (
-        <div className="mt-1 text-sm text-muted-foreground">{description}</div>
-      )}
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <div className="font-medium">{label}</div>
+          {description && (
+            <div className="mt-1 text-sm text-muted-foreground">{description}</div>
+          )}
+        </div>
+        {badge && (
+          <div className="shrink-0 text-xs text-muted-foreground">{badge}</div>
+        )}
+      </div>
     </button>
   )
 }

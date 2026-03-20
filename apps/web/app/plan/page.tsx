@@ -63,7 +63,7 @@ function mapToInput(raw: Record<string, unknown>): PlanGenerationInput | null {
 
   // weeklyMileageRange — apply default if missing
   const rawRange = raw["weeklyMileageRange"] as string | undefined
-  const validRanges = ["25-40", "40-60", "60-80", "80-plus"]
+  const validRanges = ["0-10", "10-25", "25-40", "40-60", "60-80", "80-plus"]
   input.weeklyMileageRange = validRanges.includes(rawRange ?? "")
     ? (rawRange as PlanGenerationInput["weeklyMileageRange"])
     : "40-60"

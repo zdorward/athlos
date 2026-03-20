@@ -172,6 +172,12 @@ describe("computePhases — 52 week full marathon: GF capped by mileage range", 
     const gf = phases.find(p => p.name === "General Fitness")!
     expect(gf.endWeek - gf.startWeek + 1).toBe(6)
   })
+
+  it("0-10: GF is capped at 12 weeks (same as 25-40)", () => {
+    const phases = computePhases(52, "full", "0-10" as const)
+    const gf = phases.find(p => p.name === "General Fitness")!
+    expect(gf.endWeek - gf.startWeek + 1).toBe(12)
+  })
 })
 
 describe("computePhases — full marathon peakMin is 4 weeks", () => {

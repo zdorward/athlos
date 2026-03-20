@@ -98,7 +98,7 @@ export function computeTrainingStructure(
     if (run > 6) { run = 6; rest += 1 }
   } else {
     // Mileage fallback (ultra, no goal time, unknown distance)
-    if      (weeklyMileageRange === "0-10")    { run = 3; rest = 4; quality = 0 }
+    if      (weeklyMileageRange === "0-10")    { run = 3; rest = 4; quality = 0 }  // quality=0: beginners run easy only; constraints.maxQualitySessions overrides for first-timers via computeConstraints()
     else if (weeklyMileageRange === "10-25")   { run = 4; rest = 3; quality = 1 }
     else if (weeklyMileageRange === "25-40")   { run = 5; rest = 2; quality = 1 }
     else if (weeklyMileageRange === "40-60")   { run = 6; rest = 1; quality = 1 }

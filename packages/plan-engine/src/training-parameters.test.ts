@@ -124,6 +124,20 @@ describe("computeTrainingStructure — no goal time, full marathon, uses mileage
   it("maxQualitySessions: 1", () => { expect(result.maxQualitySessions).toBe(1) })
 })
 
+it("mileage fallback: 0-10 → 3 run, 4 rest, 0 quality", () => {
+  const result = computeTrainingStructure(null, "full", 7, "0-10")
+  expect(result.runDaysPerWeek).toBe(3)
+  expect(result.restDaysPerWeek).toBe(4)
+  expect(result.maxQualitySessions).toBe(0)
+})
+
+it("mileage fallback: 10-25 → 4 run, 3 rest, 1 quality", () => {
+  const result = computeTrainingStructure(null, "full", 7, "10-25")
+  expect(result.runDaysPerWeek).toBe(4)
+  expect(result.restDaysPerWeek).toBe(3)
+  expect(result.maxQualitySessions).toBe(1)
+})
+
 // ─── computeLongRunTargets ─────────────────────────────────────────────────
 
 describe("computeLongRunTargets — full marathon, null peakWeeklyKm (mid-range fallback)", () => {

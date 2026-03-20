@@ -13,7 +13,7 @@ import type { Race } from "@/data/races/types"
 import { useRaceSearch } from "@/hooks/use-race-search"
 import { DISTANCE_LABELS, type Distance, type RaceData, type StepProps } from "../types"
 
-export function StepFindRace({ onNext }: Pick<StepProps, "formData" | "onNext">) {
+export function StepFindRace({ onNext }: Pick<StepProps, "onNext">) {
   const [query, setQuery] = useState("")
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [showManual, setShowManual] = useState(false)

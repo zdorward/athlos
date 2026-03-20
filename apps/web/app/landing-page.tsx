@@ -46,6 +46,8 @@ function PageContent() {
   const { results, loading } = useRaceSearch(query)
   const wrapRef = useRef<HTMLDivElement>(null)
 
+  const isOpen = dropdownOpen || query.trim() !== ""
+
   useEffect(() => {
     function handleMouseDown(e: MouseEvent) {
       if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
@@ -56,16 +58,9 @@ function PageContent() {
     return () => document.removeEventListener("mousedown", handleMouseDown)
   }, [])
 
-  if (showOnboarding) {
-    return (
-      <main className="min-h-svh">
-        <OnboardingFlow
-          onExit={() => setShowOnboarding(false)}
-          initialData={initialData}
-        />
-      </main>
-    )
-  }
+  useEffect(() => {
+    if (isOpen) void import("./manual-race-sheet")
+  }, [isOpen])
 
   function handleRaceSelect(race: Race) {
     const raceData: RaceData = {
@@ -84,11 +79,16 @@ function PageContent() {
     setShowOnboarding(true)
   }
 
-  const isOpen = dropdownOpen || query.trim() !== ""
-
-  useEffect(() => {
-    if (isOpen) void import("./manual-race-sheet")
-  }, [isOpen])
+  if (showOnboarding) {
+    return (
+      <main className="min-h-svh">
+        <OnboardingFlow
+          onExit={() => setShowOnboarding(false)}
+          initialData={initialData}
+        />
+      </main>
+    )
+  }
 
   return (
     <>
@@ -395,222 +395,7 @@ function PageContent() {
 
         <PlanPreview />
 
-        {/* ── Why Athlos ──────────────────────────────────────────────── */}
-        <section
-          style={{ padding: "0 24px 96px", maxWidth: 1100, margin: "0 auto" }}
-        >
-          <div style={{ textAlign: "center", marginBottom: 40 }}>
-            <h2
-              style={{
-                fontSize: "clamp(22px, 3.5vw, 36px)",
-                fontWeight: 700,
-                color: "#fff",
-                letterSpacing: "-0.03em",
-                margin: 0,
-              }}
-            >
-              Why Athlos
-            </h2>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-              gap: 24,
-            }}
-          >
-            {[
-              {
-                title: "Pfitzinger methodology",
-                body: "Not generic intervals. Structured phases: base, build, peak, taper — built around your race date and goal time.",
-              },
-              {
-                title: "Strength training included",
-                body: "Lift days scheduled around your key runs, not as an afterthought.",
-              },
-              {
-                title: "Adaptive by default",
-                body: "Log how a session felt. If you're accumulating fatigue, the plan adjusts — before it becomes an injury.",
-              },
-            ].map((f) => (
-              <div
-                key={f.title}
-                style={{
-                  padding: 28,
-                  borderRadius: 14,
-                  border: "1px solid rgba(255,255,255,0.07)",
-                  background: "rgba(255,255,255,0.02)",
-                  textAlign: "center",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: "rgba(255,255,255,0.88)",
-                    marginBottom: 8,
-                  }}
-                >
-                  {f.title}
-                </div>
-                <div
-                  style={{
-                    fontSize: 13,
-                    color: "rgba(255,255,255,0.38)",
-                    lineHeight: 1.6,
-                  }}
-                >
-                  {f.body}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-
-        {/* ── How your plan is built ────────────────────────────────── */}
-        <section
-          style={{ padding: "0 24px 96px", maxWidth: 1100, margin: "0 auto" }}
-        >
-          <div style={{ textAlign: "center", marginBottom: 40 }}>
-            <h2
-              style={{
-                fontSize: "clamp(22px, 3.5vw, 36px)",
-                fontWeight: 700,
-                color: "#fff",
-                letterSpacing: "-0.03em",
-                margin: 0,
-              }}
-            >
-              How your plan is built
-            </h2>
-            <p
-              style={{
-                fontSize: 14,
-                color: "rgba(255,255,255,0.32)",
-                margin: "8px 0 0",
-              }}
-            >
-              Five inputs. One coherent plan.
-            </p>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 24,
-            }}
-          >
-            {[
-              {
-                label: "Goal time",
-                title: "Sets your training load",
-                body: "Sub-3:15 means higher mileage and more intensity sessions. Sub-4:30 means more aerobic base, less threshold work. Your target pace determines what your body needs to do to get there.",
-              },
-              {
-                label: "Current weekly mileage",
-                title: "Sets your volume ceiling",
-                body: "Where you are now determines how aggressively the plan can ramp. Running 60km/week already? The plan builds on that. Starting from 30km? It gets you there safely over the base phase.",
-              },
-              {
-                label: "Running days",
-                title: "Determines session mix",
-                body: "5 days gets you a long run, a tempo, and three easy runs. 4 days drops the least valuable session first. The long run and quality work are always protected.",
-              },
-              {
-                label: "Strength days",
-                title: "Kept in the picture",
-                body: "Tell us which days you lift. The plan is built around your full training week, running and strength included.",
-              },
-            ].map((card) => (
-              <div
-                key={card.label}
-                style={{
-                  padding: 28,
-                  borderRadius: 14,
-                  border: "1px solid rgba(255,255,255,0.07)",
-                  background: "rgba(255,255,255,0.02)",
-                  textAlign: "left",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: "rgba(100,150,255,0.7)",
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    marginBottom: 8,
-                  }}
-                >
-                  {card.label}
-                </div>
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: "rgba(255,255,255,0.88)",
-                    marginBottom: 6,
-                  }}
-                >
-                  {card.title}
-                </div>
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: "rgba(255,255,255,0.38)",
-                    lineHeight: 1.6,
-                  }}
-                >
-                  {card.body}
-                </div>
-              </div>
-            ))}
-            {/* Full-width fifth card */}
-            <div
-              style={{
-                gridColumn: "1 / -1",
-                padding: 28,
-                borderRadius: 14,
-                border: "1px solid rgba(255,255,255,0.07)",
-                background: "rgba(255,255,255,0.02)",
-                textAlign: "left",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: "rgba(100,150,255,0.7)",
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  marginBottom: 8,
-                }}
-              >
-                Weeks to race
-              </div>
-              <div
-                style={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "rgba(255,255,255,0.88)",
-                  marginBottom: 6,
-                }}
-              >
-                Defines your phase structure
-              </div>
-              <div
-                style={{
-                  fontSize: 12,
-                  color: "rgba(255,255,255,0.38)",
-                  lineHeight: 1.6,
-                }}
-              >
-                18 or more weeks gets a full base, build, peak, taper arc. Shorter windows compress the base and extend the peak. The taper stays at 3 weeks regardless.
-              </div>
-            </div>
-          </div>
-        </section>
+        <PlanInputsSection />
 
         <FounderSection />
 
@@ -867,6 +652,129 @@ function FounderSection() {
           </div>
         </div>
 
+      </div>
+    </section>
+  )
+}
+
+function PlanInputsSection() {
+  const cards = [
+    {
+      label: "Goal time",
+      title: "Sets your training load",
+      body: "Sets your training intensity and marathon-pace volume. Faster goals mean more threshold work and higher mileage.",
+    },
+    {
+      label: "Current weekly mileage",
+      title: "Sets your volume ceiling",
+      body: "Determines your starting point and how aggressively the plan can build.",
+    },
+    {
+      label: "Running days",
+      title: "Determines session mix",
+      body: "Sets how many sessions per week and which types fit in.",
+    },
+    {
+      label: "Strength days",
+      title: "Kept in the picture",
+      body: "Tell us which days you lift. The plan is built around your full training week.",
+    },
+  ]
+
+  return (
+    <section style={{ padding: "0 24px 96px", maxWidth: 1100, margin: "0 auto" }}>
+      <div style={{ textAlign: "center", marginBottom: 40 }}>
+        <h2
+          style={{
+            fontSize: "clamp(22px, 3.5vw, 36px)",
+            fontWeight: 700,
+            color: "#fff",
+            letterSpacing: "-0.03em",
+            margin: 0,
+          }}
+        >
+          How your plan is built
+        </h2>
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.32)", margin: "8px 0 0" }}>
+          Five inputs. Grounded in what actually predicts marathon performance.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {cards.map((card) => (
+          <div
+            key={card.label}
+            style={{
+              padding: 28,
+              borderRadius: 14,
+              border: "1px solid rgba(255,255,255,0.07)",
+              background: "rgba(255,255,255,0.02)",
+              textAlign: "left",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: "rgba(100,150,255,0.7)",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                marginBottom: 8,
+              }}
+            >
+              {card.label}
+            </div>
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: "rgba(255,255,255,0.88)",
+                marginBottom: 6,
+              }}
+            >
+              {card.title}
+            </div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", lineHeight: 1.6 }}>
+              {card.body}
+            </div>
+          </div>
+        ))}
+        {/* Fifth card — full width on desktop */}
+        <div
+          className="md:col-span-2"
+          style={{
+            padding: 28,
+            borderRadius: 14,
+            border: "1px solid rgba(255,255,255,0.07)",
+            background: "rgba(255,255,255,0.02)",
+            textAlign: "left",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: "rgba(100,150,255,0.7)",
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              marginBottom: 8,
+            }}
+          >
+            Weeks to race
+          </div>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: "rgba(255,255,255,0.88)",
+              marginBottom: 6,
+            }}
+          >
+            Defines your phase structure
+          </div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", lineHeight: 1.6 }}>
+            Determines how long each phase runs and how much time is available to build before the taper.
+          </div>
+        </div>
       </div>
     </section>
   )

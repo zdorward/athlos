@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useEffect, useRef, useState } from "react"
+import React, { Suspense, useEffect, useRef, useState } from "react"
 import dynamic from "next/dynamic"
 import Image from "next/image"
 import { Wordmark } from "@/components/wordmark"
@@ -838,6 +838,9 @@ function ScienceSection() {
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.38)", lineHeight: 1.6, marginTop: 8 }}>
           What we keep: the 10% progression rule, long run targets, recovery week cadence, and the Base → Build → Peak → Taper arc. What we change: intensity distribution is polarized (80% easy / 20% hard) to eliminate the gray-zone fatigue that Pfitz&apos;s medium-long runs create. Phase order is reversed — threshold work comes before VO2max in early phases, then marathon-pace dominates the final 6–8 weeks. And marathon-pace volume is dramatically higher than Pfitz prescribes (~14 miles over 12 weeks). Modern coaching prescribes 5–10× that.
         </div>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", marginTop: 10 }}>
+          Source: Pfitzinger &amp; Douglas, <em>Advanced Marathoning</em> (3rd ed.)
+        </div>
       </div>
 
       {/* Block 2 — Training phases */}
@@ -846,11 +849,14 @@ function ScienceSection() {
           Training phases
         </div>
         <div style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginTop: 6 }}>
-          Four phases, each with a distinct purpose. The taper is always 3 weeks — everything else scales to your timeline.
+          Five phases, each with a distinct purpose. The taper is always 3 weeks — everything else scales to your timeline.
         </div>
-        <div className="mt-4 space-y-3">
+        <div
+          className="mt-4"
+          style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "10px 12px", alignItems: "start" }}
+        >
           {phases.map((phase) => (
-            <div key={phase.name} className="flex items-start gap-3">
+            <React.Fragment key={phase.name}>
               <div
                 className="shrink-0 rounded px-2 py-0.5 text-xs font-semibold"
                 style={phase.labelStyle}
@@ -860,7 +866,7 @@ function ScienceSection() {
               <div style={{ fontSize: 13, lineHeight: 1.6, color: "rgba(255,255,255,0.55)" }}>
                 {phase.focus}
               </div>
-            </div>
+            </React.Fragment>
           ))}
         </div>
       </div>
@@ -875,6 +881,9 @@ function ScienceSection() {
         </div>
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.38)", lineHeight: 1.6, marginTop: 8 }}>
           Heavy resistance (≥80% 1RM) combined with plyometrics improves neuromuscular efficiency, tendon stiffness, and running economy. The effect size is meaningful (ES = −0.426). We schedule strength on easy run days, after the run, never adjacent to quality sessions or the long run. Volume tapers with the plan: 2×/week resistance in Base and Build, 1×/week in Peak, and zero from Taper Week 2 through race day.
+        </div>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", marginTop: 10 }}>
+          Source: Grgic et al., <em>Sports Medicine</em> 2024 — meta-analysis, 31 studies, 652 runners (PMC11052887)
         </div>
       </div>
     </section>

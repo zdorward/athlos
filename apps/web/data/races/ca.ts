@@ -33,7 +33,7 @@ export const CA_RACES: Race[] = [
     url: "https://www.runottawa.ca/",
   },
   {
-    id: "ca-ottawa-tamarack-half-2026",
+    id: "ca-ottawa-half-2026",
     name: "Ottawa Half Marathon presented by Desjardins",
     city: "Ottawa",
     region: "ON",
@@ -217,7 +217,7 @@ export const CA_RACES: Race[] = [
   },
   {
     id: "ca-montreal-half-2026",
-    name: "Marathon Beneva de Montréal",
+    name: "Demi-marathon Beneva de Montréal",
     city: "Montreal",
     region: "QC",
     country: "CA",

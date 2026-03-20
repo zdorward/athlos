@@ -785,6 +785,11 @@ function PlanInputsSection() {
 function ScienceSection() {
   const phases = [
     {
+      name: "General Fitness",
+      focus: "Optional phase for 20+ week plans. Easy aerobic volume only — no quality sessions. Builds tissue tolerance before heavier training begins.",
+      labelStyle: { background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.45)" },
+    },
+    {
       name: "Base",
       focus: "Aerobic foundation. Tempo runs introduce lactate threshold work. Easy volume builds the engine.",
       labelStyle: { background: "rgba(80,120,255,0.15)", color: "rgba(100,150,255,0.9)" },

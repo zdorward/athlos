@@ -1,6 +1,10 @@
 import * as fs from "fs"
 import * as path from "path"
 
+function toTitleCase(str: string): string {
+  return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase())
+}
+
 async function main() {
   const country = process.argv[2]?.toLowerCase()
 
@@ -134,7 +138,7 @@ async function fetchDistance(
     races.push({
       id,
       name: r.name,
-      city: r.address.city,
+      city: toTitleCase(r.address.city),
       region: r.address.state,
       country: "US",
       date,
@@ -219,6 +223,15 @@ async function seedUSA(): Promise<void> {
     // Exclude virtual races
     if (nameLower.includes("virtual")) return false
     if (race.city.toLowerCase() === "virtual") return false
+    if (race.city.toLowerCase() === "anywhere") return false
+    // Exclude training programs
+    if (nameLower.includes("training group")) return false
+    if (nameLower.includes("training program")) return false
+    // Exclude triathlons
+    if (nameLower.includes("triathlon")) return false
+    if (nameLower.includes("tri ")) return false
+    // Exclude challenge fundraisers (not road races)
+    if (nameLower.includes("challenge") && !nameLower.includes("marathon") && !nameLower.includes("half")) return false
     // Exclude test/fake entries
     if (nameLower.includes("fake")) return false
     if (nameLower.includes("test only")) return false

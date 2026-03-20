@@ -12,10 +12,12 @@ function getPeakMin(distance: string): number {
 }
 
 const GF_CAP: Record<WeeklyMileageRange, number> = {
+  "0-10":   12,
+  "10-25":  12,
   "25-40":  12,
-  "40-60":    10,
-  "60-80":     8,
-  "80-plus":   6,
+  "40-60":  10,
+  "60-80":   8,
+  "80-plus":  6,
 }
 
 /**

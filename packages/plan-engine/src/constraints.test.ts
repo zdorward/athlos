@@ -147,5 +147,47 @@ describe("computeConstraints", () => {
       expect(c.feasibilityWarning).toContain("weeks")
       expect(c.feasibilityWarning).toContain("Long run")
     })
+
+    it("warns for '0-10' first-timer full marathon — long run far below 26 km", () => {
+      // WEEK1=10, ramp=0.08, 17 pre-taper weeks
+      // achievable = 10 * 1.08^17 ≈ 37 km; clamped by MILEAGE_RANGE_HIGH["0-10"]=25
+      // peakWeeklyKm = 25; long run = 25 * 0.40 = 10 km < 26 km → warning fires
+      const c = computeConstraints({
+        ...base,
+        isFirstAtDistance: true,
+        weeklyMileageRange: "0-10" as const,
+        totalWeeks: 20,
+        goalMinutes: null,
+      })
+      expect(c.feasibilityWarning).toMatch(/Long run/)
+    })
+
+    it("warns for '10-25' first-timer full marathon — long run below 26 km", () => {
+      // WEEK1=15, ramp=0.08, 17 pre-taper weeks
+      // achievable = 15 * 1.08^17 ≈ 55 km; clamped by MILEAGE_RANGE_HIGH["10-25"]=35
+      // peakWeeklyKm = 35; long run = 35 * 0.40 = 14 km < 26 km → warning fires
+      const c = computeConstraints({
+        ...base,
+        isFirstAtDistance: true,
+        weeklyMileageRange: "10-25" as const,
+        totalWeeks: 20,
+        goalMinutes: null,
+      })
+      expect(c.feasibilityWarning).toMatch(/Long run/)
+    })
+
+    it("warns for '10-25' first-timer half marathon — long run below 16 km threshold", () => {
+      // WEEK1=15, ramp=0.08, 17 pre-taper weeks
+      // clamped by MILEAGE_RANGE_HIGH["10-25"]=35; long run = 35 * 0.38 ≈ 13.3 km < 16 km
+      const c = computeConstraints({
+        ...base,
+        distance: "half",
+        isFirstAtDistance: true,
+        weeklyMileageRange: "10-25" as const,
+        totalWeeks: 20,
+        goalMinutes: null,
+      })
+      expect(c.feasibilityWarning).toMatch(/Long run/)
+    })
   })
 })

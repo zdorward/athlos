@@ -8,9 +8,11 @@ export interface VolumeProgressionInput {
 }
 
 export const WEEK1_VOLUME_KM: Record<WeeklyMileageRange, number> = {
-  "25-40": 30,
-  "40-60": 40,
-  "60-80": 60,
+  "0-10":   10,
+  "10-25":  15,
+  "25-40":  30,
+  "40-60":  40,
+  "60-80":  60,
   "80-plus": 80,
 }
 

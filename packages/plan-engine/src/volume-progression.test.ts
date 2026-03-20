@@ -33,6 +33,16 @@ describe("computeWeeklyVolumes", () => {
     expect(computeWeeklyVolumes({ ...base, weeklyMileageRange: "80-plus" })[0]).toBe(80)
   })
 
+  it("week 1 lower bounds: 0-10=10, 10-25=15", () => {
+    const base = { totalWeeks: 8, phases: noTaperPhases }
+    expect(
+      computeWeeklyVolumes({ ...base, weeklyMileageRange: "0-10" as const, peakWeeklyKm: 25 })[0]
+    ).toBe(10)
+    expect(
+      computeWeeklyVolumes({ ...base, weeklyMileageRange: "10-25" as const, peakWeeklyKm: 35 })[0]
+    ).toBe(15)
+  })
+
   it("last pre-taper week reaches peakWeeklyKm", () => {
     const peak = 100
     const vols = computeWeeklyVolumes({

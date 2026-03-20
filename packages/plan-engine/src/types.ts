@@ -33,7 +33,7 @@ export interface TrainingPlan {
   phases?: PhaseEntry[]
 }
 
-export type WeeklyMileageRange = "25-40" | "40-60" | "60-80" | "80-plus"
+export type WeeklyMileageRange = "0-10" | "10-25" | "25-40" | "40-60" | "60-80" | "80-plus"
 
 export interface PlanGenerationInput {
   goal: "race"

@@ -3,10 +3,12 @@ import { WEEK1_VOLUME_KM } from "./volume-progression"
 import type { WeeklyMileageRange } from "./types"
 
 const MILEAGE_RANGE_HIGH: Record<WeeklyMileageRange, number> = {
+  "0-10":   25,
+  "10-25":  35,
   "25-40":  40,
-  "40-60":    60,
-  "60-80":    80,
-  "80-plus":  120,
+  "40-60":  60,
+  "60-80":  80,
+  "80-plus": 120,
 }
 
 export interface ConstraintsInput {

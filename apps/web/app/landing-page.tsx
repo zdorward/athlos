@@ -627,10 +627,20 @@ function PageContent() {
             style={{
               fontSize: 14,
               color: "rgba(255,255,255,0.32)",
-              margin: "0 0 28px",
+              margin: "0 0 8px",
             }}
           >
             Pick your race. Set your goal time. We&apos;ll handle the rest.
+          </p>
+          <p
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              color: "#4ade80",
+              margin: "0 0 28px",
+            }}
+          >
+            Free. No account required to start.
           </p>
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}

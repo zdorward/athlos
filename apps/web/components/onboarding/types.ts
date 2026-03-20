@@ -47,8 +47,10 @@ export interface StepProps {
 export function getSteps(): readonly string[] {
   return [
     "findRace",
+    "firstAtDistance",
+    "weeklyMileage",
     "goalTime",
     "whichDays",
-    "weeklyMileage",
+    "includeStrength",
   ]
 }

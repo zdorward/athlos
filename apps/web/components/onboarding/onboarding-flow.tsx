@@ -8,9 +8,11 @@ import { format } from "date-fns"
 import { OnboardingProgress } from "./onboarding-progress"
 import { FinalScreen } from "./final-screen"
 import { StepFindRace } from "./steps/step-find-race"
+import { StepFirstAtDistance } from "./steps/step-first-at-distance"
 import { StepWhichDays } from "./steps/step-which-days"
 import { StepGoalTime } from "./steps/step-goal-time"
 import { StepWeeklyMileage } from "./steps/step-weekly-mileage"
+import { StepIncludeStrength } from "./steps/step-include-strength"
 import { getSteps, type OnboardingData, type RaceData } from "./types"
 import { authClient } from "@/lib/auth-client"
 import { detectUnits, formatRaceDistance } from "@/lib/units"
@@ -24,10 +26,12 @@ const slideVariants = {
 const DRAFT_KEY = "athlos_onboarding_draft"
 
 const STEP_LABELS: Record<string, string> = {
-  findRace: "Your race",
-  goalTime: "Goal time",
-  whichDays: "Running days",
-  weeklyMileage: "Weekly mileage",
+  findRace:        "Your race",
+  firstAtDistance: "Experience",
+  weeklyMileage:   "Weekly mileage",
+  goalTime:        "Goal time",
+  whichDays:       "Running days",
+  includeStrength: "Strength training",
 }
 
 interface OnboardingFlowProps {
@@ -315,9 +319,11 @@ export function OnboardingFlow({ onExit, initialData }: OnboardingFlowProps) {
     const stepName = steps[currentStep]
     switch (stepName) {
       case "findRace":           return <StepFindRace {...stepProps} />
+      case "firstAtDistance":    return <StepFirstAtDistance {...stepProps} />
+      case "weeklyMileage":      return <StepWeeklyMileage {...stepProps} />
       case "goalTime":           return <StepGoalTime {...stepProps} />
       case "whichDays":          return <StepWhichDays {...stepProps} />
-      case "weeklyMileage":      return <StepWeeklyMileage {...stepProps} />
+      case "includeStrength":    return <StepIncludeStrength {...stepProps} />
       default:             return null
     }
   }

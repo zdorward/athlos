@@ -88,6 +88,7 @@ export default function PlanPage() {
 
   const [phases, setPhases] = useState<PhaseEntry[]>([])
   const [planStartDate, setPlanStartDate] = useState<string | null>(null)
+  const [feasibilityWarning, setFeasibilityWarning] = useState<string | null>(null)
 
   const [selectedKey, setSelectedKey] = useState<{ date: string; type: WorkoutType } | null>(null)
 
@@ -241,7 +242,7 @@ export default function PlanPage() {
         return
       }
 
-      let result: { days: WorkoutDay[]; totalWeeks: number; totalKm: number; peakWeekKm: number; phases: PhaseEntry[]; planStartDate: string }
+      let result: { days: WorkoutDay[]; totalWeeks: number; totalKm: number; peakWeekKm: number; phases: PhaseEntry[]; planStartDate: string; feasibilityWarning: string | null }
       try {
         result = await response.json()
       } catch {
@@ -254,6 +255,7 @@ export default function PlanPage() {
       totalWeeksRef.current = result.totalWeeks
       setPhases(result.phases ?? [])
       setPlanStartDate(result.planStartDate)
+      setFeasibilityWarning(result.feasibilityWarning ?? null)
       setPlan({
         days: result.days,
         totalWeeks: result.totalWeeks,

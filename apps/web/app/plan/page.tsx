@@ -363,6 +363,12 @@ export default function PlanPage() {
         saveProps={saveProps}
       />
 
+      {feasibilityWarning && (
+        <div className="mx-4 my-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+          {feasibilityWarning}
+        </div>
+      )}
+
       {/* Desktop: calendar */}
       <div className="hidden md:block flex-1">
         <PlanCalendar

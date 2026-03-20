@@ -37,7 +37,7 @@ Delete the entire "Why Athlos" `<section>` block (~70 lines). No other sections 
 
 ### Card content
 
-Keep the 5 inputs with the same labels and titles. Shorten each body to 1–2 sentences focused only on what the input controls — no elaboration. The science explanation belongs in the new section.
+Keep the 5 inputs with the same labels and titles. **Replace** each card body entirely with the shortened version below — do not append or modify. The goal is to remove elaboration on training science (which now belongs in the Science section) and keep only what the input controls.
 
 Suggested shortened bodies:
 
@@ -57,13 +57,13 @@ Replace the hardcoded `gridTemplateColumns: "1fr 1fr"` inline style with Tailwin
 className="grid grid-cols-1 md:grid-cols-2 gap-6"
 ```
 
-The fifth card (Weeks to race) spans full width on desktop:
+The fifth card (Weeks to race) spans the full 2-column width on desktop and is single-column on mobile. This is the Tailwind equivalent of the existing `gridColumn: "1 / -1"` inline style:
 
 ```
 className="md:col-span-2"
 ```
 
-Remove the outer inline `display: "grid"` / `gap: 24` styles from the container — replaced by Tailwind.
+Remove the outer inline `display: "grid"` / `gap: 24` styles from the container — replaced by Tailwind. Also update the fifth card's body text to the shortened version from the table above (replace the existing longer text entirely).
 
 The section heading, subtitle, and card styles are otherwise unchanged.
 
@@ -81,13 +81,15 @@ Immediately after `<PlanInputsSection />` in `PageContent`, before `<FounderSect
 
 ### Visual style
 
-Matches the surrounding sections: `padding: "0 24px 96px"`, `maxWidth: 1100`, `margin: "0 auto"`. Section heading uses the same style as "How your plan is built."
+Matches the surrounding sections: `padding: "0 24px 96px"`, `maxWidth: 1100`, `margin: "0 auto"`. Section heading uses the same style as "How your plan is built" — `fontSize: "clamp(22px, 3.5vw, 36px)"`, `fontWeight: 700`, `color: "#fff"`, `letterSpacing: "-0.03em"`.
 
-Three blocks laid out in a single column. Each block:
-- Bold header (slightly larger than body, white)
-- 1-sentence lead (muted white, slightly larger)
-- Tight paragraph of detail (muted white, smaller)
-- Thin top border separating blocks (except the first)
+Three blocks laid out in a single column, no max-width constraint beyond the section's `maxWidth: 1100` — blocks stretch to full container width. Each block:
+- **Block header:** `fontSize: 16`, `fontWeight: 700`, `color: "rgba(255,255,255,0.88)"`
+- **Lead sentence:** `fontSize: 14`, `color: "rgba(255,255,255,0.55)"`, `marginTop: 6`
+- **Detail paragraph:** `fontSize: 13`, `color: "rgba(255,255,255,0.38)"`, `lineHeight: 1.6`, `marginTop: 8`
+- Separation between blocks: `borderTop: "1px solid rgba(255,255,255,0.07)"`, `paddingTop: 28`, `marginTop: 28` (applied on blocks 2 and 3 only)
+- First block has no top border, no top padding, no top margin
+- No bottom margin on any block — spacing is top-only via the separator above
 
 ### Block 1 — Built on Pfitzinger, improved
 
@@ -103,8 +105,23 @@ Three blocks laid out in a single column. Each block:
 
 **Lead:** Four phases, each with a distinct purpose. The taper is always 3 weeks — everything else scales to your timeline.
 
-**Detail:** Displayed as a compact 4-item visual list (not a grid — a labeled column):
+**Detail:** Four phase rows rendered as a vertical list inside the block. Each row is a flex container:
 
+```
+Container: className="mt-4 space-y-3"
+Each row:  className="flex items-start gap-3"
+Label:     className="shrink-0 rounded px-2 py-0.5 text-xs font-semibold"
+           with phase-specific background color (see below)
+Focus:     className="text-sm leading-relaxed" color: rgba(255,255,255,0.55)
+```
+
+Phase label colors (inline style `background` + `color`):
+- Base: `background: rgba(80,120,255,0.15)`, `color: rgba(100,150,255,0.9)`
+- Build: `background: rgba(120,80,255,0.15)`, `color: rgba(160,120,255,0.9)`
+- Peak: `background: rgba(255,120,50,0.15)`, `color: rgba(255,150,80,0.9)`
+- Taper: `background: rgba(80,200,120,0.15)`, `color: rgba(100,220,140,0.9)`
+
+Phase focus text:
 | Phase | Focus |
 |-------|-------|
 | Base | Aerobic foundation. Tempo runs introduce lactate threshold work. Easy volume builds the engine. |
@@ -112,15 +129,13 @@ Three blocks laid out in a single column. Each block:
 | Peak | Marathon-pace dominant. The final 6–8 weeks are the most race-specific of the entire plan. |
 | Taper | 3 weeks. One light tempo session in Week 1. Full easy running from Week 2 through race day. |
 
-Rendered as a bordered list inside the block — each row has the phase name in a colored label and the focus text beside it.
-
 ### Block 3 — Strength training
 
 **Header:** Strength training is performance, not maintenance
 
 **Lead:** A 2024 meta-analysis of 31 studies and 652 runners puts heavy resistance training on the same performance tier as lactate threshold work.
 
-**Detail:** Heavy resistance (≥80% 1RM) and plyometrics improve neuromuscular efficiency, tendon stiffness, and running economy. The effect size is meaningful (ES = −0.426). We schedule strength on easy run days, after the run, never adjacent to quality sessions or the long run. Volume tapers with the plan: 2×/week resistance in Base and Build, 1×/week in Peak, and zero from Taper Week 2 through race day.
+**Detail:** Heavy resistance (≥80% 1RM) combined with plyometrics improves neuromuscular efficiency, tendon stiffness, and running economy. The effect size is meaningful (ES = −0.426). We schedule strength on easy run days, after the run, never adjacent to quality sessions or the long run. Volume tapers with the plan: 2×/week resistance in Base and Build, 1×/week in Peak, and zero from Taper Week 2 through race day.
 
 ### Componentization
 

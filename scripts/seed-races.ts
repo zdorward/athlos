@@ -219,6 +219,10 @@ async function seedUSA(): Promise<void> {
     // Exclude virtual races
     if (nameLower.includes("virtual")) return false
     if (race.city.toLowerCase() === "virtual") return false
+    // Exclude test/fake entries
+    if (nameLower.includes("fake")) return false
+    if (nameLower.includes("test only")) return false
+    if (nameLower.includes("rs test")) return false
     // Exclude far-future/bogus dates (more than 2 years out)
     const raceYear = parseInt(race.date.split("-")[0]!, 10)
     if (raceYear > currentYear + 2) return false

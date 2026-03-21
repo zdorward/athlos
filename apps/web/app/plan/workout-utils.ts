@@ -59,6 +59,28 @@ export function distanceUnit(units: "km" | "miles"): string {
   return units === "miles" ? "mi" : "km"
 }
 
+function secsToMMSS(secs: number): string {
+  const m = Math.floor(secs / 60)
+  const s = Math.round(secs % 60)
+  return `${m}:${s.toString().padStart(2, "0")}`
+}
+
+function parsePaceComponent(mmss: string): number {
+  const [m, s] = mmss.split(":").map(Number)
+  return (m ?? 0) * 60 + (s ?? 0)
+}
+
+/** Convert a stored pace string (always in /km) to the user's display units. */
+export function convertPaceString(pace: string, units: "km" | "miles"): string {
+  if (units === "km") return pace
+  // Matches "M:SS/km" or "M:SS–M:SS/km"
+  const match = pace.match(/^(\d+:\d{2})(?:–(\d+:\d{2}))?\/km$/)
+  if (!match) return pace
+  const fast = secsToMMSS(parsePaceComponent(match[1]!) * 1.60934)
+  const slow = match[2] ? secsToMMSS(parsePaceComponent(match[2]) * 1.60934) : null
+  return slow ? `${fast}–${slow}/mi` : `${fast}/mi`
+}
+
 export function groupDaysByWeek(days: WorkoutDay[]): WorkoutDay[][] {
   if (days.length === 0) return []
   const sorted = [...days].sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0)
@@ -141,7 +163,7 @@ export function getWorkoutNote(day: WorkoutDay, units: "km" | "miles"): string {
       }
       const reps = Math.min(8, Math.max(3, Math.round(day.distanceKm - 2)))
       const paceStr = day.targetPace != null
-        ? ` at ${day.targetPace}`
+        ? ` at ${convertPaceString(day.targetPace, units)}`
         : " at VO2max pace"
       return `${reps}×1km${paceStr} with 2–3 min jog recovery. Stop the session if your pace slips — quality over quantity.`
     }

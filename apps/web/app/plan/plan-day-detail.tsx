@@ -12,6 +12,7 @@ import {
   distanceUnit,
   getWorkoutNote,
   getHRZone,
+  convertPaceString,
 } from "./workout-utils"
 
 const KM_TO_MILES = 0.621371
@@ -289,7 +290,7 @@ export function PlanDayDetail({ day, secondaryDays, units, onClose, onToggleComp
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-subtle-foreground mb-2">
           Target Pace
         </p>
-        <p className="text-sm text-subtle-foreground">{day.targetPace ?? "—"}</p>
+        <p className="text-sm text-subtle-foreground">{day.targetPace ? convertPaceString(day.targetPace, units) : "—"}</p>
       </div>
 
       {day.type !== "rest" && onToggleComplete && (

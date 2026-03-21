@@ -1,6 +1,6 @@
 "use client"
 
-import React, { Suspense, useEffect, useRef, useState } from "react"
+import React, { Suspense, useCallback, useEffect, useRef, useState } from "react"
 import dynamic from "next/dynamic"
 import Image from "next/image"
 import { Wordmark } from "@/components/wordmark"
@@ -31,6 +31,20 @@ const SignInSheet = dynamic(
 const ManualRaceSheet = dynamic(() =>
   import("./manual-race-sheet").then((m) => ({ default: m.ManualRaceSheet }))
 )
+
+const SECTION_STYLE = {
+  padding: "0 24px 96px",
+  maxWidth: 1100,
+  margin: "0 auto",
+} as const
+
+const SECTION_HEADING_STYLE = {
+  fontSize: "clamp(22px, 3.5vw, 36px)" as const,
+  fontWeight: 700,
+  color: "#fff",
+  letterSpacing: "-0.03em",
+  margin: 0,
+} as const
 
 export function LandingPage() {
   return (
@@ -68,7 +82,7 @@ function PageContent() {
     if (isOpen) void import("./manual-race-sheet")
   }, [isOpen])
 
-  function handleRaceSelect(race: Race) {
+  const handleRaceSelect = useCallback((race: Race) => {
     const raceData: RaceData = {
       name: race.name,
       city: `${race.city}, ${race.region}`,
@@ -77,7 +91,7 @@ function PageContent() {
     }
     setInitialData({ goal: "race", race: raceData })
     setShowOnboarding(true)
-  }
+  }, [])
 
   function handleManualRaceSubmit(raceData: RaceData) {
     setInitialData({ goal: "race", race: raceData })
@@ -98,26 +112,6 @@ function PageContent() {
 
   return (
     <>
-      <style>{`
-        @keyframes bloom-1 {
-          0%   { transform: translate(0%, 0%) scale(1) rotate(0deg); }
-          33%  { transform: translate(6%, 8%) scale(1.15) rotate(15deg); }
-          66%  { transform: translate(-4%, 3%) scale(0.95) rotate(-8deg); }
-          100% { transform: translate(0%, 0%) scale(1) rotate(0deg); }
-        }
-        @keyframes bloom-2 {
-          0%   { transform: translate(0%, 0%) scale(1) rotate(0deg); }
-          40%  { transform: translate(-8%, -5%) scale(1.1) rotate(-20deg); }
-          70%  { transform: translate(5%, 6%) scale(1.05) rotate(10deg); }
-          100% { transform: translate(0%, 0%) scale(1) rotate(0deg); }
-        }
-        @keyframes bloom-3 {
-          0%   { transform: translate(0%, 0%) scale(1); }
-          50%  { transform: translate(4%, -6%) scale(1.08); }
-          100% { transform: translate(0%, 0%) scale(1); }
-        }
-      `}</style>
-
       <main style={{ background: "#020208" }}>
         {/* ── Hero ──────────────────────────────────────────────────────── */}
         <section
@@ -482,24 +476,22 @@ function PageContent() {
 // ── Sub-components ──────────────────────────────────────────────────────────
 
 function ManualEntryFooter({ onSelect }: { onSelect: () => void }) {
-  const [hovered, setHovered] = useState(false)
   return (
-    <div
-      role="button"
+    <button
+      type="button"
       onClick={onSelect}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      className="transition-colors text-white/20 hover:text-white/40 w-full cursor-pointer"
       style={{
         padding: "10px 18px",
         fontSize: 11,
-        color: hovered ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.2)",
+        background: "none",
+        border: "none",
         borderTop: "1px solid rgba(255,255,255,0.05)",
         textAlign: "center",
-        cursor: "pointer",
       }}
     >
       Don&apos;t see yours? Add it manually →
-    </div>
+    </button>
   )
 }
 
@@ -510,7 +502,6 @@ function DropdownRaceRow({
   race: Race
   onSelect: (r: Race) => void
 }) {
-  const [hovered, setHovered] = useState(false)
   const dateLabel = new Date(race.date + "T12:00:00Z").toLocaleDateString(
     "en-US",
     {
@@ -520,19 +511,19 @@ function DropdownRaceRow({
     }
   )
   return (
-    <div
-      role="button"
+    <button
+      type="button"
       onClick={() => onSelect(race)}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      className="transition-colors hover:bg-[rgba(80,120,255,0.08)] w-full"
       style={{
         padding: "12px 18px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         cursor: "pointer",
+        border: "none",
         borderBottom: "1px solid rgba(255,255,255,0.04)",
-        background: hovered ? "rgba(80,120,255,0.08)" : "transparent",
+        textAlign: "left",
       }}
     >
       <div style={{ textAlign: "left" }}>
@@ -571,7 +562,7 @@ function DropdownRaceRow({
       >
         {DISTANCE_LABELS[race.distance]}
       </span>
-    </div>
+    </button>
   )
 }
 
@@ -580,7 +571,7 @@ function FounderSection() {
 
   return (
     <section
-      style={{ padding: "0 24px 96px", maxWidth: 1100, margin: "0 auto" }}
+      style={SECTION_STYLE}
     >
       <div style={{ maxWidth: 560, margin: "0 auto" }}>
         {/* Flex row: photo column | text column */}
@@ -844,17 +835,11 @@ function PlanInputsSection() {
 
   return (
     <section
-      style={{ padding: "0 24px 96px", maxWidth: 1100, margin: "0 auto" }}
+      style={SECTION_STYLE}
     >
       <div style={{ textAlign: "center", marginBottom: 40 }}>
         <h2
-          style={{
-            fontSize: "clamp(22px, 3.5vw, 36px)",
-            fontWeight: 700,
-            color: "#fff",
-            letterSpacing: "-0.03em",
-            margin: 0,
-          }}
+          style={SECTION_HEADING_STYLE}
         >
           How your plan is built
         </h2>
@@ -995,17 +980,11 @@ function ScienceSection() {
 
   return (
     <section
-      style={{ padding: "0 24px 96px", maxWidth: 1100, margin: "0 auto" }}
+      style={SECTION_STYLE}
     >
       <div style={{ textAlign: "center", marginBottom: 40 }}>
         <h2
-          style={{
-            fontSize: "clamp(22px, 3.5vw, 36px)",
-            fontWeight: 700,
-            color: "#fff",
-            letterSpacing: "-0.03em",
-            margin: 0,
-          }}
+          style={SECTION_HEADING_STYLE}
         >
           The Science
         </h2>

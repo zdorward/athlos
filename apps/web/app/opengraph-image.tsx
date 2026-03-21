@@ -53,7 +53,7 @@ export default function Image() {
               width: 58,
               height: 58,
               borderRadius: 10,
-              background: "rgba(6, 182, 212, 0.55)",
+              background: "#06b6d4",
             }}
           />
           {/* bottom-left */}
@@ -77,7 +77,7 @@ export default function Image() {
               width: 58,
               height: 58,
               borderRadius: 10,
-              background: "#06b6d4",
+              background: "rgba(6, 182, 212, 0.55)",
             }}
           />
         </div>

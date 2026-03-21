@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import { format, parseISO } from "date-fns"
 import { Star, Check } from "lucide-react"
 import type { WorkoutDay, WorkoutType, PhaseEntry } from "@workspace/plan-engine"
@@ -121,14 +122,18 @@ interface PlanCalendarProps {
 
 export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartDate, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange, phases, isNewlyGenerated }: PlanCalendarProps) {
   // Derive the live WorkoutDay from the days prop so the detail panel always reflects current state
-  const selectedDay = selectedKey
-    ? (days.find((d) => d.date === selectedKey.date && d.type === selectedKey.type) ?? null)
-    : null
+  const selectedDay = useMemo(
+    () => selectedKey ? (days.find((d) => d.date === selectedKey.date && d.type === selectedKey.type) ?? null) : null,
+    [days, selectedKey]
+  )
   // Filter out bridge days (pre-plan gap runs) before grouping — they shift startMs and
   // misalign the 7-day windows with the scheduler's Monday-based weeks
   const planFirstMonday = planStartDate ?? days[0]?.date ?? null
-  const planDays = planFirstMonday ? days.filter(d => d.date >= planFirstMonday) : days
-  const weeks = groupDaysByWeek(planDays)
+  const planDays = useMemo(
+    () => planFirstMonday ? days.filter(d => d.date >= planFirstMonday) : days,
+    [days, planFirstMonday]
+  )
+  const weeks = useMemo(() => groupDaysByWeek(planDays), [planDays])
   const taperWeeks = getTaperWeeks(raceDistance)
   const unit = distanceUnit(units)
   const todayISO = getTodayISO()
@@ -138,8 +143,9 @@ export function PlanCalendar({ days, units, totalWeeks, raceDistance, planStartD
   // First plan week's phase label — shown above the "Now" row
   const firstPhase = totalWeeks > 0 ? getPhaseLabel(1, totalWeeks, taperWeeks, phases) : ""
   // Bridge days grouped by date (supports multiple entries per day, e.g. run + strength)
-  const bridgeDayMap = groupDaysByDate(
-    days.filter(d => planFirstMonday && d.date < planFirstMonday)
+  const bridgeDayMap = useMemo(
+    () => groupDaysByDate(days.filter(d => planFirstMonday && d.date < planFirstMonday)),
+    [days, planFirstMonday]
   )
 
   if (weeks.length === 0) {

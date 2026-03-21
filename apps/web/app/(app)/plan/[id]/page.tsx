@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useEffect, useState } from "react"
+import { use, useCallback, useEffect, useState, startTransition } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft } from "lucide-react"
 import Link from "next/link"
@@ -91,6 +91,10 @@ export default function PlanViewPage({ params }: PageProps) {
     ?? "km"
   const raceDistance = plan.input.race?.distance
   const goalTimeLabel = formatGoalTime(plan.input)
+
+  const handleSelectedKeyChange = useCallback((key: { date: string; type: WorkoutType } | null) => {
+    startTransition(() => setSelectedKey(key))
+  }, [])
 
   async function handleStartNewPlan() {
     if (typeof plan !== "object" || plan === null) return
@@ -192,7 +196,7 @@ export default function PlanViewPage({ params }: PageProps) {
           onToggleComplete={handleToggleComplete}
           onSaveEdit={handleSaveEdit}
           selectedKey={selectedKey}
-          onSelectedKeyChange={setSelectedKey}
+          onSelectedKeyChange={handleSelectedKeyChange}
         />
       </div>
 
@@ -208,7 +212,7 @@ export default function PlanViewPage({ params }: PageProps) {
           onToggleComplete={handleToggleComplete}
           onSaveEdit={handleSaveEdit}
           selectedKey={selectedKey}
-          onSelectedKeyChange={setSelectedKey}
+          onSelectedKeyChange={handleSelectedKeyChange}
         />
       </div>
     </main>

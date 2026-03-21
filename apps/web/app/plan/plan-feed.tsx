@@ -1,5 +1,6 @@
 "use client"
 
+import { memo, useMemo } from "react"
 import { format, parseISO } from "date-fns"
 import { Star, Check } from "lucide-react"
 import type { WorkoutDay, WorkoutType, PhaseEntry } from "@workspace/plan-engine"
@@ -44,17 +45,16 @@ interface PlanFeedProps {
 interface DayCardProps {
   entries: WorkoutDay[]
   units: "km" | "miles"
-  selectedKey: { date: string; type: WorkoutType } | null
+  isSelected: boolean
   onSelectedKeyChange: (key: { date: string; type: WorkoutType } | null) => void
 }
 
-function DayCard({ entries, units, selectedKey, onSelectedKeyChange }: DayCardProps) {
+const DayCard = memo(function DayCard({ entries, units, isSelected, onSelectedKeyChange }: DayCardProps) {
   const unit = distanceUnit(units)
   const primary = entries.find((e) => RUN_TYPES.has(e.type)) ?? entries[0]!
   const secondaryEntries = entries.filter((e) => e.type !== primary.type && e.type !== "rest")
   const isRest = entries.every((e) => e.type === "rest")
   const isRace = entries.some((e) => e.type === "race")
-  const isSelected = selectedKey?.date === primary.date && selectedKey?.type === primary.type
   const isComplete = !isRest && entries.filter((e) => e.type !== "rest").every((e) => e.completed === true)
   const color = getWorkoutColor(primary.type)
   const textClass = WORKOUT_TEXT_CLASS[primary.type]
@@ -136,19 +136,27 @@ function DayCard({ entries, units, selectedKey, onSelectedKeyChange }: DayCardPr
       </div>
     </button>
   )
-}
+})
 
 export function PlanFeed({ days, units, totalWeeks, raceDistance, planStartDate, onToggleComplete, onSaveEdit, selectedKey, onSelectedKeyChange, phases, isNewlyGenerated }: PlanFeedProps) {
-  const selectedDay = selectedKey
-    ? (days.find((d) => d.date === selectedKey.date && d.type === selectedKey.type) ?? null)
-    : null
-  const planFirstMonday = planStartDate ?? days[0]?.date ?? null
-  const planDays = planFirstMonday ? days.filter(d => d.date >= planFirstMonday) : days
-  const bridgeDays = planFirstMonday ? days.filter(d => d.date < planFirstMonday) : []
-  const bridgeDayEntries = Array.from(groupDaysByDate(bridgeDays).values()).filter(
-    entries => entries.some(e => e.type !== "rest")
+  const selectedDay = useMemo(
+    () => selectedKey ? (days.find((d) => d.date === selectedKey.date && d.type === selectedKey.type) ?? null) : null,
+    [days, selectedKey]
   )
-  const weeks = groupDaysByWeek(planDays)
+  const planFirstMonday = planStartDate ?? days[0]?.date ?? null
+  const planDays = useMemo(
+    () => planFirstMonday ? days.filter(d => d.date >= planFirstMonday) : days,
+    [days, planFirstMonday]
+  )
+  const bridgeDays = useMemo(
+    () => planFirstMonday ? days.filter(d => d.date < planFirstMonday) : [],
+    [days, planFirstMonday]
+  )
+  const bridgeDayEntries = useMemo(
+    () => Array.from(groupDaysByDate(bridgeDays).values()).filter(entries => entries.some(e => e.type !== "rest")),
+    [bridgeDays]
+  )
+  const weeks = useMemo(() => groupDaysByWeek(planDays), [planDays])
   const taperWeeks = getTaperWeeks(raceDistance)
   const unit = distanceUnit(units)
 
@@ -188,7 +196,7 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, planStartDate,
                   key={`${entries[0]!.date}-${entries[0]!.type}`}
                   entries={entries}
                   units={units}
-                  selectedKey={selectedKey}
+                  isSelected={selectedKey?.date === entries[0]!.date && selectedKey?.type === entries[0]!.type}
                   onSelectedKeyChange={onSelectedKeyChange}
                 />
               ))}
@@ -235,7 +243,7 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, planStartDate,
                     key={`${entries[0]!.date}-${entries[0]!.type}`}
                     entries={entries}
                     units={units}
-                    selectedKey={selectedKey}
+                    isSelected={selectedKey?.date === entries[0]!.date && selectedKey?.type === entries[0]!.type}
                     onSelectedKeyChange={onSelectedKeyChange}
                   />
                 ))}

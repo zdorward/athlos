@@ -92,9 +92,6 @@ export function DashboardClient({
       <div className="mx-auto max-w-xl px-4 py-16 text-center space-y-4">
         <p className="text-muted-foreground">Unable to load your plan. Please try again.</p>
         <Button variant="outline" onClick={() => void fetchPlan()}>Retry</Button>
-        <div className="pt-2">
-          <Link href="/settings" className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors">Settings</Link>
-        </div>
       </div>
     )
   }
@@ -104,9 +101,6 @@ export function DashboardClient({
       <div className="mx-auto max-w-xl px-4 py-16 text-center space-y-4">
         <p className="text-muted-foreground">You don&apos;t have a saved plan yet.</p>
         <Button asChild><Link href="/new-plan">Create a Plan</Link></Button>
-        <div className="pt-2">
-          <Link href="/settings" className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors">Settings</Link>
-        </div>
       </div>
     )
   }
@@ -233,15 +227,6 @@ export function DashboardClient({
             className="text-sm text-primary hover:underline"
           >
             View full plan →
-          </Link>
-        </div>
-
-        <div className="pt-4 text-center">
-          <Link
-            href="/settings"
-            className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-          >
-            Settings
           </Link>
         </div>
 

@@ -1,7 +1,7 @@
 {
   "name": "athlos",
   "version": "0.0.1",
-  "description": "Adaptive training system for hybrid athletes",
+  "description": "Data driven marathon training",
   "private": true,
   "scripts": {
     "build": "turbo build",

@@ -201,7 +201,7 @@ function PageContent() {
               top: 0,
               left: 0,
               right: 0,
-              padding: "24px 36px",
+              padding: "20px clamp(16px, 4vw, 36px)",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
@@ -616,15 +616,7 @@ function FounderSection() {
           }}
         >
           {/* Photo column */}
-          <div
-            style={{
-              flexShrink: 0,
-              minWidth: 120,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
+          <div className="shrink-0 flex flex-col items-center w-full sm:w-auto">
             {photoError ? (
               <div
                 style={{
@@ -769,13 +761,13 @@ function FounderSection() {
               key={stat.value}
               style={{
                 flex: 1,
-                padding: "16px 20px",
+                padding: "12px 8px",
                 textAlign: "center",
                 borderRight:
                   i < 2 ? "1px solid rgba(255,255,255,0.07)" : undefined,
               }}
             >
-              <div style={{ fontSize: 22, fontWeight: 700, color: stat.color }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: stat.color }}>
                 {stat.value}
               </div>
               <div
@@ -1139,6 +1131,8 @@ function ScienceSection() {
                   lineHeight: 1.6,
                   color: "rgba(255,255,255,0.55)",
                   paddingTop: 4,
+                  minWidth: 0,
+                  wordBreak: "break-word",
                 }}
               >
                 {phase.focus}

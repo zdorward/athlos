@@ -96,6 +96,10 @@ export function AppNav({ user, planHref }: AppNavProps) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/settings">Settings</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem className="cursor-pointer" onClick={() => void handleSignOut()}>
               Sign out
             </DropdownMenuItem>

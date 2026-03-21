@@ -96,6 +96,10 @@ export function AppNav({ user, planHref }: AppNavProps) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/settings">Settings</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem className="cursor-pointer" onClick={() => void handleSignOut()}>
               Sign out
             </DropdownMenuItem>
@@ -124,6 +128,15 @@ export function AppNav({ user, planHref }: AppNavProps) {
             </Link>
           )
         })}
+        <Link
+          href="/settings"
+          className={`flex flex-1 flex-col items-center gap-1 py-3 text-xs font-medium transition-colors ${
+            pathname.startsWith("/settings") ? "text-foreground" : "text-muted-foreground"
+          }`}
+        >
+          <User className={`h-5 w-5 ${pathname.startsWith("/settings") ? "stroke-[2.5]" : "stroke-[1.5]"}`} />
+          Account
+        </Link>
       </nav>
     </>
   )

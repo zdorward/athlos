@@ -72,7 +72,7 @@ export function PlanHeader({
         </Link>
 
         {/* Centered plan info — absolutely positioned so it doesn't shift with left/right content */}
-        <div className="absolute inset-x-0 flex flex-col items-center pointer-events-none">
+        <div className="absolute inset-x-0 flex flex-col items-center px-32 pointer-events-none">
           <h1 className="text-base font-semibold tracking-tight">{planName}</h1>
           {metaParts.length > 0 && (
             <p className="text-xs text-muted-foreground mt-0.5">{metaParts.join(" · ")}</p>

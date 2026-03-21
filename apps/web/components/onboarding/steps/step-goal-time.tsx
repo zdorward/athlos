@@ -29,6 +29,9 @@ export function StepGoalTime({ formData, onNext }: Pick<StepProps, "formData" | 
     const n = val.replace(/\D/g, "").slice(0, 2)
     setHours(n)
     setJustFinish(false)
+    if (n.length === 1) {
+      minutesRef.current?.focus()
+    }
   }
 
   function handleMinutesChange(val: string) {

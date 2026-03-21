@@ -14,11 +14,16 @@ Add an Account tab to the mobile bottom nav and a Settings link to the desktop a
 
 **Mobile bottom bar:** Add a third tab — icon `User` (Lucide), label "Account", href `/settings`. Active state follows the same logic as Dashboard and Plan tabs (stroke width 2.5 active, 1.5 inactive; label color changes).
 
-**Desktop avatar dropdown:** Add a "Settings" link (href `/settings`) above the existing Sign Out button, separated by a dropdown divider.
+The Account tab must be added only to the mobile bottom bar section, not to the shared `tabs` array that also drives the desktop nav links. The desktop nav should not gain an "Account" text link — settings belongs only in the dropdown there.
+
+**Desktop avatar dropdown:** Add a `DropdownMenuItem` using `asChild` with a Next.js `<Link href="/settings">` for client-side navigation, labeled "Settings". Place it above the existing Sign Out item, separated by a `<DropdownMenuSeparator />`.
 
 ### `dashboard-client.tsx`
 
-Remove all footer/inline links to `/settings`. They are redundant once settings is in the nav.
+Remove all links to `/settings`. There are three locations:
+- Inside the `plan === "error"` render branch
+- Inside the `plan === "empty"` render branch
+- Inside the main resolved-plan render path (footer area)
 
 ## Out of Scope
 

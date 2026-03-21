@@ -119,6 +119,7 @@ function PageContent() {
         >
           {/* Dot grid */}
           <div
+            aria-hidden="true"
             style={{
               position: "absolute",
               inset: 0,
@@ -130,6 +131,7 @@ function PageContent() {
 
           {/* Aurora blooms */}
           <div
+            aria-hidden="true"
             style={{
               position: "absolute",
               borderRadius: "50%",
@@ -146,6 +148,7 @@ function PageContent() {
             }}
           />
           <div
+            aria-hidden="true"
             style={{
               position: "absolute",
               borderRadius: "50%",
@@ -162,6 +165,7 @@ function PageContent() {
             }}
           />
           <div
+            aria-hidden="true"
             style={{
               position: "absolute",
               borderRadius: "50%",
@@ -180,6 +184,7 @@ function PageContent() {
 
           {/* Vignette */}
           <div
+            aria-hidden="true"
             style={{
               position: "absolute",
               inset: 0,
@@ -206,6 +211,7 @@ function PageContent() {
             <Wordmark className="text-white/85" />
             <button
               onClick={() => setShowSignIn(true)}
+              className="focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:outline-none"
               style={{
                 fontSize: 13,
                 color: "rgba(255,255,255,0.38)",
@@ -290,6 +296,10 @@ function PageContent() {
                   }}
                 />
                 <input
+                  aria-label="Search races by name or city"
+                  role="combobox"
+                  aria-expanded={isOpen}
+                  aria-haspopup="listbox"
                   placeholder="Search races by name or city…"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
@@ -307,8 +317,28 @@ function PageContent() {
                 />
               </div>
 
+              <div
+                aria-live="polite"
+                aria-atomic="true"
+                style={{
+                  position: "absolute",
+                  width: "1px",
+                  height: "1px",
+                  overflow: "hidden",
+                  clip: "rect(0,0,0,0)",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {isOpen && !loading && query.trim() !== "" && (
+                  results.length > 0
+                    ? `${results.length} race${results.length === 1 ? "" : "s"} found`
+                    : "No races found"
+                )}
+              </div>
+
               {isOpen && (
                 <div
+                  role="listbox"
                   style={{
                     position: "absolute",
                     top: "100%",
@@ -370,6 +400,7 @@ function PageContent() {
 
           {/* Scroll hint */}
           <div
+            aria-hidden="true"
             style={{
               position: "absolute",
               bottom: 28,
@@ -513,6 +544,7 @@ function DropdownRaceRow({
   return (
     <button
       type="button"
+      role="option"
       onClick={() => onSelect(race)}
       className="transition-colors hover:bg-[rgba(80,120,255,0.08)] w-full"
       style={{

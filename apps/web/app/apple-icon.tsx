@@ -20,11 +20,11 @@ export default function AppleIcon() {
         <div
           style={{
             position: "absolute",
-            top: 22,
-            right: 22,
-            width: 64,
-            height: 64,
-            borderRadius: 12,
+            top: 20,
+            right: 20,
+            width: 60,
+            height: 60,
+            borderRadius: 11,
             background: "rgba(6, 182, 212, 0.55)",
           }}
         />
@@ -32,11 +32,11 @@ export default function AppleIcon() {
         <div
           style={{
             position: "absolute",
-            bottom: 22,
-            left: 22,
-            width: 64,
-            height: 64,
-            borderRadius: 12,
+            bottom: 20,
+            left: 20,
+            width: 60,
+            height: 60,
+            borderRadius: 11,
             background: "rgba(6, 182, 212, 0.8)",
           }}
         />
@@ -44,11 +44,11 @@ export default function AppleIcon() {
         <div
           style={{
             position: "absolute",
-            bottom: 22,
-            right: 22,
-            width: 64,
-            height: 64,
-            borderRadius: 12,
+            bottom: 20,
+            right: 20,
+            width: 60,
+            height: 60,
+            borderRadius: 11,
             background: "#06b6d4",
           }}
         />

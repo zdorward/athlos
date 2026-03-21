@@ -265,8 +265,8 @@ function PageContent() {
                 letterSpacing: "0.01em",
               }}
             >
-              Pfitzinger methodology. Personalized to your goal time and race
-              date. Strength training included.
+              Built on modern sports science. Personalized to your race and goal
+              time. Strength training included.
             </p>
 
             {/* Search widget */}
@@ -366,7 +366,7 @@ function PageContent() {
               style={{
                 fontSize: 12,
                 margin: 0,
-                color: "rgba(74,222,128,0.55)",
+                color: "rgba(74,222,128,0.8)",
                 letterSpacing: "0.02em",
               }}
             >
@@ -392,7 +392,7 @@ function PageContent() {
             <span
               style={{
                 fontSize: 11,
-                color: "rgba(255,255,255,0.18)",
+                color: "rgba(255,255,255,0.35)",
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
               }}
@@ -404,7 +404,7 @@ function PageContent() {
                 width: 1,
                 height: 28,
                 background:
-                  "linear-gradient(to bottom, rgba(255,255,255,0.18), transparent)",
+                  "linear-gradient(to bottom, rgba(255,255,255,0.35), transparent)",
               }}
             />
           </div>
@@ -438,7 +438,7 @@ function PageContent() {
               margin: "0 0 28px",
             }}
           >
-            Pick your race and watch the magic happen.
+            Your plan generates in seconds, built around your race and numbers.
           </p>
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
@@ -621,7 +621,7 @@ function FounderSection() {
             ) : (
               <Image
                 src="/zack.jpg"
-                alt="Zack"
+                alt="Zack Dorward, founder of Athlos"
                 width={88}
                 height={88}
                 onError={() => setPhotoError(true)}
@@ -838,7 +838,7 @@ function PlanInputsSection() {
     {
       label: "Include strength training",
       title: "Kept in the picture",
-      body: "Tell us whether you lift. Strength sessions are scheduled around your runs, not on quality days or adjacent to the long run.",
+      body: "Tell me whether you lift. Strength sessions are scheduled around your runs, not on quality days or adjacent to the long run.",
     },
   ]
 
@@ -952,7 +952,7 @@ function ScienceSection() {
         "Optional phase for 20+ week plans. Easy aerobic volume only — no quality sessions. Builds tissue tolerance before heavier training begins.",
       labelStyle: {
         background: "rgba(255,255,255,0.07)",
-        color: "rgba(255,255,255,0.45)",
+        color: "rgba(255,255,255,0.55)",
       },
     },
     {
@@ -1012,11 +1012,11 @@ function ScienceSection() {
       </div>
 
       {/* Block 1 — Built on Pfitzinger, improved */}
-      <div>
+      <div style={{ marginTop: 8 }}>
         <div
           style={{
-            fontSize: 18,
-            fontWeight: 700,
+            fontSize: 20,
+            fontWeight: 600,
             color: "rgba(255,255,255,0.88)",
           }}
         >
@@ -1026,22 +1026,22 @@ function ScienceSection() {
           style={{
             fontSize: 15,
             color: "rgba(255,255,255,0.55)",
-            marginTop: 6,
-          }}
-        >
-          Pfitz is the gold standard for volume progression and phase structure.
-          We keep what works and fix what doesn&apos;t.
-        </div>
-        <div
-          style={{
-            fontSize: 15,
-            color: "rgba(255,255,255,0.38)",
-            lineHeight: 1.6,
             marginTop: 8,
           }}
         >
-          What we keep: the 10% progression rule, long run targets, recovery
-          week cadence, and the Base → Build → Peak → Taper arc. What we change:
+          Pfitz is the gold standard for volume progression and phase structure.
+          I keep what works and fix what doesn&apos;t.
+        </div>
+        <div
+          style={{
+            fontSize: 13,
+            color: "rgba(255,255,255,0.32)",
+            lineHeight: 1.6,
+            marginTop: 14,
+          }}
+        >
+          What I keep: the 10% progression rule, long run targets, recovery
+          week cadence, and the Base → Build → Peak → Taper arc. What I change:
           intensity distribution is polarized (80% easy / 20% hard) to eliminate
           the gray-zone fatigue that Pfitz&apos;s medium-long runs create. Phase
           order is reversed — threshold work comes before VO2max in early
@@ -1071,8 +1071,8 @@ function ScienceSection() {
       >
         <div
           style={{
-            fontSize: 18,
-            fontWeight: 700,
+            fontSize: 20,
+            fontWeight: 600,
             color: "rgba(255,255,255,0.88)",
           }}
         >
@@ -1082,7 +1082,7 @@ function ScienceSection() {
           style={{
             fontSize: 15,
             color: "rgba(255,255,255,0.55)",
-            marginTop: 6,
+            marginTop: 8,
           }}
         >
           Five phases, each with a distinct purpose. The taper is always 3 weeks
@@ -1147,8 +1147,8 @@ function ScienceSection() {
       >
         <div
           style={{
-            fontSize: 18,
-            fontWeight: 700,
+            fontSize: 20,
+            fontWeight: 600,
             color: "rgba(255,255,255,0.88)",
           }}
         >
@@ -1158,7 +1158,7 @@ function ScienceSection() {
           style={{
             fontSize: 15,
             color: "rgba(255,255,255,0.55)",
-            marginTop: 6,
+            marginTop: 8,
           }}
         >
           A 2024 meta-analysis of 31 studies and 652 runners puts heavy
@@ -1167,15 +1167,15 @@ function ScienceSection() {
         </div>
         <div
           style={{
-            fontSize: 15,
-            color: "rgba(255,255,255,0.38)",
+            fontSize: 13,
+            color: "rgba(255,255,255,0.32)",
             lineHeight: 1.6,
-            marginTop: 8,
+            marginTop: 14,
           }}
         >
           Heavy resistance (≥80% 1RM) combined with plyometrics improves
           neuromuscular efficiency, tendon stiffness, and running economy. The
-          effect size is meaningful (ES = −0.426). We schedule strength on easy
+          effect size is meaningful (ES = −0.426). I schedule strength on easy
           run days, after the run, never adjacent to quality sessions or the
           long run. Volume tapers with the plan: 2×/week resistance in Base and
           Build, 1×/week in Peak, and zero from Taper Week 2 through race day.

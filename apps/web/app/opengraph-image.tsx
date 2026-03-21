@@ -53,7 +53,7 @@ export default function Image() {
               width: 58,
               height: 58,
               borderRadius: 10,
-              background: "rgba(6, 182, 212, 0.55)",
+              background: "#06b6d4",
             }}
           />
           {/* bottom-left */}
@@ -77,7 +77,7 @@ export default function Image() {
               width: 58,
               height: 58,
               borderRadius: 10,
-              background: "#06b6d4",
+              background: "rgba(6, 182, 212, 0.55)",
             }}
           />
         </div>
@@ -86,23 +86,41 @@ export default function Image() {
         <div
           style={{
             width: 1,
-            height: 110,
+            height: 148,
             background: "rgba(6, 182, 212, 0.3)",
           }}
         />
 
-        {/* Wordmark */}
-        <span
+        {/* Wordmark + tagline */}
+        <div
           style={{
-            fontSize: 112,
-            fontWeight: 700,
-            color: "#ffffff",
-            letterSpacing: "-4px",
-            lineHeight: 1,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
           }}
         >
-          Athlos
-        </span>
+          <span
+            style={{
+              fontSize: 112,
+              fontWeight: 700,
+              color: "#ffffff",
+              letterSpacing: "-4px",
+              lineHeight: 1,
+            }}
+          >
+            Athlos
+          </span>
+          <span
+            style={{
+              fontSize: 28,
+              fontWeight: 400,
+              color: "rgba(255, 255, 255, 0.5)",
+              lineHeight: 1,
+            }}
+          >
+            Data driven marathon training.
+          </span>
+        </div>
       </div>
     ),
     { ...size }

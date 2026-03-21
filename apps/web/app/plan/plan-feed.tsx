@@ -169,7 +169,7 @@ export function PlanFeed({ days, units, totalWeeks, raceDistance, planStartDate,
           <div>
             <div className="flex items-center justify-between py-3">
               <div>
-                <p className="text-xs font-semibold">Week 0 — Now</p>
+                <p className="text-xs font-semibold">Week 0 — {getPhaseLabel(1, totalWeeks, taperWeeks, phases) || "Now"}</p>
                 {bridgeDayEntries[0] && bridgeDayEntries[bridgeDayEntries.length - 1] && (
                   <p className="text-[11px] text-muted-foreground">
                     {format(parseISO(bridgeDayEntries[0][0]!.date), "MMM d")}–{format(parseISO(bridgeDayEntries[bridgeDayEntries.length - 1]![0]!.date), "MMM d")}

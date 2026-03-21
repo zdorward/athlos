@@ -1,12 +1,13 @@
 // apps/web/app/dashboard/race-banner.tsx
 import { differenceInCalendarDays, parseISO, format } from "date-fns"
-import type { PlanGenerationInput, WorkoutDay } from "@workspace/plan-engine"
+import type { PlanGenerationInput, WorkoutDay, PhaseEntry } from "@workspace/plan-engine"
 import { getPhaseLabel, getTaperWeeks } from "@/app/plan/workout-utils"
 
 interface RaceBannerProps {
   input: PlanGenerationInput
   days: WorkoutDay[]
   totalWeeks: number
+  phases?: PhaseEntry[]
 }
 
 function getPlanWeekNum(days: WorkoutDay[], todayISO: string): number {
@@ -18,7 +19,7 @@ function getPlanWeekNum(days: WorkoutDay[], todayISO: string): number {
   return Math.max(1, Math.floor(elapsed / msPerWeek) + 1)
 }
 
-export function RaceBanner({ input, days, totalWeeks }: RaceBannerProps) {
+export function RaceBanner({ input, days, totalWeeks, phases }: RaceBannerProps) {
   const todayISO = new Date().toLocaleDateString("en-CA")
   const raceDate = parseISO(input.race.date)
   const daysAway = differenceInCalendarDays(raceDate, parseISO(todayISO))
@@ -27,7 +28,7 @@ export function RaceBanner({ input, days, totalWeeks }: RaceBannerProps) {
 
   const weekNum = getPlanWeekNum(days, todayISO)
   const taperWeeks = getTaperWeeks(input.race.distance as "half" | "full")
-  const phase = totalWeeks > 0 ? getPhaseLabel(weekNum, totalWeeks, taperWeeks) : ""
+  const phase = totalWeeks > 0 ? getPhaseLabel(weekNum, totalWeeks, taperWeeks, phases) : ""
   const progressPct = totalWeeks > 0 ? Math.min(100, Math.round((weekNum / totalWeeks) * 100)) : 0
   const raceDateLabel = format(raceDate, "MMM d, yyyy")
 

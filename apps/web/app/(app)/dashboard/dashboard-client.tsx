@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { format, parseISO } from "date-fns"
 import Link from "next/link"
-import type { WorkoutDay, PlanGenerationInput } from "@workspace/plan-engine"
+import type { WorkoutDay, PlanGenerationInput, PhaseEntry } from "@workspace/plan-engine"
 import { RaceBanner } from "./race-banner"
 import { TodayWorkoutCard } from "./today-workout-card"
 import { Button } from "@workspace/ui/components/button"
@@ -13,6 +13,7 @@ export interface Plan {
   id: string
   name: string
   days: WorkoutDay[]
+  phases?: PhaseEntry[]
   input: PlanGenerationInput
   totalWeeks: number
   totalKm: string
@@ -167,6 +168,7 @@ export function DashboardClient({
             input={resolvedPlan.input}
             days={resolvedPlan.days}
             totalWeeks={resolvedPlan.totalWeeks}
+            phases={resolvedPlan.phases}
           />
         )}
 

@@ -390,7 +390,7 @@ export function PlanPreview() {
 
           {/* Mobile list */}
           <div className="mock-plan-mobile">
-            {mockWeeks.map((week, wi) => (
+            {mockWeeks.slice(0, 1).map((week, wi) => (
               <div key={wi}>
                 {/* Week header */}
                 <div

@@ -39,6 +39,10 @@ export default function PlanViewPage({ params }: PageProps) {
   const [selectedKey, setSelectedKey] = useState<{ date: string; type: WorkoutType } | null>(null)
   const [fetching, setFetching] = useState(false)
 
+  const handleSelectedKeyChange = useCallback((key: { date: string; type: WorkoutType } | null) => {
+    setSelectedKey(key)
+  }, [])
+
   // Fetch plan on mount — layout already redirects unauthenticated users server-side
   useEffect(() => {
     setFetching(true)
@@ -91,10 +95,6 @@ export default function PlanViewPage({ params }: PageProps) {
     ?? "km"
   const raceDistance = plan.input.race?.distance
   const goalTimeLabel = formatGoalTime(plan.input)
-
-  const handleSelectedKeyChange = useCallback((key: { date: string; type: WorkoutType } | null) => {
-    setSelectedKey(key)
-  }, [])
 
   async function handleStartNewPlan() {
     if (typeof plan !== "object" || plan === null) return

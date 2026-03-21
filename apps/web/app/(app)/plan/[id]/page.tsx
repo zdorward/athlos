@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useCallback, useEffect, useState, startTransition } from "react"
+import { use, useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft } from "lucide-react"
 import Link from "next/link"
@@ -93,7 +93,7 @@ export default function PlanViewPage({ params }: PageProps) {
   const goalTimeLabel = formatGoalTime(plan.input)
 
   const handleSelectedKeyChange = useCallback((key: { date: string; type: WorkoutType } | null) => {
-    startTransition(() => setSelectedKey(key))
+    setSelectedKey(key)
   }, [])
 
   async function handleStartNewPlan() {

@@ -90,7 +90,7 @@ function buildMockWeeks() {
 // ── Component ────────────────────────────────────────────────────────────────
 
 export function PlanPreview() {
-  const mockWeeks = useMemo(buildMockWeeks, [])
+  const mockWeeks = useMemo(() => buildMockWeeks(), [])
 
   return (
     <section

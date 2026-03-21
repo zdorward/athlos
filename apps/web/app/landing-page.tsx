@@ -265,8 +265,7 @@ function PageContent() {
                 letterSpacing: "0.01em",
               }}
             >
-              Built on modern sports science. Personalized to your race and goal
-              time. Strength training included.
+              Personalized to your race and goal time. Strength training included.
             </p>
 
             {/* Search widget */}
